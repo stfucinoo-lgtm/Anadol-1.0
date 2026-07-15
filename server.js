@@ -67,12 +67,13 @@ app.get('*', (req, res, next) => {
 sequelize.sync({ alter: true })
     .then(() => {
         console.log('PostgreSQL Database synced successfully.');
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => { // إضافة '0.0.0.0' ضروري لـ Render
             console.log(`ANADOL League server is running on port: ${PORT}`);
         });
     })
     .catch(err => {
         console.error('Failed to synchronize database, server aborted:', err.message);
+        process.exit(1); // إجبار التطبيق على التوقف إذا لم يتم الاتصال، ليعيد Render المحاولة
     });
 
 module.exports = app;
