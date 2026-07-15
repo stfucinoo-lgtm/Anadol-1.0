@@ -1,5 +1,6 @@
 /**
  * ANADOL League - Entry Point
+ * تم تعديل المسارات لتتوافق مع مجلد Public وتأجيل التحميل لمزامنة قاعدة البيانات.
  */
 
 const express = require('express');
@@ -8,19 +9,19 @@ const cors = require('cors');
 require('dotenv').config();
 
 const sequelize = require('./config/db');
-const User = require('./models/User'); // استدعاء الموديل لإنشاء الأدمن
-const bcrypt = require('bcryptjs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 1. برمجيات الوسيط
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// استخدام اسم المجلد الموحد (تأكد أن المجلد على GitHub اسمه Public)
+// خدمة الملفات الساكنة (تأكد أن المجلد في GitHub اسمه Public بحرف P كبير)
 app.use(express.static(path.join(__dirname, 'Public')));
 
+// 2. دالة آمنة لتحميل المسارات
 function safeMountRoute(routePath, moduleName) {
     try {
         app.use(routePath, require(moduleName));
@@ -32,23 +33,12 @@ function safeMountRoute(routePath, moduleName) {
     }
 }
 
+// 3. مزامنة قاعدة البيانات ثم تشغيل المسارات والتطبيق
 sequelize.sync({ alter: true })
-    .then(async () => {
+    .then(() => {
         console.log('PostgreSQL Database synced successfully.');
 
-        // --- كود إنشاء حساب الأدمن التلقائي ---
-        const adminExists = await User.findOne({ where: { role: 'admin' } });
-        if (!adminExists) {
-            const hashedPassword = await bcrypt.hash('Admin123!', 10);
-            await User.create({
-                username: 'admin',
-                email: 'admin@anadol.com',
-                password: hashedPassword,
-                role: 'admin'
-            });
-            console.log('تم إنشاء حساب الأدمن التلقائي: admin@anadol.com / Admin123!');
-        }
-
+        // تحميل المسارات
         app.use('/api/teams', require('./routes/teams'));
         app.use('/api/matches', require('./routes/matches'));
         app.use('/api/standings', require('./routes/standings'));
@@ -63,9 +53,10 @@ sequelize.sync({ alter: true })
         safeMountRoute('/api/admin/settings', './routes/admin-settings');
         safeMountRoute('/api/admin/audit-log', './routes/admin-audit');
 
+        // 4. التوجيه التلقائي للواجهة (SPA)
         app.get('*', (req, res) => {
             if (req.path.startsWith('/api/')) {
-                return res.status(404).json({ error: 'Not found' });
+                return res.status(404).json({ error: 'الطلب المستهدف غير متوفر' });
             }
             res.sendFile(path.join(__dirname, 'Public', 'index.html'));
         });
@@ -75,7 +66,7 @@ sequelize.sync({ alter: true })
         });
     })
     .catch(err => {
-        console.error('Failed to synchronize database:', err.message);
+        console.error('Failed to sync database:', err.message);
         process.exit(1);
     });
 
