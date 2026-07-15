@@ -8,21 +8,30 @@ require('dotenv').config();
 
 let sequelize;
 
-// قراءة متغير البيئة الموحد للإنتاج أولاً لتسهيل النشر على Render
+// إعدادات مجمّع الاتصالات (Connection Pool) لتحسين الأداء على Render
+const poolOptions = {
+    max: 5,        // أقصى عدد اتصالات متزامنة
+    min: 0,        // أقل عدد اتصالات
+    acquire: 30000,// الوقت الأقصى للمحاولة (ملي ثانية)
+    idle: 10000    // وقت الانتظار قبل إغلاق الاتصال الخامل
+};
+
 if (process.env.DATABASE_URL) {
+    // إعدادات الإنتاج (Render)
     sequelize = new Sequelize(process.env.DATABASE_URL, {
         dialect: 'postgres',
         protocol: 'postgres',
-        logging: false, // إغلاق تسجيل الاستعلامات في بيئة الإنتاج لتسريع الأداء وتقليص الضجيج في السجلات
+        logging: false,
+        pool: poolOptions,
         dialectOptions: {
             ssl: {
                 require: true,
-                rejectUnauthorized: false // تلافي مشاكل شهادات SSL ذاتية التوقيع الشائعة في الخوادم السحابية كـ Render
+                rejectUnauthorized: false
             }
         }
     });
 } else {
-    // إعدادات افتراضية مخصصة للبيئة المحلية في حال عدم توفر متغير البيئة السحابي
+    // إعدادات البيئة المحلية
     const dbName = process.env.DB_NAME || 'anadol_db';
     const dbUser = process.env.DB_USER || 'postgres';
     const dbPassword = process.env.DB_PASSWORD || 'password';
@@ -33,11 +42,12 @@ if (process.env.DATABASE_URL) {
         host: dbHost,
         port: dbPort,
         dialect: 'postgres',
-        logging: console.log // تفعيل طباعة الاستعلامات محلياً للمساعدة في مراجعة وتدقيق العمليات
+        pool: poolOptions,
+        logging: console.log
     });
 }
 
-// دالة اختبار الاتصال المباشر بقاعدة البيانات للتأكد من سلامة التجهيزات
+// دالة اختبار الاتصال
 sequelize.authenticate()
     .then(() => {
         console.log('Successfully connected to PostgreSQL database (ANADOL League).');
