@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بوابة الإدارة والمراقبة | دوري الأناضول</title>
+  <!-- الخطوط العربية -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- التنسيق العام للموقع -->
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- مكتبة الأيقونات والخطوط -->
+  <style>
+    /* تنسيقات إضافية مخصصة لصفحة الدخول لضمان مظهر رياضي داكن ومبهر */
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: radial-gradient(circle at center, #111827 0%, #030712 100%);
+      color: #f3f4f6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      overflow-x: hidden;
+    }
+    .login-container {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      border-radius: 24px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 
+                  0 0 50px rgba(16, 185, 129, 0.05);
+    }
+    .accent-glow {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: #10b981;
+      filter: blur(120px);
+      opacity: 0.12;
+      border-radius: 50%;
+      z-index: -1;
+    }
+    .form-group input {
+      background: rgba(31, 41, 55, 0.5);
+      border: 1px solid rgba(75, 85, 99, 0.4);
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #10b981;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+      background: rgba(31, 41, 55, 0.8);
+    }
+    .glow-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+      transition: all 0.3s ease;
+    }
+    .glow-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- التوهج الخلفي المظهر الجمالي -->
+  <div class="accent-glow" style="top: 10%; right: 10%;"></div>
+  <div class="accent-glow" style="bottom: 10%; left: 10%;"></div>
+
+  <div class="login-container opacity-0 transform translate-y-6" id="login-box">
+    <!-- شعار الدوري أو الرأس الرياضي -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-3xl mb-4">
+        🏆
+      </div>
+      <h1 class="text-2xl font-black tracking-tight text-white">دوري الأناضول الرياضي</h1>
+      <p class="text-sm text-neutral-400 mt-1">بوابة الإدارة والتنسيق الفني للمشروع</p>
+    </div>
+
+    <!-- رسائل الأخطاء والتنبيهات -->
+    <div id="error-container" class="hidden mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center">
+      <!-- يضاف هنا نص الخطأ عبر الجافا سكريبت -->
+    </div>
+
+    <!-- نموذج تسجيل الدخول -->
+    <form id="admin-login-form" class="space-y-6">
+      <div class="form-group">
+        <label for="email" class="block text-sm font-bold text-neutral-300 mb-2">البريد الإلكتروني</label>
+        <input type="email" id="email" required placeholder="name@anadol.com" class="w-full px-4 py-3 rounded-xl text-sm placeholder-gray-500">
+      </div>
+
+      <div class="form-group">
+        <div class="flex items-center justify-between mb-2">
+          <label for="password" class="block text-sm font-bold text-neutral-300">كلمة المرور</label>
+        </div>
+        <input type="password" id="password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl text-sm placeholder-gray-500">
+      </div>
+
+      <button type="submit" id="login-submit-btn" class="glow-btn w-full py-3.5 px-4 rounded-xl text-white font-black text-sm tracking-wide focus:outline-none">
+        دخول لوحة التحكم
+      </button>
+
+      <div class="text-center mt-6">
+        <a href="../index.html" class="text-xs text-emerald-400 hover:text-emerald-300 hover:underline transition">
+          ← عودة للموقع الرئيسي للدوري
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- مكتبة GSAP للحركات البصرية -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  
+  <!-- ملفات الخدمات والربط البرمجي المشتركة -->
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+
+  <!-- تفعيل حركة الدخول التفاعلية بمجرد جاهزية الصفحة -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof gsap !== 'undefined') {
+        gsap.to('#login-box', {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power3.out'
+        });
+      } else {
+        document.getElementById('login-box').classList.remove('opacity-0', 'translate-y-6');
+      }
+    });
+  </script>
+</body>
+</html>

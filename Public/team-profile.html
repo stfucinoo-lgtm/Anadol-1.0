@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملف التعريفي للنادي - دوري الأناضول</title>
+    <!-- استدعاء خط Cairo وتنسيقات CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- مكتبة FontAwesome للأيقونات الرياضية -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- 1. شريط التنقل (Navbar) -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="index.html" class="navbar-brand">
+                <i class="fa-solid fa-futbol"></i> دوري <span>الأناضول</span>
+            </a>
+            
+            <ul class="navbar-menu" id="navbarMenu">
+                <li><a href="index.html" class="navbar-link">الرئيسية</a></li>
+                <li><a href="standings.html" class="navbar-link">جدول الترتيب</a></li>
+                <li><a href="teams.html" class="navbar-link active">الفرق</a></li>
+                <li><a href="blog.html" class="navbar-link">المدونة والتحليلات</a></li>
+                <li><a href="admin/login.html" class="btn-nav-auth" id="navAuthBtn">لوحة التحكم</a></li>
+            </ul>
+
+            <button class="navbar-toggle" id="navbarToggle" aria-label="فتح القائمة">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 2. هيدر الملف التعريفي والبيانات الأساسية (Header Section) -->
+    <header class="section-padding" style="padding-bottom: 0;">
+        <div class="container">
+            <div class="profile-header-card" id="profileHeader">
+                <img src="" alt="شعار النادي" class="profile-crest" id="teamCrest">
+                <div class="profile-info">
+                    <h1 class="profile-title" id="teamName">اسم النادي</h1>
+                    <p style="color: var(--text-muted); font-size: 1.1rem;" id="teamDetails">تأسس عام: -- | الملعب: --</p>
+                    
+                    <!-- 3. قسم إحصائيات الموسم (Stats Section) -->
+                    <div class="profile-meta-grid" id="statsGrid">
+                        <div class="profile-meta-item">
+                            <span class="profile-meta-label">الترتيب الحالي</span>
+                            <div class="profile-meta-value" style="color: var(--accent-color);" id="statRank">--</div>
+                        </div>
+                        <div class="profile-meta-item">
+                            <span class="profile-meta-label">الأهداف المسجلة</span>
+                            <div class="profile-meta-value stat-num" id="statGoalsFor" data-target="0">0</div>
+                        </div>
+                        <div class="profile-meta-item">
+                            <span class="profile-meta-label">الأهداف المستقبَلة</span>
+                            <div class="profile-meta-value stat-num" id="statGoalsAgainst" data-target="0">0</div>
+                        </div>
+                        <div class="profile-meta-item">
+                            <span class="profile-meta-label">شباك نظيفة</span>
+                            <div class="profile-meta-value stat-num" id="statCleanSheets" data-target="0">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 4. قسم تشكيلة لاعبي الفريق (Team Section) -->
+    <section class="section-padding" id="squadSection">
+        <div class="container">
+            <div class="section-title-wrap">
+                <h2 class="section-title">التشكيلة الرسمية واللاعبين</h2>
+            </div>
+            
+            <div class="grid-4" id="playersGrid">
+                <!-- يتم توليد كروت اللاعبين ديناميكياً عبر الجافا سكريبت -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. قسم جدول نتائج وقادم المباريات (Event Schedule Section) -->
+    <section class="section-padding" style="background-color: var(--secondary-dark);" id="scheduleSection">
+        <div class="container">
+            <div class="section-title-wrap">
+                <h2 class="section-title">جدول المباريات والنتائج</h2>
+            </div>
+            
+            <div id="matchesContainer">
+                <!-- يتم توليد شرائط المباريات ديناميكياً هنا -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. الفوتر (Footer) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col-about">
+                    <a href="index.html" class="navbar-brand">
+                        <i class="fa-solid fa-futbol"></i> دوري <span>الأناضول</span>
+                    </a>
+                    <p>منصة ويب متكاملة تقدم أرشفة متطورة لدوري كرة القدم للهواة، لتمكين الفرق واللاعبين من قراءة أرقامهم الفنية والميدانية بشكل إحترافي مبسط.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>روابط سريعة</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">الرئيسية</a></li>
+                        <li><a href="standings.html">جدول الترتيب</a></li>
+                        <li><a href="teams.html">قائمة الفرق</a></li>
+                        <li><a href="blog.html">مدونة التحليلات</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>تواصل معنا</h4>
+                    <ul class="footer-links">
+                        <li><i class="fa-solid fa-envelope"></i> info@anadolleague.com</li>
+                        <li><i class="fa-solid fa-location-dot"></i> ملعب الأناضول الرئيسي</li>
+                        <li><i class="fa-solid fa-phone"></i> +90 (555) 000-0000</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 دوري الأناضول. جميع الحقوق محفوظة.</p>
+                <p>مبني بشغف بواسطة اللجنة المنظمة لدوري الأناضول</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- استدعاء مكتبة GSAP والـ ScrollTrigger من الـ CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- استدعاء ملف الحركات المشترك -->
+    <script src="js/animations.js"></script>
+    
+    <script>
+        // تفعيل تفاعل شريط التنقل على الموبايل
+        const navbarToggle = document.getElementById('navbarToggle');
+        const navbarMenu = document.getElementById('navbarMenu');
+        
+        if (navbarToggle && navbarMenu) {
+            navbarToggle.addEventListener('click', () => {
+                navbarMenu.style.display = navbarMenu.style.display === 'flex' ? 'none' : 'flex';
+                if (navbarMenu.style.display === 'flex') {
+                    navbarMenu.style.flexDirection = 'column';
+                    navbarMenu.style.position = 'absolute';
+                    navbarMenu.style.top = '80px';
+                    navbarMenu.style.left = '0';
+                    navbarMenu.style.width = '100%';
+                    navbarMenu.style.backgroundColor = 'var(--secondary-dark)';
+                    navbarMenu.style.padding = '1.5rem';
+                    navbarMenu.style.gap = '1rem';
+                    navbarMenu.style.borderBottom = '1px solid var(--border-color)';
+                }
+            });
+        }
+
+        // قاعدة البيانات التجريبية للأندية واللاعبين والمباريات (مرحلة الـ MVP)
+        const mockDatabase = {
+            "1": {
+                name: "نجم الأناضول",
+                crest: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=200",
+                stadium: "ملعب الأناضول الرئيسي",
+                founded: 2018,
+                color: "#00ff87",
+                stats: { rank: "1", goalsFor: 24, goalsAgainst: 8, cleanSheets: 6 },
+                players: [
+                    { name: "أحمد حسن", number: 1, position: "حارس مرمى", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150" },
+                    { name: "مراد يوسف", number: 4, position: "مدافع", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" },
+                    { name: "عمر فاروق", number: 8, position: "لاعب وسط", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150" },
+                    { name: "كريم أنس", number: 10, position: "مهاجم", photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150" }
+                ],
+                matches: [
+                    { oppName: "شباب القلعة", oppCrest: "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&q=80&w=100", date: "10 يناير 2026", homeScore: 2, awayScore: 1, isHome: true, status: "finished" },
+                    { oppName: "أف سي الصقور", oppCrest: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=100", date: "24 يناير 2026", homeScore: 0, awayScore: 0, isHome: false, status: "scheduled" }
+                ]
+            },
+            "2": {
+                name: "شباب القلعة",
+                crest: "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&q=80&w=200",
+                stadium: "ملعب القلعة الرياضي",
+                founded: 2019,
+                color: "#3b82f6",
+                stats: { rank: "2", goalsFor: 19, goalsAgainst: 10, cleanSheets: 4 },
+                players: [
+                    { name: "خالد سعيد", number: 22, position: "حارس مرمى", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150" },
+                    { name: "طارق زياد", number: 5, position: "مدافع", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" },
+                    { name: "سامر علي", number: 11, position: "مهاجم", photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150" }
+                ],
+                matches: [
+                    { oppName: "نجم الأناضول", oppCrest: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=100", date: "10 يناير 2026", homeScore: 2, awayScore: 1, isHome: false, status: "finished" }
+                ]
+            }
+        };
+
+        // دالة قراءة المعرف وتحميل البيانات
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            let teamId = params.get('id') || "1"; // الافتراضي هو "1" في حال عدم تمرير المعرف
+            
+            // في حال وجود معرف غير مسجل في البيانات الوهمية، نقوم بالتحويل إلى الافتراضي
+            if (!mockDatabase[teamId]) {
+                teamId = "1";
+            }
+
+            const teamData = mockDatabase[teamId];
+
+            // 1. تعبئة بيانات الهيدر
+            document.getElementById('teamCrest').src = teamData.crest;
+            document.getElementById('teamCrest').alt = teamData.name;
+            document.getElementById('teamName').textContent = teamData.name;
+            document.getElementById('teamDetails').textContent = `تأسس عام: ${teamData.founded} | الملعب الرسمي: ${teamData.stadium}`;
+
+            // تلوين الحدود بألوان الفريق الرئيسية لتجربة تفاعلية مخصصة
+            document.getElementById('profileHeader').style.borderLeft = `5px solid ${teamData.color}`;
+
+            // 2. تعبئة الإحصائيات مع الحفاظ على قيم العدادات التصاعدية
+            document.getElementById('statRank').textContent = `مركز ${teamData.stats.rank}`;
+            
+            const goalsForEl = document.getElementById('statGoalsFor');
+            const goalsAgainstEl = document.getElementById('statGoalsAgainst');
+            const cleanSheetsEl = document.getElementById('statCleanSheets');
+
+            goalsForEl.setAttribute('data-target', teamData.stats.goalsFor);
+            goalsAgainstEl.setAttribute('data-target', teamData.stats.goalsAgainst);
+            cleanSheetsEl.setAttribute('data-target', teamData.stats.cleanSheets);
+
+            // 3. توليد اللاعبين
+            const playersGrid = document.getElementById('playersGrid');
+            playersGrid.innerHTML = '';
+            
+            teamData.players.forEach(player => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'card player-card player-item';
+                playerCard.innerHTML = `
+                    <div class="player-photo-wrap">
+                        <img src="${player.photo}" alt="${player.name}" class="player-photo">
+                        <span class="player-number">${player.number}</span>
+                    </div>
+                    <div class="player-details">
+                        <h4 class="player-name">${player.name}</h4>
+                        <p class="player-position">${player.position}</p>
+                    </div>
+                `;
+                playersGrid.appendChild(playerCard);
+            });
+
+            // 4. توليد المباريات
+            const matchesContainer = document.getElementById('matchesContainer');
+            matchesContainer.innerHTML = '';
+
+            teamData.matches.forEach(match => {
+                const isFinished = match.status === 'finished';
+                const statusBadgeClass = isFinished ? 'status-finished' : 'status-scheduled';
+                const statusText = isFinished ? 'انتهت' : 'قادمة';
+
+                const matchStrip = document.createElement('div');
+                matchStrip.className = 'match-strip match-item';
+                matchStrip.innerHTML = `
+                    <!-- فريق الذهاب (الأول) -->
+                    <div class="match-strip-team home">
+                        <span class="match-strip-name">${match.isHome ? teamData.name : match.oppName}</span>
+                        <img src="${match.isHome ? teamData.crest : match.oppCrest}" alt="" class="match-strip-crest">
+                    </div>
+
+                    <!-- النتيجة والتاريخ -->
+                    <div class="match-strip-center">
+                        <span class="match-strip-score">${isFinished ? `${match.homeScore} - ${match.awayScore}` : 'VS'}</span>
+                        <span class="match-status-badge ${statusBadgeClass}">${statusText}</span>
+                        <small style="color: var(--text-muted); margin-top: 5px;">${match.date}</small>
+                    </div>
+
+                    <!-- فريق الإياب (الثاني) -->
+                    <div class="match-strip-team away">
+                        <img src="${match.isHome ? match.oppCrest : teamData.crest}" alt="" class="match-strip-crest">
+                        <span class="match-strip-name">${match.isHome ? match.oppCrest : teamData.name}</span>
+                    </div>
+                `;
+                matchesContainer.appendChild(matchStrip);
+            });
+
+            // 5. تفعيل حركات GSAP التفاعلية
+            if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+                gsap.registerPlugin(ScrollTrigger);
+            }
+
+            // حركة الهيدر الأساسي
+            AnadolAnims.fadeIn('#profileHeader', { y: -30, duration: 0.8 });
+
+            // حركات العدادات التصاعدية عند تحميل هيدر الصفحة
+            document.querySelectorAll('.stat-num').forEach(el => {
+                const target = parseInt(el.getAttribute('data-target'), 10) || 0;
+                AnadolAnims.countUp(el, target, { duration: 1.5, delay: 0.2 });
+            });
+
+            // ظهور تشكيلة اللاعبين بالتمرير التتابعي
+            if (document.querySelector('.player-item')) {
+                AnadolAnims.scrollTriggerFade('#squadSection', {
+                    y: 30,
+                    duration: 0.8,
+                    onStart: () => {
+                        AnadolAnims.staggerIn('.player-item', { y: 20, duration: 0.5 });
+                    }
+                });
+            }
+
+            // ظهور جدول المباريات بالتمرير التتابعي
+            if (document.querySelector('.match-item')) {
+                AnadolAnims.scrollTriggerFade('#scheduleSection', {
+                    y: 30,
+                    duration: 0.8,
+                    onStart: () => {
+                        AnadolAnims.staggerIn('.match-item', { y: 15, duration: 0.4 });
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

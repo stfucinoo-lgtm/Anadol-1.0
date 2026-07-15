@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة الفرق واللاعبين - ANADOL League</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0f172a',
+              card: '#1e293b',
+              accent: '#f59e0b',
+              accentHover: '#d97706',
+              success: '#10b981',
+              danger: '#ef4444'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Header / Navigation -->
+  <header class="bg-brand-dark border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/admin/dashboard.html" class="text-brand-accent hover:text-white transition">
+          <i class="fa-solid fa-arrow-right text-xl"></i>
+        </a>
+        <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white">إدارة الفرق واللاعبين</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <span id="admin-user-badge" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-card border border-slate-700">
+          <span class="w-2 h-2 rounded-full bg-brand-accent animate-pulse"></span>
+          <span id="admin-username">المدير</span>
+        </span>
+        <a href="/admin/dashboard.html" class="text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 py-1.5 px-3 rounded-lg transition">
+          لوحة التحكم
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Action Top Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div>
+        <p class="text-slate-400 text-sm">أضف فرقاً جديدة، نسّق التشكيلات، وتحكّم ببيانات لاعبي دوري الأناضول.</p>
+      </div>
+      <div>
+        <button id="btn-open-team-modal" class="w-full sm:w-auto bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-bold px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 transition duration-200">
+          <i class="fa-solid fa-plus"></i>
+          إضافة فريق جديد
+        </button>
+      </div>
+    </div>
+
+    <!-- Layout Grid: Teams (Right/Full) and Selected Team's Players (Left/Dynamic) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Teams List Panel -->
+      <section class="lg:col-span-7 space-y-6">
+        <div class="bg-brand-card rounded-xl border border-slate-800 p-5">
+          <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
+            <i class="fa-solid fa-shield-halved text-brand-accent"></i>
+            قائمة الفرق الحالية (<span id="teams-count">0</span>)
+          </h2>
+
+          <!-- Loading state -->
+          <div id="teams-loading" class="py-12 text-center text-slate-400">
+            <i class="fa-solid fa-circle-notch animate-spin text-2xl text-brand-accent mb-2"></i>
+            <p>جاري تحميل الفرق المعتمدة...</p>
+          </div>
+
+          <!-- Empty state -->
+          <div id="teams-empty" class="hidden py-12 text-center text-slate-500">
+            <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
+            <p>لا توجد فرق مضافة بعد في قاعدة البيانات.</p>
+          </div>
+
+          <!-- Teams Grid -->
+          <div id="teams-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Dynamic Cards generated via admin-teams.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Players Management Panel -->
+      <section class="lg:col-span-5 space-y-6">
+        <div class="bg-brand-card rounded-xl border border-slate-800 p-5 sticky top-24">
+          
+          <!-- Not Selected Placeholder -->
+          <div id="player-panel-placeholder" class="py-16 text-center text-slate-500">
+            <i class="fa-solid fa-users text-5xl mb-4 text-slate-700"></i>
+            <h3 class="text-base font-bold text-slate-400 mb-1">لم يتم اختيار فريق</h3>
+            <p class="text-xs px-6">الرجاء الضغط على زر "إدارة اللاعبين" لأي فريق من القائمة الجانبية لعرض وتعديل تشكيلته.</p>
+          </div>
+
+          <!-- Active Panel Content -->
+          <div id="player-panel-active" class="hidden space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-3">
+                <img id="selected-team-crest" src="" alt="شعار الفريق" class="w-10 h-10 object-contain rounded-sm">
+                <div>
+                  <h3 id="selected-team-name" class="font-bold text-white leading-tight">اسم الفريق</h3>
+                  <p class="text-slate-400 text-xs">تأسس عام <span id="selected-team-year">0000</span></p>
+                </div>
+              </div>
+              <button id="btn-open-player-modal" class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-brand-accent p-2 rounded-lg transition" title="إضافة لاعب">
+                <i class="fa-solid fa-user-plus text-base"></i>
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-slate-400 bg-slate-900 px-3 py-2 rounded-lg">
+              <span>الملعب: <strong id="selected-team-stadium" class="text-slate-200">-</strong></span>
+              <span class="flex items-center gap-1">اللون: <span id="selected-team-color" class="inline-block w-3 h-3 rounded-full border border-slate-700"></span></span>
+            </div>
+
+            <!-- Players List container -->
+            <div class="space-y-2">
+              <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">قائمة اللاعبين المعتمدة</h4>
+              
+              <div id="players-loading" class="hidden py-6 text-center text-slate-400 text-xs">
+                <i class="fa-solid fa-circle-notch animate-spin text-brand-accent mb-2"></i>
+                <p>جاري استدعاء التشكيلة...</p>
+              </div>
+
+              <div id="players-empty" class="hidden py-8 text-center text-slate-600 text-xs">
+                <i class="fa-solid fa-user-slash text-2xl mb-2"></i>
+                <p>لا يوجد لاعبون مسجلون في هذا الفريق حالياً.</p>
+              </div>
+
+              <div id="players-list" class="max-h-[380px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                <!-- Dynamic player rows via admin-teams.js -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-brand-dark border-t border-slate-900 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-xs">
+      <p>&copy; 2026 دوري الأناضول (ANADOL League). لوحة تحكم الإدارة الحساسة.</p>
+    </div>
+  </footer>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. Team Modal (Add / Edit) -->
+  <div id="team-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-brand-card border border-slate-800 rounded-xl max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
+      <div class="bg-slate-900 px-5 py-4 flex items-center justify-between border-b border-slate-800">
+        <h3 id="team-modal-title" class="font-bold text-white text-base">إضافة فريق جديد</h3>
+        <button type="button" class="btn-close-modal text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="team-form" class="p-5 space-y-4">
+        <input type="hidden" id="team-id-input" name="teamId">
+        
+        <div>
+          <label for="team-name" class="block text-xs font-semibold text-slate-300 mb-1.5">اسم الفريق *</label>
+          <input type="text" id="team-name" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="team-crest" class="block text-xs font-semibold text-slate-300 mb-1.5">رابط الشعار (Crest URL)</label>
+            <input type="url" id="team-crest" placeholder="https://..." class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
+          </div>
+          <div>
+            <label for="team-color" class="block text-xs font-semibold text-slate-300 mb-1.5">اللون الأساسي (Hex)</label>
+            <div class="flex gap-2">
+              <input type="color" id="team-color-picker" class="w-10 h-9 p-0 bg-transparent border-0 cursor-pointer">
+              <input type="text" id="team-color" placeholder="#f59e0b" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2.5 py-2 text-sm text-white focus:outline-none transition uppercase">
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="team-stadium" class="block text-xs font-semibold text-slate-300 mb-1.5">الملعب الرئيسي</label>
+            <input type="text" id="team-stadium" placeholder="ملعب الأناضول" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
+          </div>
+          <div>
+            <label for="team-founded" class="block text-xs font-semibold text-slate-300 mb-1.5">سنة التأسيس</label>
+            <input type="number" id="team-founded" placeholder="2020" min="1900" max="2026" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-3 border-t border-slate-800">
+          <button type="button" class="btn-close-modal bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm transition">إلغاء</button>
+          <button type="submit" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-bold px-5 py-2 rounded-lg text-sm transition">حفظ البيانات</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Player Modal (Add / Edit) -->
+  <div id="player-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-brand-card border border-slate-800 rounded-xl max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
+      <div class="bg-slate-900 px-5 py-4 flex items-center justify-between border-b border-slate-800">
+        <h3 id="player-modal-title" class="font-bold text-white text-base">إضافة لاعب للتشكيلة</h3>
+        <button type="button" class="btn-close-player-modal text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="player-form" class="p-5 space-y-4">
+        <input type="hidden" id="player-id-input" name="playerId">
+        
+        <div>
+          <label for="player-name" class="block text-xs font-semibold text-slate-300 mb-1.5">اسم اللاعب الكامل *</label>
+          <input type="text" id="player-name" required placeholder="مثال: أحمد عبد الله" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="player-number" class="block text-xs font-semibold text-slate-300 mb-1.5">رقم القميص *</label>
+            <input type="number" id="player-number" required min="1" max="99" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
+          </div>
+          <div>
+            <label for="player-position" class="block text-xs font-semibold text-slate-300 mb-1.5">المركز المفضّل *</label>
+            <select id="player-position" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-2 text-sm text-white focus:outline-none transition">
+              <option value="حارس مرمى">حارس مرمى</option>
+              <option value="مدافع">مدافع</option>
+              <option value="وسط">وسط</option>
+              <option value="مهاجم">مهاجم</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="player-photo" class="block text-xs font-semibold text-slate-300 mb-1.5">رابط صورة اللاعب (Photo URL)</label>
+          <input type="url" id="player-photo" placeholder="https://..." class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
+        </div>
+
+        <div class="pt-2 flex justify-end gap-3 border-t border-slate-800">
+          <button type="button" class="btn-close-player-modal bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm transition">إلغاء</button>
+          <button type="submit" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-bold px-5 py-2 rounded-lg text-sm transition">حفظ اللاعب</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== SCRIPTS ==================== -->
+  <!-- GSAP Animation Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <!-- Custom GSAP Config -->
+  <script src="/js/animations.js"></script>
+  <!-- Main Logic Framework -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/admin-teams.js" defer></script>
+</body>
+</html>

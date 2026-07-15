@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة المباريات والأحداث - ANADOL League</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0f172a',
+              card: '#1e293b',
+              accent: '#f59e0b',
+              accentHover: '#d97706',
+              success: '#10b981',
+              danger: '#ef4444',
+              live: '#ef4444'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+    }
+    .pitch-grid {
+      background-image: 
+        radial-gradient(circle, transparent 30%, rgba(255,255,255,0.05) 31%, transparent 32%),
+        linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
+      background-size: 100% 100%, 10% 10%, 10% 10%;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Header / Navigation -->
+  <header class="bg-brand-dark border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/admin/dashboard.html" class="text-brand-accent hover:text-white transition">
+          <i class="fa-solid fa-arrow-right text-xl"></i>
+        </a>
+        <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white">إدارة المباريات والأحداث</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <span id="role-badge" class="hidden sm:inline-flex items-center gap-1 bg-slate-800 px-3 py-1 rounded-md text-xs text-slate-300 border border-slate-700">
+          الدور: <strong id="user-role" class="text-brand-accent">-</strong>
+        </span>
+        <a href="/admin/dashboard.html" class="text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 py-1.5 px-3 rounded-lg transition">
+          لوحة التحكم
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Action Top Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div>
+        <p class="text-slate-400 text-sm">جدولة مواعيد المباريات، تبديل حالات اللعب، وتحديث الأهداف التفصيلية والخرائط الحرارية.</p>
+      </div>
+      <div>
+        <button id="btn-open-match-modal" class="w-full sm:w-auto bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-bold px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 transition duration-200">
+          <i class="fa-solid fa-calendar-plus"></i>
+          جدولة مباراة جديدة
+        </button>
+      </div>
+    </div>
+
+    <!-- Layout Grid: Matches list (Right) & Live Panel/Logger (Left) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Matches List Section -->
+      <section class="lg:col-span-6 space-y-6">
+        <div class="bg-brand-card rounded-xl border border-slate-800 p-5">
+          
+          <!-- Filters -->
+          <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4 gap-4">
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-list-ol text-brand-accent"></i>
+              جدول المباريات
+            </h2>
+            <div class="flex gap-2">
+              <select id="filter-status" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1 text-xs text-slate-300 focus:outline-none focus:border-brand-accent transition">
+                <option value="all">كل الحالات</option>
+                <option value="not_played_yet">لم تبدأ</option>
+                <option value="being_played_right_now">تلعب الآن</option>
+                <option value="finished">انتهت</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div id="matches-loading" class="py-16 text-center text-slate-400">
+            <i class="fa-solid fa-spinner animate-spin text-2xl text-brand-accent mb-2"></i>
+            <p class="text-sm">جاري جلب قائمة المباريات...</p>
+          </div>
+
+          <!-- Empty State -->
+          <div id="matches-empty" class="hidden py-16 text-center text-slate-500">
+            <i class="fa-solid fa-circle-exclamation text-3xl mb-2"></i>
+            <p class="text-sm">لم يتم العثور على أي مباراة مجدولة.</p>
+          </div>
+
+          <!-- Matches Container -->
+          <div id="matches-list" class="hidden space-y-4 max-h-[600px] overflow-y-auto pr-1 custom-scrollbar">
+            <!-- Dynamic match cards added by admin-matches.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Event Logger & Live Management Section -->
+      <section class="lg:col-span-6 space-y-6">
+        <div class="bg-brand-card rounded-xl border border-slate-800 p-5 sticky top-24">
+          
+          <!-- Placeholder State -->
+          <div id="match-panel-placeholder" class="py-24 text-center text-slate-500">
+            <i class="fa-solid fa-file-signature text-5xl mb-4 text-slate-700"></i>
+            <h3 class="text-base font-bold text-slate-400 mb-1">لم يتم اختيار مباراة</h3>
+            <p class="text-xs px-12">الرجاء النقر على "إدارة وإدخال الأحداث" لأي مباراة في القائمة الجانبية لتفعيل لوحة التحكم والتحكّم المباشر.</p>
+          </div>
+
+          <!-- Active Management Dashboard -->
+          <div id="match-panel-active" class="hidden space-y-6">
+            
+            <!-- Quick Info Header & Quick Status Switch -->
+            <div class="border-b border-slate-800 pb-4">
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">التحكم في المباراة الحالية</span>
+                <!-- Status Badge -->
+                <span id="active-match-status-badge" class="px-2.5 py-1 rounded text-[10px] font-bold uppercase"></span>
+              </div>
+
+              <!-- Quick Status Buttons Row -->
+              <div class="grid grid-cols-3 gap-2 bg-slate-900 p-1.5 rounded-lg border border-slate-800">
+                <button type="button" data-status="not_played_yet" class="btn-status-switch text-xs py-1.5 px-2 rounded font-semibold text-slate-400 hover:text-white transition">لم تبدأ</button>
+                <button type="button" data-status="being_played_right_now" class="btn-status-switch text-xs py-1.5 px-2 rounded font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-brand-live animate-pulse inline-block"></span>
+                  تُلعب الآن
+                </button>
+                <button type="button" data-status="finished" class="btn-status-switch text-xs py-1.5 px-2 rounded font-semibold text-slate-400 hover:text-white transition">انتهت</button>
+              </div>
+            </div>
+
+            <!-- Match Score/Stats Form (Quick Save) -->
+            <form id="match-quick-stats-form" class="space-y-4 bg-slate-900/50 p-4 rounded-lg border border-slate-800/80">
+              <div class="flex items-center justify-between text-center gap-2">
+                <!-- Home Team Name & Input -->
+                <div class="flex-1">
+                  <p id="active-home-name" class="font-bold text-xs text-slate-300 truncate mb-1">صاحب الأرض</p>
+                  <input type="number" id="quick-score-home" min="0" required class="w-16 text-center bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg py-1.5 text-base font-extrabold text-white">
+                </div>
+                <!-- Divider -->
+                <div class="text-slate-600 font-bold px-2 self-end pb-2">ضد</div>
+                <!-- Away Team Name & Input -->
+                <div class="flex-1">
+                  <p id="active-away-name" class="font-bold text-xs text-slate-300 truncate mb-1">الضيف</p>
+                  <input type="number" id="quick-score-away" min="0" required class="w-16 text-center bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg py-1.5 text-base font-extrabold text-white">
+                </div>
+              </div>
+
+              <!-- Possession Inputs -->
+              <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800/60">
+                <div>
+                  <label class="block text-[10px] font-semibold text-slate-400 mb-1">نسبة استحواذ الأرض %</label>
+                  <input type="number" id="quick-poss-home" min="0" max="100" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1 text-xs text-slate-200">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-slate-400 mb-1">نسبة استحواذ الضيف %</label>
+                  <input type="number" id="quick-poss-away" min="0" max="100" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1 text-xs text-slate-200">
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-1">
+                <button type="submit" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark text-xs font-bold px-4 py-1.5 rounded-lg transition duration-200">
+                  حفظ التحديث السريع
+                </button>
+              </div>
+            </form>
+
+            <!-- Interactive Match Event Logger -->
+            <div class="space-y-4">
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                <span>تسجيل حدث جديد تفصيلي</span>
+                <span class="text-[10px] text-slate-500 font-normal">انقر على الملعب لتحديد الإحداثيات</span>
+              </h3>
+
+              <!-- Event Form -->
+              <form id="match-event-form" class="space-y-4">
+                
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label for="event-team" class="block text-[10px] font-semibold text-slate-300 mb-1">الفريق المعني *</label>
+                    <select id="event-team" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none transition">
+                      <!-- Dynamic select options -->
+                    </select>
+                  </div>
+                  <div>
+                    <label for="event-player" class="block text-[10px] font-semibold text-slate-300 mb-1">اللاعب المعني *</label>
+                    <select id="event-player" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none transition">
+                      <option value="">اختر اللاعب</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <label for="event-type" class="block text-[10px] font-semibold text-slate-300 mb-1">نوع الحدث *</label>
+                    <select id="event-type" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-1.5 py-1.5 text-xs text-white focus:outline-none transition">
+                      <option value="goal">هدف ⚽</option>
+                      <option value="yellow_card">بطاقة صفراء 🟨</option>
+                      <option value="red_card">بطاقة حمراء 🟥</option>
+                      <option value="substitution">تبديل 🔄</option>
+                      <option value="shot">تسديدة 🎯</option>
+                      <option value="tackle">تدخل ⚔️</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="event-minute" class="block text-[10px] font-semibold text-slate-300 mb-1">الدقيقة *</label>
+                    <input type="number" id="event-minute" required min="1" max="120" placeholder="45" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none transition">
+                  </div>
+                  <div class="grid grid-cols-2 gap-1">
+                    <div>
+                      <label class="block text-[10px] font-semibold text-slate-300 mb-1">X (0-100)</label>
+                      <input type="number" id="event-coord-x" readonly required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-1 py-1.5 text-xs text-center text-slate-400">
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-semibold text-slate-300 mb-1">Y (0-100)</label>
+                      <input type="number" id="event-coord-y" readonly required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-1 py-1.5 text-xs text-center text-slate-400">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Interactive Pitch Field Coordinates Picker -->
+                <div class="relative w-full aspect-[3/2] bg-emerald-800 rounded-lg border border-emerald-950 overflow-hidden cursor-crosshair shadow-md pitch-grid" id="interactive-pitch">
+                  <!-- Lines and elements on the field -->
+                  <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-emerald-500/40"></div>
+                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-emerald-500/40"></div>
+                  <!-- Penalty Box Right -->
+                  <div class="absolute right-0 top-1/4 bottom-1/4 w-12 border-y border-l border-emerald-500/40"></div>
+                  <!-- Penalty Box Left -->
+                  <div class="absolute left-0 top-1/4 bottom-1/4 w-12 border-y border-r border-emerald-500/40"></div>
+                  
+                  <!-- Target coordinate indicator dot -->
+                  <div id="coordinate-dot" class="absolute w-3.5 h-3.5 bg-brand-accent border-2 border-white rounded-full -translate-x-1/2 -translate-y-1/2 hidden shadow-lg"></div>
+                </div>
+
+                <div class="flex justify-end">
+                  <button type="submit" class="bg-brand-success hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg transition duration-200 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-check"></i>
+                    تسجيل الحدث في الإحصائيات
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Historical Match Events Feed -->
+            <div class="pt-4 border-t border-slate-800">
+              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">شريط الأحداث المسجلة للمباراة</h4>
+              <div id="active-match-events-list" class="space-y-2 max-h-[160px] overflow-y-auto pr-1 text-xs">
+                <!-- Dynamically populated events checklist -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-brand-dark border-t border-slate-900 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-xs">
+      <p>&copy; 2026 دوري الأناضول (ANADOL League). قسم إدارة أحداث المباريات.</p>
+    </div>
+  </footer>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Match Creation Modal -->
+  <div id="match-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-brand-card border border-slate-800 rounded-xl max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
+      <div class="bg-slate-900 px-5 py-4 flex items-center justify-between border-b border-slate-800">
+        <h3 class="font-bold text-white text-base">جدولة مواجهة جديدة</h3>
+        <button type="button" class="btn-close-modal text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="match-form" class="p-5 space-y-4">
+        
+        <div>
+          <label for="match-home-team" class="block text-xs font-semibold text-slate-300 mb-1.5">صاحب الأرض (الفريق المستضيف) *</label>
+          <select id="match-home-team" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
+            <option value="">اختر الفريق الأول</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="match-away-team" class="block text-xs font-semibold text-slate-300 mb-1.5">الضيف (الفريق الزائر) *</label>
+          <select id="match-away-team" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
+            <option value="">اختر الفريق الثاني</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="match-date" class="block text-xs font-semibold text-slate-300 mb-1.5">تاريخ وتوقيت المباراة *</label>
+          <input type="datetime-local" id="match-date" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg

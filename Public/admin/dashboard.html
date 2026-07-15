@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم والتشغيل المركزي | دوري الأناضول</title>
+  <!-- الخطوط العربية -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- التنسيق العام والحديث للموقع -->
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background-color: #0b0f19;
+      color: #e5e7eb;
+    }
+    .admin-card {
+      background: linear-gradient(145deg, #111827 0%, #0f172a 100%);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+    .admin-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(16, 185, 129, 0.3);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+    }
+  </style>
+</head>
+<body class="min-height-screen flex flex-col justify-between">
+
+  <!-- شريط الملاحة الإداري العلوي -->
+  <header class="bg-neutral-900 border-b border-neutral-800 py-4 px-6">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🏆</span>
+        <div>
+          <h1 class="text-lg font-black text-white">دوري الأناضول الرياضي</h1>
+          <p class="text-xs text-neutral-400">منطقة الإدارة والصلاحيات</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="text-left hidden sm:block">
+          <p class="text-sm font-bold text-white" id="user-display-name">جاري التحميل...</p>
+          <p class="text-xs text-emerald-400 font-semibold" id="user-display-role">المشرف</p>
+        </div>
+        <button id="logout-btn" class="bg-red-600/15 border border-red-600/30 text-red-400 hover:bg-red-600 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition duration-200">
+          تسجيل الخروج
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- المحتوى الرئيسي للوحة التحكم -->
+  <main class="max-w-7xl mx-auto px-6 py-10 flex-grow w-full">
+    
+    <!-- قسم الترحيب ووضع الصيانة (Maintenance Mode) -->
+    <section class="mb-10 flex flex-col md:flex-row md:items-center md:justify-between p-6 rounded-2xl bg-neutral-900 border border-neutral-800 gap-6">
+      <div>
+        <h2 class="text-2xl font-black text-white mb-2">أهلاً بك في غرفة العمليات الفنية 👋</h2>
+        <p class="text-sm text-neutral-400">هنا يمكنك التحكم الكامل بأرشفة المباريات، الترتيب الحي، تحليلات اللاعبين، والمدونة التحريرية.</p>
+      </div>
+      
+      <!-- مفتاح الصيانة متاح فقط لـ admin ويتم تحميله برمجياً -->
+      <div id="maintenance-panel" class="hidden flex items-center gap-4 p-3 rounded-xl bg-neutral-950 border border-neutral-800">
+        <div>
+          <p class="text-xs font-bold text-white">وضع الصيانة العام</p>
+          <p class="text-[10px] text-neutral-500" id="maintenance-status-text">غير نشط - الموقع متاح للجميع</p>
+        </div>
+        <button id="maintenance-toggle-btn" class="px-4 py-2 rounded-lg text-xs font-black transition duration-200 bg-neutral-800 hover:bg-neutral-700 text-neutral-300">
+          تحميل...
+        </button>
+      </div>
+    </section>
+
+    <!-- شبكة بطاقات الإدارة السريعة (تأخذ طابع متجاوب ومتكامل) -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="dashboard-grid">
+      
+      <!-- 1. إدارة الفرق والتشكيلات -->
+      <div class="admin-card p-6 rounded-2xl flex flex-col justify-between">
+        <div>
+          <div class="text-3xl mb-4">🛡️</div>
+          <h3 class="text-lg font-bold text-white mb-2">الفرق واللاعبين</h3>
+          <p class="text-xs text-neutral-400 leading-relaxed mb-6">إضافة أندية دوري الأناضول الجديدة، تعديل بياناتها، إدارة التشكيلات وشطب وتسجيل اللاعبين الجدد بالكامل.</p>
+        </div>
+        <a href="teams-manage.html" class="inline-block text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition duration-200">
+          دخول الإدارة
+        </a>
+      </div>
+
+      <!-- 2. إدارة المباريات والأحداث المباشرة -->
+      <div class="admin-card p-6 rounded-2xl flex flex-col justify-between">
+        <div>
+          <div class="text-3xl mb-4">⏱️</div>
+          <h3 class="text-lg font-bold text-white mb-2">المباريات والنتائج</h3>
+          <p class="text-xs text-neutral-400 leading-relaxed mb-6">جدولة لقاءات الدوري، تحديث الحالات مباشرة (تُلعب الآن / انتهت)، تسجيل الأهداف والكروت والتبديلات بإحداثيات دقيقة للملعب.</p>
+        </div>
+        <a href="matches-manage.html" class="inline-block text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition duration-200">
+          دخول الإدارة
+        </a>
+      </div>
+
+      <!-- 3. رفع الإحصائيات بالذكاء الاصطناعي -->
+      <div class="admin-card p-6 rounded-2xl flex flex-col justify-between" id="card-imports">
+        <div>
+          <div class="text-3xl mb-4">🤖</div>
+          <h3 class="text-lg font-bold text-white mb-2">استخراج الإحصائيات بالـ AI</h3>
+          <p class="text-xs text-neutral-400 leading-relaxed mb-6">ارفع صورة لوحة إحصائيات المباراة ودع ذكاء Gemini الاصطناعي يحللها ويستخرج المسودة للمراجعة والاعتماد المباشر.</p>
+        </div>
+        <a href="imports.html" class="inline-block text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition duration-200">
+          تحميل ومعالجة الصور
+        </a>
+      </div>
+
+      <!-- 4. المقالات والمدونة الرياضية -->
+      <div class="admin-card p-6 rounded-2xl flex flex-col justify-between">
+        <div>
+          <div class="text-3xl mb-4">✍️</div>
+          <h3 class="text-lg font-bold text-white mb-2">المقالات والتحليلات</h3>
+          <p class="text-xs text-neutral-400 leading-relaxed mb-6">كتابة ونشر ملخصات الجولات والتحليلات التحريرية، التحكم في ظهور مقالات الصفحة الرئيسية وأرشفة منشورات الدوري.</p>
+        </div>
+        <a href="blog-manage.html" class="inline-block text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition duration-200">
+          إدارة المقالات
+        </a>
+      </div>
+
+      <!-- 5. الإشراف على التعليقات والزوار -->
+      <div class="admin-card p-6 rounded-2xl flex flex-col justify-between">
+        <div>
+          <div class="text-3xl mb-4">💬</div>
+          <h3 class="text-lg font-bold text-white mb-2">الإشراف على التعليقات</h3>
+          <p class="text-xs text-neutral-400 leading-relaxed mb-6">مراقبة مشاركات الزوار والمشجعين في المقالات، وحذف التعليقات المخالفة فورياً لضمان الالتزام بالروح الرياضية.</p>
+        </div>
+        <a href="comments-manage.html" class="inline-block text-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition duration-200">
+          إدارة التعليقات
+        </a>
+      </div>
+
+      <!-- 6. الجداول الخام لقاعدة البيانات (Admin Only) -->
+      <div class="admin-card p-6 rounded-2xl flex flex-col justify-between admin-only hidden" id="card-db-viewer">
+        <div>
+          <div class="text-3xl mb-4">🗄️</div>
+          <h3 class="text-lg font-bold text-yellow-500 mb-2">مستعرض قاعدة البيانات</h3>
+          <p class="text-xs text-neutral-400 leading-relaxed mb-6">عرض خام مباشر لجميع سجلات الجداول بالكامل، مع تفعيل أزرار التعديل اليدوي السريع والتصدير والحذف المطلق (متاح للمسؤول فقط).</p>
+        </div>
+        <a href="database-viewer.html" class="inline-block text-center bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition duration-200">
+          عرض الجداول الخام
+        </a>
+      </div>
+
+      <!-- 7. سجل الحسابات والأعضاء (Admin Only) -->
+      <div class="admin-card p-6 rounded-2xl flex flex-col justify-between admin-only hidden" id="card-users-manage">
+        <div>
+          <div class="text-3xl mb-4">👥</div>
+          <h3 class="text-lg font-bold text-yellow-500 mb-2">حسابات الأعضاء</h3>
+          <p class="text-xs text-neutral-400 leading-relaxed mb-6">مراجعة جميع الحسابات المسجلة بالمنصة، التحكم بأدوارهم (Visitor / Editor)، وتفعيل أو إلغاء حظر حسابات الزوار المخالفين.</p>
+        </div>
+        <a href="users-manage.html" class="inline-block text-center bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition duration-200">
+          إدارة الحسابات
+        </a>
+      </div>
+
+      <!-- 8. سجل التدقيق العام (Admin Only) -->
+      <div class="admin-card p-6 rounded-2xl flex flex-col justify-between admin-only hidden" id="card-audit-log">
+        <div>
+          <div class="text-3xl mb-4">📜</div>
+          <h3 class="text-lg font-bold text-yellow-500 mb-2">سجل التدقيق والمراقبة</h3>
+          <p class="text-xs text-neutral-400 leading-relaxed mb-6">سجل آلي يرصد كل عملية حذف أو تعديل حساسة تمت بالخلفية لضمان الشفافية ومراقبة وتتبع عمليات التشغيل التقني للموقع.</p>
+        </div>
+        <a href="audit-log.html" class="inline-block text-center bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition duration-200">
+          عرض سجل التدقيق
+        </a>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ذيل لوحة التحكم -->
+  <footer class="bg-neutral-950 border-t border-neutral-900 py-6 text-center text-xs text-neutral-500">
+    <div class="max-w-7xl mx-auto px-6">
+      © <span id="current-year"></span> دوري الأناضول الرياضي - نظام الحوكمة والإدارة الرقمية.
+    </div>
+  </footer>
+
+  <!-- مكتبة GSAP للحركات البصرية -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <!-- ملفات الربط والتحقق البرمجي للواجهة -->
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/admin-dashboard.js"></script>
+
+</body>
+</html>

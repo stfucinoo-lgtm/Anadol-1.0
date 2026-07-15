@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الإشراف على التعليقات - ANADOL League</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0f172a',
+              card: '#1e293b',
+              accent: '#f59e0b',
+              accentHover: '#d97706',
+              success: '#10b981',
+              danger: '#ef4444'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght=300;400;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Header / Navigation -->
+  <header class="bg-brand-dark border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/admin/dashboard.html" class="text-brand-accent hover:text-white transition">
+          <i class="fa-solid fa-arrow-right text-xl"></i>
+        </a>
+        <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white">الإشراف على التعليقات</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <span id="role-badge" class="hidden sm:inline-flex items-center gap-1 bg-slate-800 px-3 py-1 rounded-md text-xs text-slate-300 border border-slate-700">
+          الصلاحية: <strong id="user-role" class="text-brand-accent">-</strong>
+        </span>
+        <a href="/admin/dashboard.html" class="text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 py-1.5 px-3 rounded-lg transition">
+          لوحة التحكم
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Introduction top bar -->
+    <div class="mb-8">
+      <p class="text-slate-400 text-sm">راجع تعليقات زوار المنصة، وتحقق من جودة النقاش حول المقالات الفنية والأخبار لحذف المشاركات غير اللائقة.</p>
+    </div>
+
+    <!-- Comments List Panel -->
+    <section class="bg-brand-card rounded-xl border border-slate-800 p-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 mb-6 gap-4">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-comments text-brand-accent"></i>
+          التعليقات الأخيرة المكتوبة
+        </h2>
+        
+        <!-- Quick filter by Article -->
+        <div class="flex items-center gap-2">
+          <label for="filter-blog-id" class="text-xs text-slate-400 whitespace-nowrap">تصفية حسب المقال:</label>
+          <select id="filter-blog-id" class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-brand-accent transition max-w-xs">
+            <option value="all">كل المقالات</option>
+            <!-- Dynamically populated via admin-comments.js -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="comments-loading" class="py-16 text-center text-slate-400">
+        <i class="fa-solid fa-spinner animate-spin text-2xl text-brand-accent mb-2"></i>
+        <p class="text-sm">جاري جلب التعليقات الحالية...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="comments-empty" class="hidden py-16 text-center text-slate-500">
+        <i class="fa-solid fa-comment-slash text-4xl mb-3"></i>
+        <p class="text-sm">لا توجد تعليقات مضافة حالياً تحت هذا التصنيف.</p>
+      </div>
+
+      <!-- Comments Grid/List container -->
+      <div id="comments-container" class="hidden space-y-4">
+        <!-- Inside here we will output comments styled beautifully -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-sm">
+            <thead>
+              <tr class="text-slate-400 border-b border-slate-800 text-xs">
+                <th class="py-3 px-4 font-bold">الكاتب</th>
+                <th class="py-3 px-4 font-bold">المقال المرتَبِط</th>
+                <th class="py-3 px-4 font-bold">محتوى التعليق</th>
+                <th class="py-3 px-4 font-bold">تاريخ الكتابة</th>
+                <th class="py-3 px-4 font-bold text-left">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="comments-table-body" class="divide-y divide-slate-800/60">
+              <!-- Dynamic comment rows added by admin-comments.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-brand-dark border-t border-slate-900 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-xs">
+      <p>&copy; 2026 دوري الأناضول (ANADOL League). لوحة الإشراف وحوكمة النقاش.</p>
+    </div>
+  </footer>
+
+  <!-- ==================== SCRIPTS ==================== -->
+  <!-- GSAP Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <!-- Custom GSAP Config -->
+  <script src="/js/animations.js"></script>
+  <!-- API & Core Login Script -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/admin-comments.js" defer></script>
+</body>
+</html>

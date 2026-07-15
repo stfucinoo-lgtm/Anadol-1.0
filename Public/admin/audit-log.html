@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سجل التدقيق - ANADOL League</title>
+  <!-- ملف التنسيق الموحد للمشروع -->
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- مكتبة الأيقونات FontAwesome للمظهر الرياضي واللوحة الرقمية -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- مكتبة GSAP للحركات الانتقالية التفاعلية -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body class="admin-body">
+
+  <!-- شريط التنقل العلوي للمسؤولين -->
+  <nav class="admin-nav">
+    <div class="nav-container">
+      <div class="brand">
+        <i class="fa-solid fa-shield-halved text-accent"></i>
+        <span>لوحة تحكم الأناضول</span>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> لوحة التحكم</a>
+        <a href="database-viewer.html" class="nav-link"><i class="fa-solid fa-database"></i> مستعرض البيانات</a>
+        <a href="#" class="nav-link active"><i class="fa-solid fa-history"></i> سجل التدقيق</a>
+        <button id="logoutBtn" class="btn-logout"><i class="fa-solid fa-sign-out-alt"></i> خروج</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- المحتوى الرئيسي للصفحة -->
+  <main class="admin-main container">
+    <header class="page-header animate-fade-in">
+      <h1 class="page-title">
+        <i class="fa-solid fa-receipt text-accent animate-pulse-slow"></i> سجل تدقيق العمليات الحساسة
+      </h1>
+      <p class="page-subtitle">مراقبة وتتبع جميع عمليات التعديل والحذف التي يقوم بها مستخدمو النظام المؤهلون.</p>
+    </header>
+
+    <!-- قسم الفلترة وتصفية البيانات -->
+    <section class="filters-card animate-fade-in" style="animation-delay: 0.1s;">
+      <h2 class="section-title-sm"><i class="fa-solid fa-filter"></i> تصفية السجلات</h2>
+      <form id="auditFilterForm" class="filter-grid">
+        <div class="form-group">
+          <label for="filterUser">معرّف المستخدم (User ID):</label>
+          <input type="number" id="filterUser" placeholder="مثال: 5" min="1">
+        </div>
+        <div class="form-group">
+          <label for="filterFromDate">من تاريخ:</label>
+          <input type="date" id="filterFromDate">
+        </div>
+        <div class="form-group">
+          <label for="filterToDate">إلى تاريخ:</label>
+          <input type="date" id="filterToDate">
+        </div>
+        <div class="form-actions-inline">
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-search"></i> بحث وتصفية</button>
+          <button type="button" id="resetFilters" class="btn-secondary"><i class="fa-solid fa-rotate-left"></i> إعادة تعيين</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- قسم عرض جدول البيانات -->
+    <section class="table-container animate-fade-in" style="animation-delay: 0.2s;">
+      <div class="table-responsive">
+        <table class="data-table" id="auditLogTable">
+          <thead>
+            <tr>
+              <th>رقم السجل</th>
+              <th>المستخدم</th>
+              <th>العملية</th>
+              <th>الجدول المستهدف</th>
+              <th>رقم العنصر</th>
+              <th>التاريخ والوقت</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="auditLogBody">
+            <!-- سيتم تعبئة البيانات ديناميكياً عبر ملف JS -->
+            <tr>
+              <td colspan="7" class="text-center">جاري تحميل سجل التدقيق...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- نافذة تفاصيل التعديل (Modal) لمقارنة القيم القديمة بالجديدة -->
+  <div class="modal" id="detailsModal" style="display: none;">
+    <div class="modal-content animate-scale-in">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-eye"></i> تفاصيل الفروقات والتغيير</h3>
+        <button class="close-modal" id="closeModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="metadata-grid">
+          <div><strong>العملية:</strong> <span id="modalAction" class="badge"></span></div>
+          <div><strong>الجدول:</strong> <span id="modalTable"></span></div>
+          <div><strong>المعرف:</strong> <span id="modalRecordId"></span></div>
+        </div>
+        
+        <div class="comparison-container">
+          <div class="comparison-box">
+            <h4><i class="fa-solid fa-ban text-danger"></i> الحالة السابقة (قبل العملية):</h4>
+            <pre><code id="oldValueBlock" class="json-block">-- لا توجد بيانات سابقة --</code></pre>
+          </div>
+          <div class="comparison-box">
+            <h4><i class="fa-solid fa-circle-check text-success"></i> الحالة الجديدة (بعد العملية):</h4>
+            <pre><code id="newValueBlock" class="json-block">-- لا توجد تغييرات جديدة --</code></pre>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="modalCloseBtn">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ملفات التفاعل والبرمجة المشتركة -->
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/animations.js"></script>
+  <!-- ملف البرمجة المخصص لإدارة الصفحة -->
+  <script src="../js/admin-audit.js"></script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>استيراد الإحصائيات بالذكاء الاصطناعي - ANADOL League</title>
+  <!-- ملف التنسيق العام والداشبورد للمشروع -->
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- مكتبة الأيقونات FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- مكتبة GSAP للتأثيرات البصرية والحركية -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body class="admin-body">
+
+  <!-- شريط التنقل العلوي للمشؤولين -->
+  <nav class="admin-nav">
+    <div class="nav-container">
+      <div class="brand">
+        <i class="fa-solid fa-brain text-accent"></i>
+        <span>لوحة تحكم الأناضول (الذكاء الاصطناعي)</span>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> لوحة التحكم</a>
+        <a href="matches-manage.html" class="nav-link"><i class="fa-solid fa-calendar-days"></i> إدارة المباريات</a>
+        <a href="#" class="nav-link active"><i class="fa-solid fa-file-import"></i> استيراد الإحصائيات</a>
+        <button id="logoutBtn" class="btn-logout"><i class="fa-solid fa-sign-out-alt"></i> خروج</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- المحتوى الرئيسي للمنصة -->
+  <main class="admin-main container">
+    <header class="page-header animate-fade-in">
+      <h1 class="page-title">
+        <i class="fa-solid fa-wand-magic-sparkles text-accent animate-pulse-slow"></i> استخراج إحصائيات المباريات عبر AI
+      </h1>
+      <p class="page-subtitle">ارفع صورة تقرير أو ورقة الإحصائيات الخاصة بالمباراة ليقوم نموذج Gemini بتحليلها وصياغتها آلياً.</p>
+    </header>
+
+    <div class="import-grid">
+      <!-- الجزء الأيمن: نموذج الرفع واختيار المباراة -->
+      <section class="admin-card animate-fade-in" style="animation-delay: 0.1s;">
+        <h2 class="section-title-sm"><i class="fa-solid fa-cloud-arrow-up"></i> رفع مستند المباراة</h2>
+        <form id="uploadStatsForm" class="standard-form">
+          <div class="form-group">
+            <label for="matchSelect">اختر المباراة المستهدفة:</label>
+            <select id="matchSelect" required>
+              <option value="">-- جاري تحميل المباريات النشطة --</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="imageFile">صورة الإحصائيات أو التقرير:</label>
+            <div class="file-upload-wrapper">
+              <input type="file" id="imageFile" accept="image/jpeg, image/png, image/webp" required>
+              <div class="upload-placeholder">
+                <i class="fa-solid fa-images fa-2x text-muted"></i>
+                <span>اسحب الصورة هنا أو اضغط للتصفح</span>
+                <small class="text-muted">الحد الأقصى للملف: 5 ميجابايت (PNG, JPG, WEBP)</small>
+              </div>
+            </div>
+            <div id="fileSelectedName" class="file-info-text text-success" style="display: none;"></div>
+          </div>
+
+          <button type="submit" class="btn-primary w-full" id="submitUploadBtn">
+            <i class="fa-solid fa-gear fa-spin-hover"></i> استخراج البيانات بالذكاء الاصطناعي
+          </button>
+        </form>
+
+        <!-- مؤشر التحميل أثناء عمل الذكاء الاصطناعي -->
+        <div id="aiLoader" class="ai-loader-container" style="display: none;">
+          <div class="loader-spinner"></div>
+          <p class="loader-text">يقوم الذكاء الاصطناعي (Gemini) حالياً بقراءة تفاصيل الصورة وتحليل الهجمات والأحداث...</p>
+          <span class="loader-sub">قد تستغرق هذه العملية ما بين 5 إلى 15 ثانية</span>
+        </div>
+      </section>
+
+      <!-- الجزء الأيسر: مراجعة البيانات المستخرجة وتصحيحها (مخفي افتراضياً ويظهر عند انتهاء الرفع) -->
+      <section id="reviewSection" class="admin-card animate-fade-in" style="display: none;">
+        <div class="card-header-actions">
+          <h2 class="section-title-sm"><i class="fa-solid fa-edit"></i> مراجعة وتعديل مسودة الإحصائيات</h2>
+          <span class="badge badge-warning" id="importStatusBadge">معلق المراجعة</span>
+        </div>
+
+        <form id="reviewStatsForm" class="standard-form">
+          <!-- البيانات العامة والنتيجة -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="homeScore">أهداف المستضيف (Home):</label>
+              <input type="number" id="homeScore" min="0" required>
+            </div>
+            <div class="form-group">
+              <label for="awayScore">أهداف الضيف (Away):</label>
+              <input type="number" id="awayScore" min="0" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="possessionHome">استحواذ المستضيف (Home %):</label>
+              <input type="number" id="possessionHome" min="0" max="100" required>
+            </div>
+            <div class="form-group">
+              <label for="possessionAway">استحواذ الضيف (Away %):</label>
+              <input type="number" id="possessionAway" min="0" max="100" required>
+            </div>
+          </div>
+
+          <hr class="form-divider">
+
+          <!-- أحداث المباراة التفاعلية -->
+          <div class="events-review-header">
+            <h3><i class="fa-solid fa-list-check"></i> قائمة أحداث المباراة المستخرجة</h3>
+            <button type="button" class="btn-secondary btn-sm" id="addNewEventBtn">
+              <i class="fa-solid fa-plus"></i> إضافة حدث يدوياً
+            </button>
+          </div>
+
+          <div id="eventsListContainer" class="events-list-grid">
+            <!-- سيتم إنشاء صف لكل حدث ديناميكياً -->
+          </div>
+
+          <hr class="form-divider">
+
+          <!-- أزرار الإجراءات والاعتماد النهائي -->
+          <div class="form-actions">
+            <button type="button" id="saveDraftBtn" class="btn-secondary">
+              <i class="fa-solid fa-floppy-disk"></i> حفظ المسودة مؤقتاً
+            </button>
+            <button type="button" id="rejectImportBtn" class="btn-danger">
+              <i class="fa-solid fa-ban"></i> رفض وإلغاء الملف
+            </button>
+            <button type="submit" id="approveImportBtn" class="btn-success">
+              <i class="fa-solid fa-circle-check"></i> اعتماد ونشر البيانات رسمياً
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <!-- ملفات التفاعل والبرمجة المشتركة -->
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/animations.js"></script>
+  <!-- ملف التحكم المخصص لصفحة الاستيراد -->
+  <script src="../js/admin-imports.js"></script>
+</body>
+</html>
