@@ -1,6 +1,6 @@
 /**
  * ANADOL League - Frontend Authentication & Session Manager
- * إدارة الجلسات، التوكنات، وحماية مسارات الواجهة الأمامية والربط البرمجي مع نموذج تسجيل الدخول.
+ * إدارة الجلسات، التوكنات، وحماية مسارات الواجهة الأمامية والربط البرمجي مع نموذج تسجيل الدخول والتسجيل.
  */
 
 const AnadolAuth = {
@@ -33,7 +33,6 @@ const AnadolAuth = {
     localStorage.removeItem('anadol_token');
     localStorage.removeItem('anadol_user');
     
-    // توجيه تلقائي ذكي حسب المسار الحالي
     if (window.location.pathname.includes('/admin/')) {
       window.location.href = 'login.html';
     } else {
@@ -69,24 +68,60 @@ window.AnadolAuth = AnadolAuth;
 // تفعيل نداء الاستماع والربط الفوري بمجرد اكتمال تحميل الواجهة
 document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('admin-login-form');
+  const registerForm = document.getElementById('admin-register-form');
+  const errorContainer = document.getElementById('error-container');
 
+  // عناصر التبديل بين النموذجين
+  const toggleToRegister = document.getElementById('toggle-to-register');
+  const toggleToLogin = document.getElementById('toggle-to-login');
+  const portalTitle = document.getElementById('portal-title');
+  const portalDesc = document.getElementById('portal-desc');
+
+  // وظيفة إخفاء الخطأ وتجهيز الشاشة للتبديل
+  const resetError = () => {
+    if (errorContainer) {
+      errorContainer.classList.add('hidden');
+      errorContainer.textContent = '';
+    }
+  };
+
+  // تبديل الواجهة لعرض نموذج التسجيل
+  if (toggleToRegister && loginForm && registerForm) {
+    toggleToRegister.addEventListener('click', (e) => {
+      e.preventDefault();
+      resetError();
+      loginForm.classList.add('hidden-form');
+      registerForm.classList.remove('hidden-form');
+      if (portalTitle) portalTitle.textContent = 'إنشاء حساب جديد';
+      if (portalDesc) portalDesc.textContent = 'انضم إلى مجتمع دوري الأناضول كزائر';
+    });
+  }
+
+  // تبديل الواجهة لعرض نموذج تسجيل الدخول
+  if (toggleToLogin && loginForm && registerForm) {
+    toggleToLogin.addEventListener('click', (e) => {
+      e.preventDefault();
+      resetError();
+      registerForm.classList.add('hidden-form');
+      loginForm.classList.remove('hidden-form');
+      if (portalTitle) portalTitle.textContent = 'دوري الأناضول الرياضي';
+      if (portalDesc) portalDesc.textContent = 'بوابة الإدارة والتنسيق الفني للمشروع';
+    });
+  }
+
+  // أولاً: معالجة تسجيل الدخول
   if (loginForm) {
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
 
       const emailEl = document.getElementById('email');
       const passwordEl = document.getElementById('password');
-      const errorContainer = document.getElementById('error-container');
       const submitBtn = document.getElementById('login-submit-btn');
 
       const email = emailEl ? emailEl.value.trim() : '';
       const password = passwordEl ? passwordEl.value : '';
 
-      // إخفاء التنبيهات السابقة وتأمين الزر لمنع تكرار النقرات الإرسالية
-      if (errorContainer) {
-        errorContainer.classList.add('hidden');
-        errorContainer.textContent = '';
-      }
+      resetError();
 
       if (submitBtn) {
         submitBtn.disabled = true;
@@ -94,35 +129,76 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        // إرسال الطلب عبر مغلّف الـ API الموحد
         const response = await api.post('/auth/login', { email, password });
 
-        // تخزين البيانات والتوكن وفقاً للتسميات المتفق عليها بالعقد (القسم 8)
         localStorage.setItem('anadol_token', response.token);
         localStorage.setItem('anadol_user', JSON.stringify(response.user));
 
-        // التوجيه الذكي حسب مصفوفة الصلاحيات
         if (response.user.role === 'admin' || response.user.role === 'editor') {
-          // توجيه لـ لوحة التحكم الإدارية
           window.location.href = 'dashboard.html';
         } else {
-          // توجيه زائر عادي للصفحة الرئيسية
           window.location.href = '../index.html';
         }
 
       } catch (error) {
         console.error('Login action failed:', error);
         
-        // إظهار رسالة الخطأ للمستخدم بشكل مهيأ
         if (errorContainer) {
           errorContainer.textContent = error.message || 'فشل الاتصال بالخادم، يرجى المحاولة لاحقاً.';
           errorContainer.classList.remove('hidden');
         }
 
-        // إعادة تشغيل زر الإرسال لتجربة دخول أخرى
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.textContent = 'دخول لوحة التحكم';
+        }
+      }
+    });
+  }
+
+  // ثانياً: معالجة تسجيل الحساب الجديد (Visitor)
+  if (registerForm) {
+    registerForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const usernameEl = document.getElementById('reg-username');
+      const emailEl = document.getElementById('reg-email');
+      const passwordEl = document.getElementById('reg-password');
+      const submitBtn = document.getElementById('register-submit-btn');
+
+      const username = usernameEl ? usernameEl.value.trim() : '';
+      const email = emailEl ? emailEl.value.trim() : '';
+      const password = passwordEl ? passwordEl.value : '';
+
+      resetError();
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'جاري معالجة طلب الانضمام...';
+      }
+
+      try {
+        // إرسال البيانات للمسار الخلفي المخصص للإنشاء
+        const response = await api.post('/auth/register', { username, email, password });
+
+        // تخزين البيانات تلقائياً وتفعيل الجلسة فوراً
+        localStorage.setItem('anadol_token', response.token);
+        localStorage.setItem('anadol_user', JSON.stringify(response.user));
+
+        alert('تم تسجيل حسابك بنجاح كزائر، جاري توجيهك للموقع الرئيسي.');
+        window.location.href = '../index.html';
+
+      } catch (error) {
+        console.error('Registration action failed:', error);
+
+        if (errorContainer) {
+          errorContainer.textContent = error.message || 'فشل إنشاء الحساب، الاسم أو البريد قد يكون مسجلاً مسبقاً.';
+          errorContainer.classList.remove('hidden');
+        }
+
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'إنشاء الحساب والانضمام';
         }
       }
     });
