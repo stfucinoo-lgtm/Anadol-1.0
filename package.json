@@ -1,22 +1,22 @@
 {
   "name": "anadol-1.0",
   "version": "1.0.0",
-  "description": "",
+  "description": "منصة دوري الأناضول",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/stfucinoo-lgtm/Anadol-1.0.git"
+  "dependencies": {
+    "express": "^4.18.2",
+    "sequelize": "^6.33.0",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "dotenv": "^16.3.1",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/stfucinoo-lgtm/Anadol-1.0/issues"
-  },
-  "homepage": "https://github.com/stfucinoo-lgtm/Anadol-1.0#readme"
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
