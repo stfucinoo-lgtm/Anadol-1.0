@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>بوابة الإدارة والمراقبة | دوري الأناضول</title>
+  <title>بوابة الحسابات والإدارة | دوري الأناضول</title>
   <!-- الخطوط العربية -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +12,6 @@
   <link rel="stylesheet" href="../css/style.css">
   <!-- مكتبة الأيقونات والخطوط -->
   <style>
-    /* تنسيقات إضافية مخصصة لصفحة الدخول لضمان مظهر رياضي داكن ومبهر */
     body {
       font-family: 'Tajawal', sans-serif;
       background: radial-gradient(circle at center, #111827 0%, #030712 100%);
@@ -67,30 +66,29 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
     }
+    .hidden-form {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-  <!-- التوهج الخلفي المظهر الجمالي -->
   <div class="accent-glow" style="top: 10%; right: 10%;"></div>
   <div class="accent-glow" style="bottom: 10%; left: 10%;"></div>
 
   <div class="login-container opacity-0 transform translate-y-6" id="login-box">
-    <!-- شعار الدوري أو الرأس الرياضي -->
     <div class="text-center mb-8">
       <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-3xl mb-4">
         🏆
       </div>
-      <h1 class="text-2xl font-black tracking-tight text-white">دوري الأناضول الرياضي</h1>
-      <p class="text-sm text-neutral-400 mt-1">بوابة الإدارة والتنسيق الفني للمشروع</p>
+      <h1 class="text-2xl font-black tracking-tight text-white" id="portal-title">دوري الأناضول الرياضي</h1>
+      <p class="text-sm text-neutral-400 mt-1" id="portal-desc">بوابة الإدارة والتنسيق الفني للمشروع</p>
     </div>
 
-    <!-- رسائل الأخطاء والتنبيهات -->
-    <div id="error-container" class="hidden mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center">
-      <!-- يضاف هنا نص الخطأ عبر الجافا سكريبت -->
-    </div>
+    <!-- رسائل الأخطاء والتنبيهات المشتركة -->
+    <div id="error-container" class="hidden mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center"></div>
 
-    <!-- نموذج تسجيل الدخول -->
+    <!-- أولاً: نموذج تسجيل الدخول -->
     <form id="admin-login-form" class="space-y-6">
       <div class="form-group">
         <label for="email" class="block text-sm font-bold text-neutral-300 mb-2">البريد الإلكتروني</label>
@@ -98,9 +96,7 @@
       </div>
 
       <div class="form-group">
-        <div class="flex items-center justify-between mb-2">
-          <label for="password" class="block text-sm font-bold text-neutral-300">كلمة المرور</label>
-        </div>
+        <label for="password" class="block text-sm font-bold text-neutral-300 mb-2">كلمة المرور</label>
         <input type="password" id="password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl text-sm placeholder-gray-500">
       </div>
 
@@ -108,12 +104,48 @@
         دخول لوحة التحكم
       </button>
 
-      <div class="text-center mt-6">
-        <a href="../index.html" class="text-xs text-emerald-400 hover:text-emerald-300 hover:underline transition">
-          ← عودة للموقع الرئيسي للدوري
-        </a>
+      <div class="text-center mt-4">
+        <p class="text-xs text-neutral-400">
+          ليس لديك حساب؟ 
+          <a href="#" id="toggle-to-register" class="text-emerald-400 hover:text-emerald-300 font-bold hover:underline transition">إنشاء حساب زائر جديد</a>
+        </p>
       </div>
     </form>
+
+    <!-- ثانياً: نموذج إنشاء الحساب الجديد (مخفي افتراضياً) -->
+    <form id="admin-register-form" class="space-y-6 hidden-form">
+      <div class="form-group">
+        <label for="reg-username" class="block text-sm font-bold text-neutral-300 mb-2">اسم المستخدم</label>
+        <input type="text" id="reg-username" required placeholder="مثال: user123" class="w-full px-4 py-3 rounded-xl text-sm placeholder-gray-500">
+      </div>
+
+      <div class="form-group">
+        <label for="reg-email" class="block text-sm font-bold text-neutral-300 mb-2">البريد الإلكتروني</label>
+        <input type="email" id="reg-email" required placeholder="example@domain.com" class="w-full px-4 py-3 rounded-xl text-sm placeholder-gray-500">
+      </div>
+
+      <div class="form-group">
+        <label for="reg-password" class="block text-sm font-bold text-neutral-300 mb-2">كلمة المرور</label>
+        <input type="password" id="reg-password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl text-sm placeholder-gray-500">
+      </div>
+
+      <button type="submit" id="register-submit-btn" class="glow-btn w-full py-3.5 px-4 rounded-xl text-white font-black text-sm tracking-wide focus:outline-none">
+        إنشاء الحساب والانضمام
+      </button>
+
+      <div class="text-center mt-4">
+        <p class="text-xs text-neutral-400">
+          لديك حساب بالفعل؟ 
+          <a href="#" id="toggle-to-login" class="text-emerald-400 hover:text-emerald-300 font-bold hover:underline transition">تسجيل الدخول</a>
+        </p>
+      </div>
+    </form>
+
+    <div class="text-center mt-6 border-t border-neutral-800 pt-4">
+      <a href="../index.html" class="text-xs text-emerald-400 hover:text-emerald-300 hover:underline transition">
+        ← عودة للموقع الرئيسي للدوري
+      </a>
+    </div>
   </div>
 
   <!-- مكتبة GSAP للحركات البصرية -->
@@ -123,7 +155,6 @@
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
 
-  <!-- تفعيل حركة الدخول التفاعلية بمجرد جاهزية الصفحة -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (typeof gsap !== 'undefined') {
