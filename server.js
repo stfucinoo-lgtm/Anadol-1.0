@@ -63,17 +63,30 @@ app.get('*', (req, res, next) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 5. مزامنة قاعدة البيانات (Sequelize Sync) وتشغيل خادم الاستماع
+// 5. مزامنة قاعدة البيانات ثم تحميل المسارات وتشغيل الخادم
 sequelize.sync({ alter: true })
     .then(() => {
         console.log('PostgreSQL Database synced successfully.');
-        app.listen(PORT, '0.0.0.0', () => { // إضافة '0.0.0.0' ضروري لـ Render
+        
+        // تحميل المسارات هنا فقط بعد نجاح المزامنة
+        const teamRoutes = require('./routes/teams');
+        const matchRoutes = require('./routes/matches');
+        const standingsRoutes = require('./routes/standings');
+        app.use('/api/teams', teamRoutes);
+        app.use('/api/matches', matchRoutes);
+        app.use('/api/standings', standingsRoutes);
+        
+        // وباقي المسارات المحملة عبر safeMountRoute...
+        safeMountRoute('/api/auth', './routes/auth');
+        // ... (بقية المسارات)
+
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`ANADOL League server is running on port: ${PORT}`);
         });
     })
     .catch(err => {
         console.error('Failed to synchronize database, server aborted:', err.message);
-        process.exit(1); // إجبار التطبيق على التوقف إذا لم يتم الاتصال، ليعيد Render المحاولة
+        process.exit(1);
     });
 
 module.exports = app;
