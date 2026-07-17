@@ -20,7 +20,7 @@ const Comment = sequelize.define('Comment', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Users', // ربط التعليق بالمستخدم الذي قام بنشره
+      model: 'users', // تم تصحيحها للأحرف الصغيرة لتطابق جدول المستخدمين الفعلي
       key: 'id'
     },
     onDelete: 'CASCADE' // حذف التعليقات في حال حذف حساب المستخدم نهائياً
@@ -44,7 +44,7 @@ Comment.associate = (models) => {
       as: 'post'
     });
   }
-  // علاقة التعليق بالمستخدم (الكاتب) لجلب تفاصيل حسابه تلقائياً عند العرض
+  // علاقة التعليق بالمخدم (الكاتب) لجلب تفاصيل حسابه تلقائياً عند العرض
   if (models.User) {
     Comment.belongsTo(models.User, {
       foreignKey: 'userId',
