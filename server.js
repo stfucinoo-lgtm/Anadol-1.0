@@ -6,6 +6,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const fs = require('fs'); // استيراد نظام الملفات للتحقق الديناميكي من المجلد الساكن
 require('dotenv').config();
 
 const sequelize = require('./config/db');
@@ -18,8 +19,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// تحديد مسار مجلد الواجهة الأمامية ديناميكياً للتوافق مع حالة الأحرف (public أو Public)
+let publicDirName = 'public';
+if (!fs.existsSync(path.join(__dirname, 'public')) && fs.existsSync(path.join(__dirname, 'Public'))) {
+    publicDirName = 'Public';
+}
+const publicPath = path.join(__dirname, publicDirName);
+
 // خدمة الملفات الساكنة للواجهة الأمامية
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(publicPath));
 
 // 2. دمج وتفعيل مسارات الـ API النشطة حالياً (Phase 2 Routes)
 const teamRoutes = require('./routes/teams');
@@ -60,7 +68,13 @@ app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api/')) {
         return res.status(404).json({ error: 'الطلب المستهدف غير متوفر بنظام الـ API' });
     }
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    
+    const indexPath = path.join(publicPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(404).send('فشل العثور على ملف الواجهة الأمامية index.html في المجلد المخصص.');
+    }
 });
 
 // 5. مزامنة قاعدة البيانات (Sequelize Sync) وتشغيل خادم الاستماع
