@@ -64,9 +64,9 @@ safeMountRoute('/api/admin/audit-log', './routes/admin-audit');
 
 // 4. التوجيه التلقائي لمعالجة واجهات الصفحة الواحدة (SPA Routing)
 app.get('*', (req, res, next) => {
-    // استثناء مسارات الـ API لعدم إرجاع صفحات HTML عند حدوث خطأ استدعاء
-    if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ error: 'الطلب المستهدف غير متوفر بنظام الـ API' });
+    // استثناء مسارات الـ API والملفات التي تحتوي على امتدادات من التوجيه لـ index.html لمنع أخطاء الـ MIME type
+    if (req.path.startsWith('/api/') || req.path.includes('.')) {
+        return res.status(404).json({ error: 'الطلب المستهدف غير متوفر بنظام الـ API أو الملف غير موجود' });
     }
     
     const indexPath = path.join(publicPath, 'index.html');
