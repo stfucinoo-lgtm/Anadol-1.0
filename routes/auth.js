@@ -2,7 +2,22 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize'); // استيراد مباشر وآمن لمعاملات الاستعلام
-const User = require('../models/User'); // يرجى التأكد من أن اسم الملف الفعلي هو User.js بحرف U كبير
+const User = require('../models/User'); // التأكد من استيراد ملف المستخدم بحرف كبير
+
+// محاولات استدعاء مرنة للنماذج الأخرى لتجنب توقف التشغيل في حال غياب ملفاتها مؤقتاً
+let Team;
+try {
+  Team = require('../models/Team');
+} catch (e) {
+  console.log('Note: Team model is not accessible yet in auth routes.');
+}
+
+let Comment;
+try {
+  Comment = require('../models/Comment');
+} catch (e) {
+  console.log('Note: Comment model is not accessible yet in auth routes.');
+}
 
 const JWT_SECRET = process.env.JWT_SECRET || 'anadol_secret_key';
 
@@ -16,6 +31,26 @@ function generateToken(user) {
     { expiresIn: '24h' } // صلاحية التوكن 24 ساعة
   );
 }
+
+/**
+ * برمجية وسيطة محلية (Middleware) للتحقق من التوكن وحماية مسارات الملف الشخصي
+ */
+const authenticateUser = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // استخراج التوكن بعد كلمة Bearer
+
+  if (!token) {
+    return res.status(401).json({ message: 'وصول غير مصرح به، يرجى تسجيل الدخول أولاً.' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'رمز التحقق غير صالح أو منتهي الصلاحية.' });
+    }
+    req.user = decoded; // تمرير بيانات فك تشفير التوكن { id, username, role }
+    next();
+  });
+};
 
 /**
  * POST /api/auth/register
@@ -113,6 +148,115 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Error in login route:', error);
     return res.status(500).json({ message: 'حدث خطأ أثناء محاولة تسجيل الدخول.' });
+  }
+});
+
+/**
+ * GET /api/auth/profile
+ * جلب بيانات الملف الشخصي للمستخدم الحالي مع الفريق المفضل والتعليقات الأخيرة
+ */
+router.get('/profile', authenticateUser, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: { exclude: ['password'] }
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'المستخدم غير موجود.' });
+    }
+
+    let favoriteTeam = null;
+    if (user.favoriteTeamId && Team) {
+      favoriteTeam = await Team.findByPk(user.favoriteTeamId);
+    }
+
+    let latestComments = [];
+    if (Comment) {
+      latestComments = await Comment.findAll({
+        where: { userId: user.id },
+        limit: 5,
+        order: [['createdAt', 'DESC']]
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        avatarUrl: user.avatarUrl,
+        bio: user.bio,
+        favoriteTeamId: user.favoriteTeamId,
+        createdAt: user.createdAt,
+        favoriteTeam,
+        latestComments
+      }
+    });
+  } catch (error) {
+    console.error('Error in get profile route:', error);
+    return res.status(500).json({ message: 'حدث خطأ أثناء جلب بيانات الملف الشخصي.' });
+  }
+});
+
+/**
+ * PUT /api/auth/profile
+ * تحديث بيانات الملف الشخصي للمستخدم الحالي
+ */
+router.put('/profile', authenticateUser, async (req, res) => {
+  try {
+    const { username, bio, avatarUrl, favoriteTeamId } = req.body;
+
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'المستخدم غير موجود.' });
+    }
+
+    // التحقق من تكرار اسم المستخدم الجديد إذا رغب في تغييره
+    if (username && username !== user.username) {
+      const usernameExists = await User.findOne({ where: { username } });
+      if (usernameExists) {
+        return res.status(409).json({ message: 'اسم المستخدم مسجل بالفعل.' });
+      }
+      user.username = username;
+    }
+
+    if (bio !== undefined) user.bio = bio;
+    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
+
+    if (favoriteTeamId !== undefined) {
+      if (favoriteTeamId === null || favoriteTeamId === '') {
+        user.favoriteTeamId = null;
+      } else if (Team) {
+        const teamExists = await Team.findByPk(favoriteTeamId);
+        if (!teamExists) {
+          return res.status(400).json({ message: 'الفريق المحدد غير موجود.' });
+        }
+        user.favoriteTeamId = favoriteTeamId;
+      } else {
+        user.favoriteTeamId = favoriteTeamId;
+      }
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'تم تحديث الملف الشخصي بنجاح.',
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        avatarUrl: user.avatarUrl,
+        bio: user.bio,
+        favoriteTeamId: user.favoriteTeamId
+      }
+    });
+  } catch (error) {
+    console.error('Error in update profile route:', error);
+    return res.status(500).json({ message: 'حدث خطأ أثناء تحديث بيانات الملف الشخصي.' });
   }
 });
 
