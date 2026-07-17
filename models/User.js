@@ -37,6 +37,26 @@ const User = sequelize.define('User', {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false
+  },
+  avatarUrl: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      isUrl: true
+    }
+  },
+  bio: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  favoriteTeamId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'teams',
+      key: 'id'
+    },
+    onDelete: 'SET NULL'
   }
 }, {
   tableName: 'users',
