@@ -1,57 +1,80 @@
 /**
  * ANADOL League - Entry Point
+ * نقطة انطلاق الخادم الرئيسي وتكامل المسارات وتجهيزات قاعدة البيانات.
  */
+
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 require('dotenv').config();
 
 const sequelize = require('./config/db');
-const User = require('./models/User'); // استدعاء الموديل
-const bcrypt = require('bcryptjs'); // للتشفير
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 1. برمجيات الوسيط الشاملة (Global Middlewares)
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'Public'))); // المجلد كما في صورتك
 
-sequelize.sync({ alter: true })
-    .then(async () => {
-        console.log('Database synced successfully.');
+// خدمة الملفات الساكنة للواجهة الأمامية
+app.use(express.static(path.join(__dirname, 'public')));
 
-        // كود إنشاء حساب الأدمن التلقائي (يعمل فقط إذا كان الجدول فارغاً من الأدمن)
-        const adminExists = await User.findOne({ where: { role: 'admin' } });
-        if (!adminExists) {
-            const hashedPassword = await bcrypt.hash('Admin123!', 10);
-            await User.create({
-                username: 'admin',
-                email: 'admin@anadol.com',
-                password: hashedPassword,
-                role: 'admin'
-            });
-            console.log('تم إنشاء حساب الأدمن: admin@anadol.com | كلمة المرور: Admin123!');
+// 2. دمج وتفعيل مسارات الـ API النشطة حالياً (Phase 2 & 4 Routes)
+// تم نقل مسار الـ auth هنا ليكون استيراداً مباشراً وصريحاً لإنهاء التجاهل الصامت للأخطاء
+const teamRoutes = require('./routes/teams');
+const matchRoutes = require('./routes/matches');
+const standingsRoutes = require('./routes/standings');
+const authRoutes = require('./routes/auth'); 
+
+app.use('/api/teams', teamRoutes);
+app.use('/api/matches', matchRoutes);
+app.use('/api/standings', standingsRoutes);
+app.use('/api/auth', authRoutes); // ربط مباشر وصريح على البيئة السحابية
+
+// 3. دالة تفادي الانهيار للتحميل التدريجي للمسارات القادمة (Phase 3+ Routes)
+function safeMountRoute(routePath, moduleName) {
+    try {
+        const routeModule = require(moduleName);
+        app.use(routePath, routeModule);
+        console.log(`Mounted path successfully: ${routePath}`);
+    } catch (e) {
+        if (e.code !== 'MODULE_NOT_FOUND') {
+            console.error(`Error loading route module ${moduleName}:`, e.message);
         }
+    }
+}
 
-        // المسارات
-        app.use('/api/teams', require('./routes/teams'));
-        app.use('/api/matches', require('./routes/matches'));
-        app.use('/api/standings', require('./routes/standings'));
-        
-        // ... (بقية المسارات كما كانت لديك)
+// تسجيل المسارات المستقبلية الأخرى
+safeMountRoute('/api/analytics', './routes/analytics');
+safeMountRoute('/api/blog', './routes/blog');
+safeMountRoute('/api/comments', './routes/comments');
+safeMountRoute('/api/imports', './routes/imports');
+safeMountRoute('/api/admin/users', './routes/admin-users');
+safeMountRoute('/api/admin/database', './routes/admin-database');
+safeMountRoute('/api/admin/settings', './routes/admin-settings');
+safeMountRoute('/api/admin/audit-log', './routes/admin-audit');
 
-        app.get('*', (req, res) => {
-            res.sendFile(path.join(__dirname, 'Public', 'index.html'));
-        });
+// 4. التوجيه التلقائي لمعالجة واجهات الصفحة الواحدة (SPA Routing)
+app.get('*', (req, res, next) => {
+    // استثناء مسارات الـ API لعدم إرجاع صفحات HTML عند حدوث خطأ استدعاء
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'الطلب المستهدف غير متوفر بنظام الـ API' });
+    }
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-        app.listen(PORT, '0.0.0.0', () => {
-            console.log(`Server running on port: ${PORT}`);
+// 5. مزامنة قاعدة البيانات (Sequelize Sync) وتشغيل خادم الاستماع
+sequelize.sync({ alter: true })
+    .then(() => {
+        console.log('PostgreSQL Database synced successfully.');
+        app.listen(PORT, () => {
+            console.log(`ANADOL League server is running on port: ${PORT}`);
         });
     })
     .catch(err => {
-        console.error('Error:', err.message);
+        console.error('Failed to synchronize database, server aborted:', err.message);
     });
 
 module.exports = app;
