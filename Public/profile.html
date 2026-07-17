@@ -79,7 +79,7 @@
       </div>
       <div class="px-6 pb-6 pt-0 flex flex-col md:flex-row items-center md:items-end gap-6 -mt-16 relative z-10">
         <div class="relative group">
-          <img id="profile-avatar-preview" src="" alt="Avatar" class="w-32 height-32 md:w-36 md:h-36 rounded-full border-4 border-brand-dark object-cover bg-brand-card shadow-2xl transition-transform duration-300 group-hover:scale-105">
+          <img id="profile-avatar-preview" src="" alt="Avatar" class="w-32 h-32 md:w-36 md:h-36 rounded-full border-4 border-brand-dark object-cover bg-brand-card shadow-2xl transition-transform duration-300 group-hover:scale-105">
         </div>
         <div class="text-center md:text-right flex-grow">
           <h1 id="profile-display-name" class="text-3xl font-black text-white">جاري التحميل...</h1>
@@ -115,10 +115,11 @@
               </div>
             </div>
 
+            <!-- تم استبدال حقل الرابط بمحمل ملفات مباشر وتفاعلي لرفع الصور من الجهاز -->
             <div>
-              <label for="avatarUrl" class="block text-zinc-400 text-sm font-semibold mb-2">رابط الصورة الشخصية (Avatar URL)</label>
-              <input type="url" id="avatarUrl" placeholder="https://example.com/photo.jpg" class="w-full bg-brand-dark/50 border border-brand-border rounded-lg px-4 py-3 text-white focus:outline-none neon-border transition-all">
-              <p class="text-xs text-zinc-500 mt-1">ضع رابط الصورة المباشر وسيتغير شكل العرض تلقائياً بالمعاينة الحية.</p>
+              <label for="avatarFile" class="block text-zinc-400 text-sm font-semibold mb-2">الصورة الشخصية (رفع من جهازك مباشرة)</label>
+              <input type="file" id="avatarFile" accept="image/*" class="w-full bg-brand-dark/50 border border-brand-border rounded-lg px-4 py-3 text-white focus:outline-none neon-border transition-all cursor-pointer">
+              <p class="text-xs text-zinc-500 mt-1">اختر أي ملف صورة من جهازك، وسيتم ضغطه وحفظه بشكل آمن ومستقر في قاعدة بيانات حسابك.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -215,14 +216,30 @@
 
       const teamSelect = document.getElementById('favoriteTeamId');
       const teamDisplayContainer = document.getElementById('team-info-display');
-      const avatarInput = document.getElementById('avatarUrl');
+      const avatarFileInput = document.getElementById('avatarFile');
       const avatarPreview = document.getElementById('profile-avatar-preview');
+      
+      let avatarBase64 = ''; // لتخزين كود الصورة المشفر
+      const defaultAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
 
-      // 2. تفعيل المعاينة الحية لرابط الصورة الشخصية
-      avatarInput.addEventListener('input', () => {
-        const url = avatarInput.value.trim();
-        const defaultAvatar = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23cccccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
-        avatarPreview.src = url || defaultAvatar;
+      // 2. تفعيل قراءة وتحويل الصورة المحملة محلياً لـ Base64 مع المعاينة الحية الفورية
+      avatarFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          // التحقق من أن حجم الصورة لا يتجاوز 1.5 ميجابايت لضمان استقرار التخزين والاتصال
+          if (file.size > 1.5 * 1024 * 1024) {
+            alert('حجم الملف كبير جداً! يرجى اختيار صورة بحجم أقل من 1.5 ميجابايت لرفعها.');
+            avatarFileInput.value = '';
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            avatarBase64 = event.target.result;
+            avatarPreview.src = avatarBase64; // تحديث المعاينة فوراً بنجاح
+          };
+          reader.readAsDataURL(file);
+        }
       });
 
       // 3. جلب قائمة الفرق البرمجية لملء قائمة الاختيارات المتاحة
@@ -249,9 +266,11 @@
           // تعبئة حقول النموذج البرمجي
           document.getElementById('username').value = user.username || '';
           document.getElementById('email').value = user.email || '';
-          avatarInput.value = user.avatarUrl || '';
           document.getElementById('bio').value = user.bio || '';
           teamSelect.value = user.favoriteTeamId || '';
+          
+          // الاحتفاظ بالقيمة القديمة لـ avatarUrl في حال لم يقم المستخدم بتحميل صورة جديدة
+          avatarBase64 = user.avatarUrl || '';
 
           // تنسيق تاريخ الانضمام للمظهر المحلي
           if (user.createdAt) {
@@ -269,7 +288,6 @@
           document.getElementById('profile-display-role').textContent = roleTitle;
 
           // معالجة معاينة الصورة الشخصية فوراً
-          const defaultAvatar = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23cccccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
           avatarPreview.src = user.avatarUrl || defaultAvatar;
 
           // تحديث بطاقة الفريق المفضّل
@@ -340,7 +358,6 @@
 
         const submitBtn = document.getElementById('save-profile-btn');
         const username = document.getElementById('username').value.trim();
-        const avatarUrl = avatarInput.value.trim();
         const favoriteTeamId = teamSelect.value ? parseInt(teamSelect.value) : null;
         const bio = document.getElementById('bio').value.trim();
 
@@ -350,7 +367,7 @@
         try {
           const response = await window.AnadolAuth.updateProfile({
             username,
-            avatarUrl,
+            avatarUrl: avatarBase64, // يتم إرسال كود الصورة المشفر بالكامل كـ Base64 للحفظ الدائم
             favoriteTeamId,
             bio
           });
