@@ -23,7 +23,10 @@
                 <li><a href="standings.html" class="navbar-link">جدول الترتيب</a></li>
                 <li><a href="teams.html" class="navbar-link">الفرق</a></li>
                 <li><a href="blog.html" class="navbar-link">المدونة والتحليلات</a></li>
-                <li><a href="admin/login.html" class="btn-nav-auth" id="navAuthBtn">لوحة التحكم</a></li>
+                <!-- تم تحويل هذا العنصر إلى حاوية تفاعلية لدعم عرض حالة المستخدم المسجل ديناميكياً -->
+                <li id="navbar-auth-container">
+                    <a href="admin/login.html" class="btn-nav-auth" id="navAuthBtn">لوحة التحكم</a>
+                </li>
             </ul>
 
             <button class="navbar-toggle" id="navbarToggle" aria-label="فتح القائمة">
@@ -195,6 +198,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <!-- استدعاء ملف الحركات المخصص للمشروع -->
     <script src="js/animations.js"></script>
+    
+    <!-- استدعاء ملفات الجلسات والتوثيق التفاعلي للواجهات الأمامية لتشغيل النافبار وتحديث حالته -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
     
     <script>
         // تفعيل تفاعل شريط التنقل على الموبايل
