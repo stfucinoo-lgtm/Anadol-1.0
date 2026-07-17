@@ -82,6 +82,10 @@ async function startServer() {
     try {
         // فحص وإضافة الأعمدة الجديدة يدوياً لتفادي خلل استعلام UNIQUE المكسور في Sequelize { alter: true }
         await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatarUrl" VARCHAR(255);');
+        
+        // تعديل نوع عمود avatarUrl يدوياً إلى TEXT ليتسع لحجم نصوص صور الـ Base64 المرفوعة دون قيود الحجم
+        await sequelize.query('ALTER TABLE "users" ALTER COLUMN "avatarUrl" TYPE TEXT;');
+        
         await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bio" TEXT;');
         await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;');
         console.log('Database columns checked/updated successfully.');
