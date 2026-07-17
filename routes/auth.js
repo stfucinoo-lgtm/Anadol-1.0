@@ -259,26 +259,43 @@ router.put('/profile', authenticateUser, async (req, res) => {
     return res.status(500).json({ message: 'حدث خطأ أثناء تحديث بيانات الملف الشخصي.' });
   }
 });
-// مسار مؤقت لإنشاء حساب المسؤول الأول - يرجى حذفه أو إغلاقه بعد التشغيل الأول لأسباب أمنية
+
+// مسار مؤقت لإعادة تعيين حساب المسؤول قسرياً وتصحيح التشفير
 router.get('/setup-initial-admin-account-secure', async (req, res) => {
   try {
-    const [admin, created] = await User.findOrCreate({
-      where: { email: 'admin@anadol.com' },
-      defaults: {
-        username: 'admin',
-        password: 'Admin123!', // سيقوم الموديل بتشفيرها تلقائياً
-        role: 'admin'
-      }
-    });
+    // البحث عن المستخدم بالبريد الإلكتروني أولاً
+    let user = await User.findOne({ where: { email: 'admin@anadol.com' } });
 
-    if (created) {
-      return res.status(201).json({ success: true, message: 'تم إنشاء حساب المسؤول بنجاح!' });
+    if (user) {
+      // تحديث البيانات وكلمة المرور لتفعيل الـ beforeUpdate hook وتشفيرها لمرة واحدة فقط
+      user.password = 'Admin123!';
+      user.role = 'admin';
+      user.banned = false;
+      await user.save(); 
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: 'تم إعادة تعيين كلمة مرور المسؤول وتحديث صلاحياته بنجاح!' 
+      });
     } else {
-      return res.status(200).json({ success: true, message: 'حساب المسؤول موجود بالفعل.' });
+      // إذا لم يكن موجوداً، نقوم بإنشائه من الصفر
+      user = await User.create({
+        username: 'admin',
+        email: 'admin@anadol.com',
+        password: 'Admin123!',
+        role: 'admin',
+        banned: false
+      });
+      
+      return res.status(201).json({ 
+        success: true, 
+        message: 'تم إنشاء حساب المسؤول بنجاح من الصفر!' 
+      });
     }
   } catch (error) {
     console.error('Error in setup-admin route:', error);
     return res.status(500).json({ success: false, error: error.message });
   }
 });
+
 module.exports = router;
