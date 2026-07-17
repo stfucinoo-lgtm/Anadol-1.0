@@ -259,5 +259,26 @@ router.put('/profile', authenticateUser, async (req, res) => {
     return res.status(500).json({ message: 'حدث خطأ أثناء تحديث بيانات الملف الشخصي.' });
   }
 });
+// مسار مؤقت لإنشاء حساب المسؤول الأول - يرجى حذفه أو إغلاقه بعد التشغيل الأول لأسباب أمنية
+router.get('/setup-initial-admin-account-secure', async (req, res) => {
+  try {
+    const [admin, created] = await User.findOrCreate({
+      where: { email: 'admin@anadol.com' },
+      defaults: {
+        username: 'admin',
+        password: 'Admin123!', // سيقوم الموديل بتشفيرها تلقائياً
+        role: 'admin'
+      }
+    });
 
+    if (created) {
+      return res.status(201).json({ success: true, message: 'تم إنشاء حساب المسؤول بنجاح!' });
+    } else {
+      return res.status(200).json({ success: true, message: 'حساب المسؤول موجود بالفعل.' });
+    }
+  } catch (error) {
+    console.error('Error in setup-admin route:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
 module.exports = router;
