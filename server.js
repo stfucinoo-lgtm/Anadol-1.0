@@ -78,10 +78,10 @@ app.get('*', (req, res, next) => {
 });
 
 // 5. مزامنة قاعدة البيانات (Sequelize Sync) وتشغيل خادم الاستماع
-// تم تبديلها للمزامنة الافتراضية الآمنة لضمان استقرار التشغيل على Render
-sequelize.sync()
+// تم تمرير { alter: true } ليقوم بتحديث الجداول تلقائياً بالخانات الجديدة دون التأثير على بياناتك الحالية
+sequelize.sync({ alter: true })
     .then(() => {
-        console.log('PostgreSQL Database synced successfully.');
+        console.log('PostgreSQL Database synced and altered successfully.');
         app.listen(PORT, () => {
             console.log(`ANADOL League server is running on port: ${PORT}`);
         });
