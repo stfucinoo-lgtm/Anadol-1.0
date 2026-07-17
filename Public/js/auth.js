@@ -204,3 +204,79 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+/**
+ * وظائف مساعدة للملف الشخصي والتحديث التلقائي للواجهات المرتبطة بحساب المستخدم
+ */
+Object.assign(AnadolAuth, {
+  /**
+   * جلب بيانات الملف الشخصي الكاملة من الخادم
+   */
+  async fetchProfile() {
+    if (!this.isLoggedIn()) return null;
+    try {
+      return await api.get('/auth/profile');
+    } catch (e) {
+      console.error('Error fetching dynamic profile from backend:', e);
+      throw e;
+    }
+  },
+
+  /**
+   * إرسال تحديثات الملف الشخصي إلى الخادم وحفظ التعديلات محلياً
+   * @param {object} profileData - البيانات المراد تعديلها (username, bio, avatarUrl, favoriteTeamId)
+   */
+  async updateProfile(profileData) {
+    try {
+      const response = await api.put('/auth/profile', profileData);
+      if (response.success && response.user) {
+        // تحديث بيانات المستخدم المخزنة محلياً بالبيانات الجديدة
+        localStorage.setItem('anadol_user', JSON.stringify(response.user));
+      }
+      return response;
+    } catch (e) {
+      console.error('Error updating user profile via API:', e);
+      throw e;
+    }
+  },
+
+  /**
+   * تهيئة وتحديث أزرار الواجهة الأمامية (النافبار وروابط تسجيل الدخول / الخروج) تلقائياً
+   */
+  renderAuthNavbar() {
+    const isLoggedIn = this.isLoggedIn();
+    const user = this.getUser();
+
+    // البحث عن حاوية الروابط المخصصة في الهيدر (Navbar)
+    const authContainer = document.getElementById('navbar-auth-container');
+    if (!authContainer) return;
+
+    if (isLoggedIn && user) {
+      const defaultAvatar = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23cccccc"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+      const avatarSrc = user.avatarUrl || defaultAvatar;
+
+      authContainer.innerHTML = `
+        <div class="user-profile-menu" style="display: flex; align-items: center; gap: 12px;">
+          <a href="/profile.html" class="nav-profile-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit;">
+            <img src="${avatarSrc}" alt="Avatar" class="nav-user-avatar" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid %2300ff87;">
+            <span class="nav-username" style="font-weight: 600;">${user.username}</span>
+          </a>
+          <button id="navbar-logout-btn" class="nav-logout-btn" style="background: transparent; color: %23ff4d4d; border: 1px solid %23ff4d4d; padding: 4px 10px; border-radius: 4px; cursor: pointer;">تسجيل الخروج</button>
+        </div>
+      `;
+
+      document.getElementById('navbar-logout-btn').addEventListener('click', () => {
+        this.logout();
+      });
+    } else {
+      authContainer.innerHTML = `
+        <a href="/admin/login.html" class="nav-login-link" style="background: %2300ff87; color: %23121212; padding: 6px 14px; border-radius: 4px; font-weight: 600; text-decoration: none;">تسجيل الدخول</a>
+      `;
+    }
+  }
+});
+
+// تشغيل الفحص والتهيئة الفورية للنافبار بمجرد اكتمال تجهيز الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+  AnadolAuth.renderAuthNavbar();
+});
