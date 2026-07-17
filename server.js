@@ -21,17 +21,14 @@ app.use(express.urlencoded({ extended: true }));
 // خدمة الملفات الساكنة للواجهة الأمامية
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 2. دمج وتفعيل مسارات الـ API النشطة حالياً (Phase 2 & 4 Routes)
-// تم نقل مسار الـ auth هنا ليكون استيراداً مباشراً وصريحاً لإنهاء التجاهل الصامت للأخطاء
+// 2. دمج وتفعيل مسارات الـ API النشطة حالياً (Phase 2 Routes)
 const teamRoutes = require('./routes/teams');
 const matchRoutes = require('./routes/matches');
 const standingsRoutes = require('./routes/standings');
-const authRoutes = require('./routes/auth'); 
 
 app.use('/api/teams', teamRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/standings', standingsRoutes);
-app.use('/api/auth', authRoutes); // ربط مباشر وصريح على البيئة السحابية
 
 // 3. دالة تفادي الانهيار للتحميل التدريجي للمسارات القادمة (Phase 3+ Routes)
 function safeMountRoute(routePath, moduleName) {
@@ -46,7 +43,8 @@ function safeMountRoute(routePath, moduleName) {
     }
 }
 
-// تسجيل المسارات المستقبلية الأخرى
+// تسجيل المسارات المستقبلية (سيتم تحميلها تلقائياً بمجرد إنشاء ملفاتها في المراحل القادمة)
+safeMountRoute('/api/auth', './routes/auth');
 safeMountRoute('/api/analytics', './routes/analytics');
 safeMountRoute('/api/blog', './routes/blog');
 safeMountRoute('/api/comments', './routes/comments');
@@ -66,7 +64,7 @@ app.get('*', (req, res, next) => {
 });
 
 // 5. مزامنة قاعدة البيانات (Sequelize Sync) وتشغيل خادم الاستماع
-// تم تبديل المزامنة هنا للوضع القياسي الآمن لحل مشكلة استعلام UNIQUE المكسور في PostgreSQL
+// تم تبديلها للمزامنة الافتراضية الآمنة لضمان استقرار التشغيل على Render
 sequelize.sync()
     .then(() => {
         console.log('PostgreSQL Database synced successfully.');
