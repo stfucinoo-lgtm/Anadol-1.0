@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs'); // التبديل إلى bcryptjs لضمان التوافق المطلق على خوادم Render
+
 const User = sequelize.define('User', {
   id: {
     type: DataTypes.INTEGER,
