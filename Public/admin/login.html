@@ -4,159 +4,150 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>بوابة الحسابات والإدارة | دوري الأناضول</title>
-  <!-- الخطوط العربية -->
+  
+  <!-- استيراد الخطوط العربية المتناسقة مع هوية الدوري -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <!-- التنسيق العام للموقع -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- التنسيق العام للموقع المشتمل على كلاسات المصادقة المحسنة -->
   <link rel="stylesheet" href="../css/style.css">
-  <!-- مكتبة الأيقونات والخطوط -->
+  
   <style>
+    /* خط مخصص وتعديلات خفيفة لتنسيق الصفحة السحابية وتأثيرات الإضاءة الخلفية */
     body {
-      font-family: 'Tajawal', sans-serif;
-      background: radial-gradient(circle at center, #111827 0%, #030712 100%);
-      color: #f3f4f6;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      font-family: 'Cairo', sans-serif;
       margin: 0;
-      overflow-x: hidden;
+      background-color: var(--primary-dark);
     }
-    .login-container {
-      background: rgba(17, 24, 39, 0.7);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(16, 185, 129, 0.15);
-      border-radius: 24px;
-      padding: 2.5rem;
-      width: 100%;
-      max-width: 450px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 
-                  0 0 50px rgba(16, 185, 129, 0.05);
-    }
+
+    /* كرات الإضاءة الجمالية المتوهجة في الخلفية الرياضية */
     .accent-glow {
       position: absolute;
       width: 300px;
       height: 300px;
-      background: #10b981;
-      filter: blur(120px);
-      opacity: 0.12;
+      background: var(--accent-color);
+      filter: blur(140px);
+      opacity: 0.08;
       border-radius: 50%;
-      z-index: -1;
+      z-index: 1;
+      pointer-events: none;
     }
-    .form-group input {
-      background: rgba(31, 41, 55, 0.5);
-      border: 1px solid rgba(75, 85, 99, 0.4);
-      color: #fff;
-      transition: all 0.3s ease;
+
+    /* كلاسات التحكم في الإخفاء والظهور عند تبديل النماذج */
+    .hidden {
+      display: none !important;
     }
-    .form-group input:focus {
-      outline: none;
-      border-color: #10b981;
-      box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
-      background: rgba(31, 41, 55, 0.8);
-    }
-    .glow-btn {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
-      transition: all 0.3s ease;
-    }
-    .glow-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
-    }
+    
     .hidden-form {
-      display: none;
+      display: none !important;
+    }
+
+    /* تهيئة الكرت للتأثير الحركي الأولي عبر GSAP */
+    .opacity-0 {
+      opacity: 0;
+    }
+    .translate-y-6 {
+      transform: translateY(24px);
     }
   </style>
 </head>
 <body>
 
+  <!-- كرات الإضاءة الجمالية في الخلفية المظلمة -->
   <div class="accent-glow" style="top: 10%; right: 10%;"></div>
   <div class="accent-glow" style="bottom: 10%; left: 10%;"></div>
 
-  <div class="login-container opacity-0 transform translate-y-6" id="login-box">
-    <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-3xl mb-4">
-        🏆
-      </div>
-      <h1 class="text-2xl font-black tracking-tight text-white" id="portal-title">دوري الأناضول الرياضي</h1>
-      <p class="text-sm text-neutral-400 mt-1" id="portal-desc">بوابة الإدارة والتنسيق الفني للمشروع</p>
-    </div>
-
-    <!-- رسائل الأخطاء والتنبيهات المشتركة -->
-    <div id="error-container" class="hidden mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm text-center"></div>
-
-    <!-- أولاً: نموذج تسجيل الدخول -->
-    <form id="admin-login-form" class="space-y-6">
-      <div class="form-group">
-        <label for="email" class="block text-sm font-bold text-neutral-300 mb-2">البريد الإلكتروني</label>
-        <input type="email" id="email" required placeholder="name@anadol.com" class="w-full px-4 py-3 rounded-xl text-sm placeholder-gray-500">
+  <div class="auth-page-wrapper" style="position: relative; z-index: 2;">
+    
+    <!-- كارد تسجيل الدخول والإنشاء الرئيسي -->
+    <div class="auth-card opacity-0 translate-y-6" id="login-box">
+      
+      <!-- الهيكل العلوي والأيقونة التعبيرية للموقع -->
+      <div class="auth-header">
+        <div class="auth-icon">🏆</div>
+        <h1 class="auth-title" id="portal-title">دوري الأناضول الرياضي</h1>
+        <p class="auth-subtitle" id="portal-desc">بوابة الإدارة والتنسيق الفني للمشروع</p>
       </div>
 
-      <div class="form-group">
-        <label for="password" class="block text-sm font-bold text-neutral-300 mb-2">كلمة المرور</label>
-        <input type="password" id="password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl text-sm placeholder-gray-500">
+      <!-- صندوق رسائل الأخطاء والتنبيهات الموحد والمنسق بشكل بارز وأنيق -->
+      <div id="error-container" class="auth-alert hidden">
+        <span>⚠️</span> <span id="error-text"></span>
       </div>
 
-      <button type="submit" id="login-submit-btn" class="glow-btn w-full py-3.5 px-4 rounded-xl text-white font-black text-sm tracking-wide focus:outline-none">
-        دخول لوحة التحكم
-      </button>
+      <!-- أولاً: نموذج تسجيل الدخول المحدث -->
+      <form id="admin-login-form">
+        <div class="auth-form-group">
+          <label for="email" class="auth-label">البريد الإلكتروني</label>
+          <input type="email" id="email" required placeholder="name@anadol.com" class="auth-input">
+        </div>
 
-      <div class="text-center mt-4">
-        <p class="text-xs text-neutral-400">
-          ليس لديك حساب؟ 
-          <a href="#" id="toggle-to-register" class="text-emerald-400 hover:text-emerald-300 font-bold hover:underline transition">إنشاء حساب زائر جديد</a>
-        </p>
+        <div class="auth-form-group">
+          <label for="password" class="auth-label">كلمة المرور</label>
+          <input type="password" id="password" required placeholder="••••••••" class="auth-input">
+        </div>
+
+        <button type="submit" id="login-submit-btn" class="auth-submit-btn">
+          دخول لوحة التحكم
+        </button>
+
+        <div class="auth-footer-links">
+          <p class="auth-footer-link">
+            ليس لديك حساب؟ 
+            <a href="#" id="toggle-to-register" class="auth-footer-link"><strong>إنشاء حساب زائر جديد</strong></a>
+          </p>
+        </div>
+      </form>
+
+      <!-- ثانياً: نموذج إنشاء الحساب الجديد المنسق (مخفي افتراضياً) -->
+      <form id="admin-register-form" class="hidden-form">
+        <div class="auth-form-group">
+          <label for="reg-username" class="auth-label">اسم المستخدم</label>
+          <input type="text" id="reg-username" required placeholder="مثال: user123" class="auth-input">
+        </div>
+
+        <div class="auth-form-group">
+          <label for="reg-email" class="auth-label">البريد الإلكتروني</label>
+          <input type="email" id="reg-email" required placeholder="example@domain.com" class="auth-input">
+        </div>
+
+        <div class="auth-form-group">
+          <label for="reg-password" class="auth-label">كلمة المرور</label>
+          <input type="password" id="reg-password" required placeholder="••••••••" class="auth-input">
+        </div>
+
+        <button type="submit" id="register-submit-btn" class="auth-submit-btn">
+          إنشاء الحساب والانضمام
+        </button>
+
+        <div class="auth-footer-links">
+          <p class="auth-footer-link">
+            لديك حساب بالفعل؟ 
+            <a href="#" id="toggle-to-login" class="auth-footer-link"><strong>تسجيل الدخول</strong></a>
+          </p>
+        </div>
+      </form>
+
+      <!-- رابط العودة إلى الموقع الرئيسي للدوري بشكل مريح ومتناسق -->
+      <div class="auth-footer-links" style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+        <a href="../index.html" class="auth-footer-link" style="color: var(--accent-color); font-weight: 700;">
+          ← عودة للموقع الرئيسي للدوري
+        </a>
       </div>
-    </form>
 
-    <!-- ثانياً: نموذج إنشاء الحساب الجديد (مخفي افتراضياً) -->
-    <form id="admin-register-form" class="space-y-6 hidden-form">
-      <div class="form-group">
-        <label for="reg-username" class="block text-sm font-bold text-neutral-300 mb-2">اسم المستخدم</label>
-        <input type="text" id="reg-username" required placeholder="مثال: user123" class="w-full px-4 py-3 rounded-xl text-sm placeholder-gray-500">
-      </div>
-
-      <div class="form-group">
-        <label for="reg-email" class="block text-sm font-bold text-neutral-300 mb-2">البريد الإلكتروني</label>
-        <input type="email" id="reg-email" required placeholder="example@domain.com" class="w-full px-4 py-3 rounded-xl text-sm placeholder-gray-500">
-      </div>
-
-      <div class="form-group">
-        <label for="reg-password" class="block text-sm font-bold text-neutral-300 mb-2">كلمة المرور</label>
-        <input type="password" id="reg-password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl text-sm placeholder-gray-500">
-      </div>
-
-      <button type="submit" id="register-submit-btn" class="glow-btn w-full py-3.5 px-4 rounded-xl text-white font-black text-sm tracking-wide focus:outline-none">
-        إنشاء الحساب والانضمام
-      </button>
-
-      <div class="text-center mt-4">
-        <p class="text-xs text-neutral-400">
-          لديك حساب بالفعل؟ 
-          <a href="#" id="toggle-to-login" class="text-emerald-400 hover:text-emerald-300 font-bold hover:underline transition">تسجيل الدخول</a>
-        </p>
-      </div>
-    </form>
-
-    <div class="text-center mt-6 border-t border-neutral-800 pt-4">
-      <a href="../index.html" class="text-xs text-emerald-400 hover:text-emerald-300 hover:underline transition">
-        ← عودة للموقع الرئيسي للدوري
-      </a>
     </div>
   </div>
 
-  <!-- مكتبة GSAP للحركات البصرية -->
+  <!-- مكتبة GSAP للحركات البصرية الناعمة -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   
-  <!-- ملفات الخدمات والربط البرمجي المشتركة -->
+  <!-- ملفات الخدمات والربط البرمجي المشتركة لربط الـ API -->
   <script src="../js/api.js"></script>
   <script src="../js/auth.js"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // تشغيل الحركات البصرية اللطيفة عند تحميل الصفحة بنجاح
       if (typeof gsap !== 'undefined') {
         gsap.to('#login-box', {
           opacity: 1,
