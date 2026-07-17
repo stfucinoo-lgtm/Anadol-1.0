@@ -39,11 +39,8 @@ const User = sequelize.define('User', {
     defaultValue: false
   },
   avatarUrl: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    validate: {
-      isUrl: true
-    }
+    type: DataTypes.TEXT, // تحويل نوع الحقل إلى TEXT لاستيعاب كود تشفير صور Base64 الطويلة وحفظها بشكل دائم
+    allowNull: true
   },
   bio: {
     type: DataTypes.TEXT,
