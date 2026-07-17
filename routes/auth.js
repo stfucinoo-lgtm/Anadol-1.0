@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { Op } = require('sequelize'); // استيراد مباشر وآمن لمعاملات الاستعلام
+const User = require('../models/User'); // يرجى التأكد من أن اسم الملف الفعلي هو User.js بحرف U كبير
 
 const JWT_SECRET = process.env.JWT_SECRET || 'anadol_secret_key';
 
@@ -29,10 +30,10 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'يرجى ملء جميع الحقول المطلوبة للتسجيل.' });
     }
 
-    // 2. التحقق من تكرار البريد الإلكتروني أو اسم المستخدم
+    // 2. التحقق من تكرار البريد الإلكتروني أو اسم المستخدم بشكل آمن
     const existingUser = await User.findOne({
       where: {
-        [User.sequelize.Sequelize.Op.or]: [{ email }, { username }]
+        [Op.or]: [{ email }, { username }]
       }
     });
 
