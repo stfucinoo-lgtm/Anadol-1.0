@@ -66,7 +66,8 @@ app.get('*', (req, res, next) => {
 });
 
 // 5. مزامنة قاعدة البيانات (Sequelize Sync) وتشغيل خادم الاستماع
-sequelize.sync({ alter: true })
+// تم تبديل المزامنة هنا للوضع القياسي الآمن لحل مشكلة استعلام UNIQUE المكسور في PostgreSQL
+sequelize.sync()
     .then(() => {
         console.log('PostgreSQL Database synced successfully.');
         app.listen(PORT, () => {
