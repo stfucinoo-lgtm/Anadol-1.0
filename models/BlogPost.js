@@ -22,7 +22,7 @@ const BlogPost = sequelize.define('BlogPost', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Users', // الإشارة إلى جدول المستخدمين
+      model: 'users', // تم تصحيحها للأحرف الصغيرة لتطابق جدول المستخدمين الفعلي
       key: 'id'
     },
     onDelete: 'RESTRICT' // يمنع حذف الكاتب طالما لديه مقالات منشورة كإجراء تدقيقي وحفظ أرشيفي
