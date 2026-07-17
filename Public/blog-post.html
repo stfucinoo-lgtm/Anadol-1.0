@@ -4,7 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تصفح المقال - دوري الأناضول</title>
-    <!-- استدعاء خط Cairo وتنسيقات CSS -->
+    <!-- Tailwind CSS لتوفير أساس عالي الاستجابة وتصميم عصري سريع -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- خطوط Google لمظهر رياضي حديث وعريض -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                dark: '#0c0c0e',
+                card: '#16161a',
+                accent: '#00ff87',
+                accentHover: '#00e074',
+                border: '#24242b'
+              }
+            },
+            fontFamily: {
+              cairo: ['Cairo', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <!-- استدعاء التنسيقات المخصصة للمشروع -->
     <link rel="stylesheet" href="css/style.css">
     <!-- مكتبة FontAwesome للأيقونات الرياضية -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -52,25 +77,24 @@
 </head>
 <body>
 
-    <!-- 1. شريط التنقل (Navbar) -->
-    <nav class="navbar">
-        <div class="container navbar-container">
-            <a href="index.html" class="navbar-brand">
-                <i class="fa-solid fa-futbol"></i> دوري <span>الأناضول</span>
-            </a>
-            
-            <ul class="navbar-menu" id="navbarMenu">
-                <li><a href="index.html" class="navbar-link">الرئيسية</a></li>
-                <li><a href="standings.html" class="navbar-link">جدول الترتيب</a></li>
-                <li><a href="teams.html" class="navbar-link">الفرق</a></li>
-                <li><a href="blog.html" class="navbar-link active">المدونة والتحليلات</a></li>
-                <li><a href="admin/login.html" class="btn-nav-auth" id="navAuthBtn">لوحة التحكم</a></li>
-            </ul>
-
-            <button class="navbar-toggle" id="navbarToggle" aria-label="فتح القائمة">
-                <i class="fa-solid fa-bars"></i>
-            </button>
+    <!-- 1. شريط التنقل الحديث (Navbar) المستوحى من الملف الشخصي -->
+    <nav class="border-b border-brand-border bg-brand-dark/90 backdrop-blur-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-8">
+            <a href="index.html" class="text-2xl font-black tracking-wider text-brand-accent no-underline">ANADOL</a>
+            <div class="hidden md:flex space-x-reverse space-x-6">
+              <a href="index.html" class="text-zinc-300 hover:text-brand-accent transition-colors font-semibold no-underline">الرئيسية</a>
+              <a href="standings.html" class="text-zinc-300 hover:text-brand-accent transition-colors font-semibold no-underline">الترتيب</a>
+              <a href="teams.html" class="text-zinc-300 hover:text-brand-accent transition-colors font-semibold no-underline">الفرق</a>
+              <a href="blog.html" class="text-brand-accent hover:text-brand-accent transition-colors font-semibold no-underline">المدونة</a>
+            </div>
+          </div>
+          <div id="navbar-auth-container">
+            <!-- يتم ملؤه تلقائياً بواسطة AnadolAuth -->
+          </div>
         </div>
+      </div>
     </nav>
 
     <!-- 2. قسم المقال المنفرد (Blog Post Section) -->
@@ -163,156 +187,4 @@
     </footer>
 
     <!-- استدعاء مكتبة GSAP والـ ScrollTrigger من الـ CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <!-- استدعاء ملف الحركات المشترك للمشروع -->
-    <script src="js/animations.js"></script>
-    
-    <script>
-        // تفعيل تفاعل شريط التنقل على الموبايل
-        const navbarToggle = document.getElementById('navbarToggle');
-        const navbarMenu = document.getElementById('navbarMenu');
-        
-        if (navbarToggle && navbarMenu) {
-            navbarToggle.addEventListener('click', () => {
-                navbarMenu.style.display = navbarMenu.style.display === 'flex' ? 'none' : 'flex';
-                if (navbarMenu.style.display === 'flex') {
-                    navbarMenu.style.flexDirection = 'column';
-                    navbarMenu.style.position = 'absolute';
-                    navbarMenu.style.top = '80px';
-                    navbarMenu.style.left = '0';
-                    navbarMenu.style.width = '100%';
-                    navbarMenu.style.backgroundColor = 'var(--secondary-dark)';
-                    navbarMenu.style.padding = '1.5rem';
-                    navbarMenu.style.gap = '1rem';
-                    navbarMenu.style.borderBottom = '1px solid var(--border-color)';
-                }
-            });
-        }
-
-        // قاعدة بيانات تجريبية للمقالات المتوفرة لمرحلة MVP لتمثيل معطيات العقد
-        const blogDatabase = {
-            "1": {
-                title: "القراءة الفنية لديربي الجولة الخامسة: معركة خط الوسط",
-                author: "المحرر الرياضي",
-                date: "15 يناير 2026",
-                image: "https://images.unsplash.com/photo-1518063319789-7217e6706b04?auto=format&fit=crop&q=80&w=1200",
-                body: `
-                    <p>شهدت الجولة الخامسة من دوري الأناضول مواجهة من العيار الثقيل، حيث التقى الخصمان اللدودان في مباراة حاسمة صبغت بالصبغة التكتيكية الصارمة من كلا الجانبين. تركز الصراع الفعلي طوال التسعين دقيقة في خط الوسط، والذي كان مفتاح الفوز والسيطرة التامة على اللقاء.</p>
-                    
-                    <blockquote>"إن اللعب المنظم والقدرة على كسب الكرات الثانية في الدائرة المركزية كان الفارق الحقيقي الذي منح المتصدر نقاط اللقاء الثلاث."</blockquote>
-                    
-                    <p>من الناحية التكتيكية، نجح فريق نجم الأناضول في تطبيق استراتيجية الضغط العالي الموجه، مما عطل عملية بناء الهجمات المعتادة لشباب القلعة. الخرائط الحرارية المعتمدة للمباراة تؤكد أن لاعب الوسط المرتكز قضى أكثر من 65% من وقت حركته في تدمير هجمات الخصم قبل وصولها للثلث الدفاعي الأخير.</p>
-                    
-                    <p>بهذا الفوز، يعزز المتصدر موقعه في ريادة جدول الترتيب، واضعاً بقية الأندية أمام تحدٍ فني جدي لابتكار حلول قادرة على فك التكتل الدفاعي والضغط الحديدي المطبق في المباريات الكبيرة.</p>
-                `,
-                comments: [
-                    { author: "أبو بكر", content: "تحليل فني رائع ودقيق جداً. خط وسط نجم الأناضول كان متماسكاً بشكل رهيب ومستحق الصدارة تماماً.", date: "15 يناير 2026" }
-                ]
-            },
-            "2": {
-                title: "كيف طوّر فريق النجوم منظومته الدفاعية هذا الموسم؟",
-                author: "مراسل الدوري",
-                date: "14 يناير 2026",
-                image: "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&q=80&w=1200",
-                body: `
-                    <p>لم يكن أكثر المتفائلين يتوقع القفزة الدفاعية الهائلة التي حققها فريق النجوم هذا الموسم. فبعد أن كان خط دفاع الفريق يعاني من ثغرات واضحة استقبل على إثرها عدداً كبيراً من الأهداف الموسم الماضي، عاد الفريق هذا العام بمنظومة حديدية حصد بها المركز الثاني برصيد مميز من الشباك النظيفة (Clean Sheets).</p>
-                    
-                    <blockquote>"الالتزام الفردي، والتقارب الدقيق بين خطوط اللعب جعل من الصعب جداً على المنافسين التغلغل في العمق الدفاعي للنجوم."</blockquote>
-                    
-                    <p>التحول التكتيكي يرجع بالأساس إلى تغيير أسلوب التمركز الدفاعي، والاعتماد على قلبي دفاع يتسمان بالسرعة العالية في التغطية العكسية، مدعومين بظهيري جنب يلتزمان بالواجبات الدفاعية أولاً قبل الاندفاع التام للمساندة الهجومية.</p>
-                `,
-                comments: []
-            }
-        };
-
-        // دالة قراءة المعرف وبناء صفحة المقال
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            let postId = params.get('id') || "1";
-
-            if (!blogDatabase[postId]) {
-                postId = "1";
-            }
-
-            const postData = blogDatabase[postId];
-
-            // تعبئة البيانات
-            document.getElementById('postTitle').textContent = postData.title;
-            document.getElementById('postAuthor').textContent = postData.author;
-            document.getElementById('postDate').textContent = postData.date;
-            document.getElementById('postImage').src = postData.image;
-            document.getElementById('postImage').alt = postData.title;
-            document.getElementById('postBody').innerHTML = postData.body;
-
-            // بناء قائمة التعليقات الأولية
-            const commentsList = document.getElementById('commentsList');
-            const commentCountSpan = document.getElementById('commentCount');
-            
-            function renderComments() {
-                commentsList.innerHTML = '';
-                commentCountSpan.textContent = postData.comments.length;
-
-                if (postData.comments.length === 0) {
-                    commentsList.innerHTML = `<p id="noCommentsText" style="color: var(--text-muted); font-style: italic;">لا توجد تعليقات بعد على هذا المقال. كن أول المعلقين ومشاركي الرأي الفني!</p>`;
-                    return;
-                }
-
-                postData.comments.forEach(comment => {
-                    const item = document.createElement('div');
-                    item.className = 'comment-item comment-node';
-                    item.innerHTML = `
-                        <div class="comment-header">
-                            <span class="comment-author"><i class="fa-solid fa-circle-user"></i> ${comment.author}</span>
-                            <span class="comment-date">${comment.date}</span>
-                        </div>
-                        <p class="comment-body">${comment.content}</p>
-                    `;
-                    commentsList.appendChild(item);
-                });
-            }
-
-            renderComments();
-
-            // معالجة نموذج إرسال التعليق (Simulated Form Submit)
-            const commentForm = document.getElementById('commentForm');
-            commentForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-
-                const authorInput = document.getElementById('authorName');
-                const contentInput = document.getElementById('commentContent');
-
-                const newComment = {
-                    author: authorInput.value.trim(),
-                    content: contentInput.value.trim(),
-                    date: "اليوم (تحديث فوري)"
-                };
-
-                // حفظ في قاعدة البيانات المحلية المؤقتة
-                postData.comments.push(newComment);
-                
-                // إعادة رسم التعليقات لتشمل الجديد
-                renderComments();
-
-                // تفريغ المدخلات
-                authorInput.value = '';
-                contentInput.value = '';
-
-                // تشغيل حركة دخول لطيفة لأحدث تعليق مضاف لتجربة تفاعلية مبهرة
-                const lastCommentNode = commentsList.lastElementChild;
-                if (lastCommentNode && typeof AnadolAnims !== 'undefined') {
-                    AnadolAnims.fadeIn(lastCommentNode, { y: 15, duration: 0.5 });
-                }
-            });
-
-            // تفعيل حركات GSAP لظهور مكونات المقالة
-            if (typeof gsap !== 'undefined') {
-                AnadolAnims.fadeIn('#postTitle', { y: -25, duration: 0.7 });
-                AnadolAnims.fadeIn('#postMeta', { y: 10, duration: 0.6, delay: 0.1 });
-                AnadolAnims.fadeIn('#postImage', { opacity: 0, scale: 0.98, duration: 0.8, delay: 0.2 });
-                AnadolAnims.fadeIn('#postBody', { y: 20, duration: 0.8, delay: 0.3 });
-            }
-        });
-    </script>
-</body>
-</html>
+    <script sr
