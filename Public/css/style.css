@@ -99,7 +99,7 @@ img {
 /* 3. شريط التنقل (Navbar) */
 .navbar {
     background-color: rgba(22, 25, 31, 0.95);
-    border-bottom: 1px border var(--border-color);
+    border-bottom: 1px solid var(--border-color); /* تم إصلاح صياغة الإطار هنا لتعمل بشكل سليم */
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -990,4 +990,187 @@ select.form-control {
 
 .pulse {
     animation: pulse-live 2s infinite;
+}
+
+
+/* ==========================================================================
+   15. تنسيقات مخصصة لصفحات تسجيل الدخول وإنشاء الحساب (Auth System Pages)
+   ========================================================================== */
+
+/* الحاوية الأساسية للصفحة لتتوسط الشاشة بالكامل بخلفية رياضية داكنة */
+.auth-page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    background: radial-gradient(circle at center, #16191f 0%, #0f1115 100%);
+}
+
+/* تصميم كارد التسجيل/الدخول الزجاجي الأنيق */
+.auth-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    width: 100%;
+    max-width: 480px;
+    padding: 3rem 2.5rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    transition: border-color var(--transition-normal);
+}
+
+.auth-card:hover {
+    border-color: rgba(0, 255, 135, 0.3);
+}
+
+/* الهيدر والأيقونة الرياضية داخل الكارد */
+.auth-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.auth-icon {
+    font-size: 2rem;
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.auth-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+}
+
+.auth-subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+/* تنسيق مجموعات حقول الإدخال عمودياً بدقة */
+.auth-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.auth-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-main);
+    text-align: right;
+}
+
+/* تخصيص مظهر الحقل ليتماشى مع الخلفية المظلمة ويزيل التباين الأبيض الحاد */
+.auth-input {
+    width: 100%;
+    background-color: #12141a; /* لون داكن ناعم */
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 0.9rem 1.2rem;
+    border-radius: var(--border-radius-md);
+    font-size: 1rem;
+    outline: none;
+    transition: all var(--transition-fast);
+    direction: ltr; /* الحقول دائماً ltr لكلمة المرور والإيميل لسهولة الإدخال */
+    text-align: right; /* محاذاة النص لليمين */
+}
+
+/* محاذاة النص لليسار تلقائياً عند كتابة الإيميل أو اسم المستخدم بالإنجليزية */
+.auth-input[type="email"],
+.auth-input[type="text"],
+.auth-input[type="password"] {
+    text-align: left;
+    direction: ltr;
+}
+
+.auth-input::placeholder {
+    color: #4b5563;
+}
+
+/* توهج ناعم بلون النيون عند الضغط على الحقل */
+.auth-input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 10px rgba(0, 255, 135, 0.15);
+    background-color: #15181f;
+}
+
+/* زر إرسال النموذج */
+.auth-submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--accent-color);
+    color: var(--primary-dark);
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 255, 135, 0.2);
+}
+
+.auth-submit-btn:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 255, 135, 0.35);
+}
+
+.auth-submit-btn:active {
+    transform: translateY(0);
+}
+
+/* صندوق الأخطاء والتنبيهات المخصص المعزول */
+.auth-alert {
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+    padding: 0.85rem 1rem;
+    border-radius: var(--border-radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* روابط التنقل السفلي */
+.auth-footer-links {
+    text-align: center;
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.auth-footer-link {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    transition: color var(--transition-fast);
+    display: inline-block;
+}
+
+.auth-footer-link strong {
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+.auth-footer-link:hover {
+    color: var(--text-main);
+}
+
+.auth-footer-link:hover strong {
+    color: var(--accent-hover);
+    text-decoration: underline;
 }
