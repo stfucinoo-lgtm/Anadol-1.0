@@ -247,6 +247,16 @@ Object.assign(AnadolAuth, {
     const isLoggedIn = this.isLoggedIn();
     const user = this.getUser();
 
+    // التحكم في زر لوحة التحكم الخاص بالمسؤولين (يظهر فقط في الصفحة الرئيسية إن وجد في الـ DOM)
+    const adminDashboardLink = document.getElementById('admin-dashboard-link');
+    if (adminDashboardLink) {
+      if (isLoggedIn && user && (user.role === 'admin' || user.role === 'editor')) {
+        adminDashboardLink.classList.remove('hidden');
+      } else {
+        adminDashboardLink.classList.add('hidden');
+      }
+    }
+
     // البحث عن حاوية الروابط المخصصة في الهيدر (Navbar)
     const authContainer = document.getElementById('navbar-auth-container');
     if (!authContainer) return;
