@@ -4,32 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>أندية دوري الأناضول - الفرق المشاركة</title>
-    <!-- استدعاء خط Cairo وتنسيقات CSS -->
+    <!-- Tailwind CSS لتوفير أساس عالي الاستجابة وتصميم عصري سريع -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- خطوط Google لمظهر رياضي حديث وعريض -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                dark: '#0c0c0e',
+                card: '#16161a',
+                accent: '#00ff87',
+                accentHover: '#00e074',
+                border: '#24242b'
+              }
+            },
+            fontFamily: {
+              cairo: ['Cairo', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <!-- استدعاء التنسيقات المخصصة للمشروع -->
     <link rel="stylesheet" href="css/style.css">
     <!-- مكتبة FontAwesome للأيقونات الرياضية -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- 1. شريط التنقل (Navbar) -->
-    <nav class="navbar">
-        <div class="container navbar-container">
-            <a href="index.html" class="navbar-brand">
-                <i class="fa-solid fa-futbol"></i> دوري <span>الأناضول</span>
-            </a>
-            
-            <ul class="navbar-menu" id="navbarMenu">
-                <li><a href="index.html" class="navbar-link">الرئيسية</a></li>
-                <li><a href="standings.html" class="navbar-link">جدول الترتيب</a></li>
-                <li><a href="teams.html" class="navbar-link active">الفرق</a></li>
-                <li><a href="blog.html" class="navbar-link">المدونة والتحليلات</a></li>
-                <li><a href="admin/login.html" class="btn-nav-auth" id="navAuthBtn">لوحة التحكم</a></li>
-            </ul>
-
-            <button class="navbar-toggle" id="navbarToggle" aria-label="فتح القائمة">
-                <i class="fa-solid fa-bars"></i>
-            </button>
+    <!-- 1. شريط التنقل الحديث (Navbar) المستوحى من الملف الشخصي -->
+    <nav class="border-b border-brand-border bg-brand-dark/90 backdrop-blur-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-8">
+            <a href="index.html" class="text-2xl font-black tracking-wider text-brand-accent no-underline">ANADOL</a>
+            <div class="hidden md:flex space-x-reverse space-x-6">
+              <a href="index.html" class="text-zinc-300 hover:text-brand-accent transition-colors font-semibold no-underline">الرئيسية</a>
+              <a href="standings.html" class="text-zinc-300 hover:text-brand-accent transition-colors font-semibold no-underline">الترتيب</a>
+              <a href="teams.html" class="text-brand-accent hover:text-brand-accent transition-colors font-semibold no-underline">الفرق</a>
+              <a href="blog.html" class="text-zinc-300 hover:text-brand-accent transition-colors font-semibold no-underline">المدونة</a>
+            </div>
+          </div>
+          <div id="navbar-auth-container">
+            <!-- يتم ملؤه تلقائياً بواسطة AnadolAuth -->
+          </div>
         </div>
+      </div>
     </nav>
 
     <!-- 2. هيدر الصفحة والبحث (Header Section) -->
@@ -153,28 +177,11 @@
     <!-- استدعاء ملف الحركات المشترك للمشروع -->
     <script src="js/animations.js"></script>
     
+    <!-- استدعاء ملفات الجلسات والتوثيق التفاعلي للواجهات الأمامية لتشغيل النافبار وتحديث حالته -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    
     <script>
-        // تفعيل تفاعل شريط التنقل على الموبايل
-        const navbarToggle = document.getElementById('navbarToggle');
-        const navbarMenu = document.getElementById('navbarMenu');
-        
-        if (navbarToggle && navbarMenu) {
-            navbarToggle.addEventListener('click', () => {
-                navbarMenu.style.display = navbarMenu.style.display === 'flex' ? 'none' : 'flex';
-                if (navbarMenu.style.display === 'flex') {
-                    navbarMenu.style.flexDirection = 'column';
-                    navbarMenu.style.position = 'absolute';
-                    navbarMenu.style.top = '80px';
-                    navbarMenu.style.left = '0';
-                    navbarMenu.style.width = '100%';
-                    navbarMenu.style.backgroundColor = 'var(--secondary-dark)';
-                    navbarMenu.style.padding = '1.5rem';
-                    navbarMenu.style.gap = '1rem';
-                    navbarMenu.style.borderBottom = '1px solid var(--border-color)';
-                }
-            });
-        }
-
         // آلية البحث المباشر (Filter Client-side)
         const searchInput = document.getElementById('teamSearchInput');
         const teamItems = document.querySelectorAll('.team-item');
