@@ -77,17 +77,33 @@ app.get('*', (req, res, next) => {
     }
 });
 
-// 5. مزامنة قاعدة البيانات (Sequelize Sync) وتشغيل خادم الاستماع
-// تم تمرير { alter: true } ليقوم بتحديث الجداول تلقائياً بالخانات الجديدة دون التأثير على بياناتك الحالية
-sequelize.sync({ alter: true })
-    .then(() => {
-        console.log('PostgreSQL Database synced and altered successfully.');
-        app.listen(PORT, () => {
-            console.log(`ANADOL League server is running on port: ${PORT}`);
+// 5. تهيئة المخطط برمجياً ومزامنة قاعدة البيانات لتفادي أخطاء Sequelize Dialect مع PostgreSQL
+async function startServer() {
+    try {
+        // فحص وإضافة الأعمدة الجديدة يدوياً لتفادي خلل استعلام UNIQUE المكسور في Sequelize { alter: true }
+        await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatarUrl" VARCHAR(255);');
+        await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bio" TEXT;');
+        await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;');
+        console.log('Database columns checked/updated successfully.');
+    } catch (queryErr) {
+        // في حال لم يكن الجدول منشأ بعد (أول تشغيل)، سيتم تجاوز الخطأ لتتولى sync المزامنة والإنشاء الآمن
+        console.log('Notice: Manual column addition skipped (table may be newly created):', queryErr.message);
+    }
+
+    // مزامنة قاعدة البيانات القياسية الآمنة وتشغيل الخادم
+    sequelize.sync()
+        .then(() => {
+            console.log('PostgreSQL Database synced successfully.');
+            app.listen(PORT, () => {
+                console.log(`ANADOL League server is running on port: ${PORT}`);
+            });
+        })
+        .catch(err => {
+            console.error('Failed to synchronize database, server aborted:', err.message);
         });
-    })
-    .catch(err => {
-        console.error('Failed to synchronize database, server aborted:', err.message);
-    });
+}
+
+// تشغيل الخادم والاتصال بقاعدة البيانات
+startServer();
 
 module.exports = app;
