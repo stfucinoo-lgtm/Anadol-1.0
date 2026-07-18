@@ -108,8 +108,8 @@ function initTeamManagement() {
   }
 }
 
-// دالة ضغط الصور وتحجيمها محلياً
-async function compressImage(file, maxWidth = 300, maxHeight = 300) {
+// دالة ضغط وتحجيم الصور بجودة عالية ومتوازنة
+async function compressImage(file, maxWidth = 400, maxHeight = 400) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -137,7 +137,8 @@ async function compressImage(file, maxWidth = 300, maxHeight = 300) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.75));
+        // تصدير بجودة 85% لضمان وضوح ملامح وتفاصيل الصورة بشكل ممتاز
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
       };
       img.onerror = reject;
     };
@@ -410,7 +411,7 @@ function closeTeamModal() {
   }, 300);
 }
 
-// معالجة إرسال نموذج الفريق لحفظ أو تعديل البيانات باستخدام ترميز Base64 مضغوط
+// معالجة إرسال نموذج الفريق لحفظ أو تعديل البيانات باستخدام ترميز Base64 مضغوط بجودة عالية
 async function handleTeamSubmit(e) {
   e.preventDefault();
 
@@ -421,7 +422,8 @@ async function handleTeamSubmit(e) {
   if (crestInput.files.length > 0) {
     const file = crestInput.files[0];
     try {
-      crestUrlValue = await compressImage(file, 200, 200);
+      // ضغط وتعديل حجم الشعار إلى دقة عالية واضحة (350x350)
+      crestUrlValue = await compressImage(file, 350, 350);
     } catch (compressionError) {
       console.warn('فشل الضغط التلقائي، سيتم الرفع بالحجم الأصلي:', compressionError);
       crestUrlValue = await new Promise((resolve, reject) => {
@@ -564,7 +566,7 @@ function closePlayerModal() {
   }, 300);
 }
 
-// حفظ أو تعديل لاعب بالتكامل مع الحفظ الفعلي لـ Base64 في قاعدة البيانات
+// حفظ أو تعديل لاعب بالتكامل مع الحفظ الفعلي لـ Base64 بدقة وضوح عالية (400x400)
 async function handlePlayerSubmit(e) {
   e.preventDefault();
   if (!selectedTeamId) return;
@@ -573,13 +575,12 @@ async function handlePlayerSubmit(e) {
   const photoInput = document.getElementById('player-photo');
   let playerPhotoValue = (photoInput && photoInput.dataset.existingUrl) ? photoInput.dataset.existingUrl : null;
 
-  // بما أن نموذج اللاعب وقاعدة البيانات يدعمان حالياً صيغ النصوص الطويلة بالكامل (TEXT)،
-  // فسنقوم برفع الصورة والاحتفاظ برمز Base64 الفعلي لتخزين صورتك الحقيقية
+  // قراءة الصورة وضغطها محلياً بأبعاد نقية وواضحة (400x400) لمنع التشويش عند التكبير
   if (photoInput && photoInput.files && photoInput.files.length > 0) {
     const file = photoInput.files[0];
     try {
-      // ضغط صورة اللاعب إلى قياس أيقوني مصغر وخفيف (150x150)
-      playerPhotoValue = await compressImage(file, 150, 150);
+      // ضغط صورة اللاعب إلى قياس واضحة وممتازة (400x400)
+      playerPhotoValue = await compressImage(file, 400, 400);
     } catch (err) {
       console.warn('تعذر ضغط صورة اللاعب، سيتم محاولة القراءة المباشرة دون ضغط:', err);
       playerPhotoValue = await new Promise((resolve, reject) => {
