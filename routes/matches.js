@@ -17,9 +17,11 @@ try {
     // لم يتم بناء نموذج الأحداث بعد في هذه المرحلة من خطة البناء
 }
 
-// تعريف العلاقات برمجياً وتلقائياً كتدبير حماية تزامني
-if (!Match.belongsTo(Team)) {
+// تعريف العلاقات برمجياً وتلقائياً وتجنب التكرار بفحص المسميات البديلة
+if (!Match.associations || !Match.associations.homeTeam) {
     Match.belongsTo(Team, { as: 'homeTeam', foreignKey: 'homeTeamId' });
+}
+if (!Match.associations || !Match.associations.awayTeam) {
     Match.belongsTo(Team, { as: 'awayTeam', foreignKey: 'awayTeamId' });
 }
 
@@ -119,7 +121,7 @@ router.post('/', verifyToken, isEditorOrAdmin, async (req, res) => {
         }
 
         if (homeTeamId === awayTeamId) {
-            return res.status(400).json({ error: 'لا يمكن ل نادٍ واحد اللعب ضد نفسه في نفس المباراة' });
+            return res.status(400).json({ error: 'لا يمكن لنادٍ واحد اللعب ضد نفسه في نفس المباراة' });
         }
 
         // التأكد من وجود الأندية المحددة
@@ -174,7 +176,6 @@ router.put('/:id', verifyToken, isEditorOrAdmin, async (req, res) => {
 /**
  * 5. PUT /api/matches/:id/status
  * زر التغيير السريع لحالة المباراة المباشرة (لم تبدأ بعد / جارية الآن / انتهت)
- * هذا الـ endpoint منفصل لتمكين مدراء النظام من النقر السريع عبر واجهة الإدارة لتغيير الحالة مباشرة.
  */
 router.put('/:id/status', verifyToken, isEditorOrAdmin, async (req, res) => {
     try {
@@ -200,7 +201,7 @@ router.put('/:id/status', verifyToken, isEditorOrAdmin, async (req, res) => {
 
 /**
  * 6. POST /api/matches/:id/events
- * تسجيل حدث في المباراة (هدف، بطاقة، تدخل، تسديدة...) مع الإحداثيات والوقت (صلاحية Admin / Editor فقط)
+ * تسجيل حدث في المباراة (هدف، بطاقة، تدخل، تسديدة...)
  */
 router.post('/:id/events', verifyToken, isEditorOrAdmin, async (req, res) => {
     try {
@@ -220,7 +221,6 @@ router.post('/:id/events', verifyToken, isEditorOrAdmin, async (req, res) => {
             return res.status(400).json({ error: 'معرف الفريق، معرف اللاعب، نوع الحدث، والدقيقة هي حقول إجبارية' });
         }
 
-        // التحقق من صحة إحداثيات أرضية الملعب (0-100) حسب العقد
         if (x < 0 || x > 100 || y < 0 || y > 100) {
             return res.status(400).json({ error: 'إحداثيات حركة اللاعبين يجب أن تكون واقعة في المجال النسبي (0 - 100)' });
         }
