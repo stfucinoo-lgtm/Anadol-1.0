@@ -112,7 +112,8 @@ async function loadTeams() {
     hideEl(teamsGridEl);
     hideEl(teamsEmptyEl);
 
-    const response = await fetchAPI('/api/teams');
+    // تعديل لاستخدام كائن api المدمج بدلاً من الدالة المفقودة
+    const response = await api.get('/teams');
     allTeams = response || [];
     if (teamsCountEl) {
       teamsCountEl.textContent = allTeams.length;
@@ -227,7 +228,7 @@ async function loadPlayers(teamId) {
     hideEl(playersListEl);
     hideEl(playersEmptyEl);
 
-    const response = await fetchAPI(`/api/teams/${teamId}`);
+    const response = await api.get(`/teams/${teamId}`);
     const players = response.players || [];
 
     if (players.length === 0) {
@@ -297,11 +298,17 @@ function renderPlayersList(players) {
 function openTeamModal(team = null) {
   if (!teamModal) return;
 
+  const crestInput = document.getElementById('team-crest');
+
   if (team) {
     if (teamModalTitle) teamModalTitle.textContent = 'تعديل بيانات الفريق';
     if (teamIdInput) teamIdInput.value = team.id;
     document.getElementById('team-name').value = team.name;
-    document.getElementById('team-crest').value = team.crestUrl || '';
+    
+    // تفريغ حقل الملف وتخزين مسار الشعار الحالي للاحتفاظ به إذا لم يتم رفع شعار جديد
+    crestInput.value = '';
+    crestInput.dataset.existingUrl = team.crestUrl || '';
+
     document.getElementById('team-color').value = team.primaryColor || '#f59e0b';
     document.getElementById('team-color-picker').value = team.primaryColor || '#f59e0b';
     document.getElementById('team-stadium').value = team.stadium || '';
@@ -310,6 +317,8 @@ function openTeamModal(team = null) {
     if (teamModalTitle) teamModalTitle.textContent = 'إضافة فريق جديد';
     if (teamForm) teamForm.reset();
     if (teamIdInput) teamIdInput.value = '';
+    crestInput.value = '';
+    delete crestInput.dataset.existingUrl;
     document.getElementById('team-color').value = '#f59e0b';
     document.getElementById('team-color-picker').value = '#f59e0b';
   }
@@ -332,25 +341,37 @@ function closeTeamModal() {
   }, 300);
 }
 
-// معالجة إرسال نموذج الفريق لحفظ أو تعديل البيانات
+// معالجة إرسال نموذج الفريق لحفظ أو تعديل البيانات باستخدام FormData
 async function handleTeamSubmit(e) {
   e.preventDefault();
 
   const id = teamIdInput ? teamIdInput.value : '';
-  const payload = {
-    name: document.getElementById('team-name').value,
-    crestUrl: document.getElementById('team-crest').value || null,
-    primaryColor: document.getElementById('team-color').value,
-    stadium: document.getElementById('team-stadium').value || null,
-    foundedYear: parseInt(document.getElementById('team-founded').value) || null
-  };
+  const formData = new FormData();
+  
+  formData.append('name', document.getElementById('team-name').value);
+  formData.append('primaryColor', document.getElementById('team-color').value);
+  
+  const stadiumVal = document.getElementById('team-stadium').value;
+  if (stadiumVal) formData.append('stadium', stadiumVal);
+  
+  const foundedVal = document.getElementById('team-founded').value;
+  if (foundedVal) formData.append('foundedYear', foundedVal);
+
+  const crestInput = document.getElementById('team-crest');
+  if (crestInput.files.length > 0) {
+    // إرفاق الصورة كملف ثنائي
+    formData.append('logo', crestInput.files[0]);
+  } else if (crestInput.dataset.existingUrl) {
+    // إرسال المسار القديم لحفظه في حال عدم رفع صورة جديدة
+    formData.append('crestUrl', crestInput.dataset.existingUrl);
+  }
 
   try {
     let result;
     if (id) {
-      result = await fetchAPI(`/api/teams/${id}`, 'PUT', payload);
+      result = await api.put(`/teams/${id}`, formData);
     } else {
-      result = await fetchAPI('/api/teams', 'POST', payload);
+      result = await api.post('/teams', formData);
     }
 
     if (result && result.success) {
@@ -382,7 +403,7 @@ async function deleteTeam(id) {
 
   if (confirm(`هل أنت متأكد من حذف الفريق "${team.name}" وكل البيانات المرتبطة به؟ لا يمكن التراجع.`)) {
     try {
-      const response = await fetchAPI(`/api/teams/${id}`, 'DELETE');
+      const response = await api.delete(`/teams/${id}`);
       if (response && response.success) {
         if (selectedTeamId == id) {
           selectedTeamId = null;
@@ -449,9 +470,9 @@ async function handlePlayerSubmit(e) {
   try {
     let result;
     if (id) {
-      result = await fetchAPI(`/api/players/${id}`, 'PUT', payload);
+      result = await api.put(`/players/${id}`, payload);
     } else {
-      result = await fetchAPI(`/api/teams/${selectedTeamId}/players`, 'POST', payload);
+      result = await api.post(`/teams/${selectedTeamId}/players`, payload);
     }
 
     if (result && result.success) {
@@ -476,7 +497,7 @@ function editPlayer(id, players) {
 async function deletePlayer(id) {
   if (confirm('هل أنت متأكد من رغبتك في حذف هذا اللاعب نهائياً من تشكيلة الفريق؟')) {
     try {
-      const response = await fetchAPI(`/api/players/${id}`, 'DELETE');
+      const response = await api.delete(`/players/${id}`);
       if (response && response.success) {
         await loadPlayers(selectedTeamId);
       }
