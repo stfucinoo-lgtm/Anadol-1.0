@@ -205,9 +205,12 @@ function renderMatchesList(matches) {
           <img src="${awayTeam.crestUrl || '/img/default-crest.png'}" alt="" class="w-7 h-7 object-contain">
         </div>
       </div>
-      <div class="flex justify-end pt-2 border-t border-slate-800/60">
-        <button class="btn-manage-match-events bg-brand-card hover:bg-slate-800 text-slate-300 hover:text-brand-accent px-4 py-1.5 rounded-lg text-xs font-semibold transition" data-id="${match.id}">
-          <i class="fa-solid fa-gears text-xs mr-1"></i> إدارة وإدخال الأحداث
+      <div class="flex justify-between items-center pt-2 border-t border-slate-800/60 gap-2">
+        <button class="btn-delete-match bg-red-950/50 hover:bg-red-900/60 text-red-400 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1" data-id="${match.id}">
+          <i class="fa-solid fa-trash-can"></i> حذف
+        </button>
+        <button class="btn-manage-match-events bg-brand-card hover:bg-slate-800 text-slate-300 hover:text-brand-accent px-4 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1" data-id="${match.id}">
+          <i class="fa-solid fa-gears"></i> إدارة وإدخال الأحداث
         </button>
       </div>
     `;
@@ -219,6 +222,31 @@ function renderMatchesList(matches) {
     btn.addEventListener('click', (e) => {
       const id = e.currentTarget.getAttribute('data-id');
       selectMatchForManagement(id);
+    });
+  });
+
+  // ربط أزرار الحذف الفوري للمباريات
+  document.querySelectorAll('.btn-delete-match').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.currentTarget.getAttribute('data-id');
+      if (confirm('هل أنت متأكد من حذف هذه المباراة نهائياً من الأرشيف؟ لا يمكن التراجع عن هذا الإجراء.')) {
+        try {
+          const response = await fetchAPI(`/api/matches/${id}`, 'DELETE');
+          if (response && response.success) {
+            alert('تم حذف المباراة بنجاح.');
+            // إذا كانت المباراة المحذوفة هي النشطة حالياً في لوحة الإدخال، نعيد تهيئة الواجهة
+            if (selectedMatchId == id) {
+              selectedMatchId = null;
+              hideEl(matchPanelActive);
+              showEl(matchPanelPlaceholder);
+            }
+            await loadMatches(); // إعادة تحميل المباريات
+          }
+        } catch (err) {
+          console.error('خطأ أثناء حذف المباراة:', err);
+          alert('فشل في حذف المباراة.');
+        }
+      }
     });
   });
 
@@ -454,6 +482,9 @@ function renderActiveMatchEvents(events) {
     else if (evt.type === 'shot') { typeIcon = '🎯'; typeName = 'تسديدة'; }
     else if (evt.type === 'tackle') { typeIcon = '⚔️'; typeName = 'تدخل دفاعي'; }
     else if (evt.type === 'goal') { typeIcon = '⚽'; typeName = 'هدف'; }
+    else if (evt.type === 'foul') { typeIcon = '⚠️'; typeName = 'خطأ'; }
+    else if (evt.type === 'free_kick') { typeIcon = '📐'; typeName = 'ركلة حرة'; }
+    else if (evt.type === 'penalty') { typeIcon = '🥅'; typeName = 'ركلة جزاء'; }
 
     const item = document.createElement('div');
     item.className = 'flex items-center justify-between p-2 bg-slate-950/60 rounded border border-slate-900';
