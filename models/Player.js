@@ -45,16 +45,9 @@ const Player = sequelize.define('Player', {
         }
     },
     photoUrl: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-            // يمكن أن يكون رابطاً فارغاً أو مساراً وهمياً في مرحلة الاختبار
-            checkUrl(value) {
-                if (value && value !== '' && !value.startsWith('http')) {
-                    throw new Error('Photo URL must be a valid URL');
-                }
-            }
-        }
+        type: DataTypes.TEXT, // تم التغيير من STRING إلى TEXT ليتسع لسلاسل Base64 الطويلة للصور المرفوعة دون حدوث قطع
+        allowNull: true
+        // تم إزالة التحقق الصارم checkUrl لتسهيل قبول الصور المرفوعة محلياً والروابط الخارجية معاً
     }
 }, {
     tableName: 'players',
