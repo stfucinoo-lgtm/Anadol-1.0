@@ -223,7 +223,16 @@ function renderMatchesList(matches) {
   });
 
   if (window.gsap) {
-    gsap.from('.match-card', { opacity: 0, y: 10, duration: 0.25, stagger: 0.04 });
+    gsap.fromTo('.match-card', 
+      { opacity: 0, y: 12 }, 
+      { 
+        opacity: 1, 
+        y: 0, 
+        duration: 0.3, 
+        stagger: 0.04, 
+        clearProps: "all" // تنظيف الخصائص فور انتهاء الحركة لمنع أي تعارض مع الـ CSS Transitions
+      }
+    );
   }
 }
 
