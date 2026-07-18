@@ -341,37 +341,40 @@ function closeTeamModal() {
   }, 300);
 }
 
-// معالجة إرسال نموذج الفريق لحفظ أو تعديل البيانات باستخدام FormData
+// معالجة إرسال نموذج الفريق لحفظ أو تعديل البيانات باستخدام ترميز Base64
 async function handleTeamSubmit(e) {
   e.preventDefault();
 
   const id = teamIdInput ? teamIdInput.value : '';
-  const formData = new FormData();
-  
-  formData.append('name', document.getElementById('team-name').value);
-  formData.append('primaryColor', document.getElementById('team-color').value);
-  
-  const stadiumVal = document.getElementById('team-stadium').value;
-  if (stadiumVal) formData.append('stadium', stadiumVal);
-  
-  const foundedVal = document.getElementById('team-founded').value;
-  if (foundedVal) formData.append('foundedYear', foundedVal);
-
   const crestInput = document.getElementById('team-crest');
+  let crestUrlValue = crestInput.dataset.existingUrl || null;
+
+  // في حال قام المستخدم برفع ملف شعار جديد، نقوم بتحويله لـ Base64
   if (crestInput.files.length > 0) {
-    // إرفاق الصورة كملف ثنائي
-    formData.append('logo', crestInput.files[0]);
-  } else if (crestInput.dataset.existingUrl) {
-    // إرسال المسار القديم لحفظه في حال عدم رفع صورة جديدة
-    formData.append('crestUrl', crestInput.dataset.existingUrl);
+    const file = crestInput.files[0];
+    crestUrlValue = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
+
+  // صياغة البيانات في JSON عادي دون الحاجة لمكتبة Multer
+  const payload = {
+    name: document.getElementById('team-name').value,
+    crestUrl: crestUrlValue,
+    primaryColor: document.getElementById('team-color').value,
+    stadium: document.getElementById('team-stadium').value || null,
+    foundedYear: parseInt(document.getElementById('team-founded').value) || null
+  };
 
   try {
     let result;
     if (id) {
-      result = await api.put(`/teams/${id}`, formData);
+      result = await api.put(`/teams/${id}`, payload);
     } else {
-      result = await api.post('/teams', formData);
+      result = await api.post('/teams', payload);
     }
 
     if (result && result.success) {
@@ -513,6 +516,7 @@ function showEl(el) {
   if (el) el.classList.remove('hidden');
 }
 
+// إخفاء العناصر
 function hideEl(el) {
   if (el) el.classList.add('hidden');
 }
