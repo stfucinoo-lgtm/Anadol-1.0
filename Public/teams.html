@@ -60,7 +60,7 @@
     <header class="page-header">
         <div class="container">
             <h1 class="page-header-title" id="pageTitle">أندية دوري الأناضول</h1>
-            <p class="page-header-desc">تعرف على الأندية المتنافسة في الموسم الحالي، وتشكيلاتها الرسمية، وملاعبها التاريخية.</p>
+            <p class="page-header-desc">تعرف على الأندية المتنافسة في الموسم الحالي، وتتشكيلاتها الرسمية، وملاعبها التاريخية.</p>
             
             <!-- حقل البحث المباشر لتسهيل الوصول -->
             <div style="margin-top: 2rem; max-width: 450px; margin-right: auto; margin-left: auto; position: relative;">
@@ -75,6 +75,7 @@
         <div class="container">
             <div class="grid-3" id="teamsGrid">
                 
+                <!-- سيتم تفريغ هذه البطاقات الوهمية تلقائياً فور تحميل ملف js/teams.js الفعال -->
                 <!-- بطاقة فريق 1 -->
                 <div class="card team-card team-item" data-name="نجم الأناضول">
                     <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=200" alt="نجم الأناضول" class="team-card-crest">
@@ -180,25 +181,29 @@
     <!-- استدعاء ملفات الجلسات والتوثيق التفاعلي للواجهات الأمامية لتشغيل النافبار وتحديث حالته -->
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
+    <!-- تم إدخال السطر التالي لربط ملف جلب الأندية ديناميكياً من قاعدة البيانات وقراءة فرق الأدمن الحقيقية -->
+    <script src="js/teams.js"></script>
     
     <script>
-        // آلية البحث المباشر (Filter Client-side)
+        // آلية البحث المباشر المحدثة (تستدعي العناصر عند الكتابة لتتوافق مع المكونات المولدة ديناميكياً)
         const searchInput = document.getElementById('teamSearchInput');
-        const teamItems = document.querySelectorAll('.team-item');
         const noResults = document.getElementById('noResults');
 
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase().trim();
                 let hasMatches = false;
+                
+                // جلب العناصر الموجودة في الـ DOM لحظة البحث لضمان شمول الفرق الجديدة المحملة ديناميكياً
+                const teamItems = document.querySelectorAll('.team-item');
 
                 teamItems.forEach(item => {
-                    const name = item.getAttribute('data-name').toLowerCase();
+                    const name = item.getAttribute('data-name') ? item.getAttribute('data-name').toLowerCase() : '';
                     if (name.includes(term)) {
-                        item.style.display = 'flex';
+                        item.style.setProperty('display', 'flex', 'important');
                         hasMatches = true;
                     } else {
-                        item.style.display = 'none';
+                        item.style.setProperty('display', 'none', 'important');
                     }
                 });
 
@@ -220,11 +225,6 @@
             AnadolAnims.fadeIn('#pageTitle', { y: -20, duration: 0.6 });
             AnadolAnims.fadeIn('.page-header-desc', { y: 15, duration: 0.6, delay: 0.1 });
             AnadolAnims.fadeIn('#teamSearchInput', { scale: 0.95, duration: 0.5, delay: 0.2 });
-
-            // ظهور بطاقات الفرق تدريجياً وبشكل متتابع عند التحميل
-            if (document.querySelector('.team-item')) {
-                AnadolAnims.staggerIn('.team-item', { y: 30, duration: 0.6, delay: 0.3 });
-            }
         });
     </script>
 </body>
