@@ -16,8 +16,8 @@ const PORT = process.env.PORT || 3000;
 
 // 1. برمجيات الوسيط الشاملة (Global Middlewares)
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' })); // زيادة الحد الأقصى للملفات لتتسع لصور الـ Base64 المرفوعة
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // تحديد مسار مجلد الواجهة الأمامية ديناميكياً للتوافق مع حالة الأحرف (public أو Public)
 let publicDirName = 'public';
@@ -88,6 +88,11 @@ async function startServer() {
         
         await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bio" TEXT;');
         await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;');
+        
+        // تعديل نوع عمود crestUrl الخاص بالفرق يدوياً ليتسع لحجم صور الـ Base64 المرفوعة دون قيود الحجم
+        await sequelize.query('ALTER TABLE "teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;');
+        await sequelize.query('ALTER TABLE "teams" ALTER COLUMN "crestUrl" TYPE TEXT;');
+        
         console.log('Database columns checked/updated successfully.');
     } catch (queryErr) {
         // في حال لم يكن الجدول منشأ بعد (أول تشغيل)، سيتم تجاوز الخطأ لتتولى sync المزامنة والإنشاء الآمن
