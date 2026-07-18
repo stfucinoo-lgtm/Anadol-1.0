@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // ترقية حقل صورة اللاعب ديناميكياً ليصبح رفع ملف بدلاً من رابط نصي
+  setupPlayerPhotoInputToUpload();
+
   // تهيئة الإعدادات وجلب البيانات الأولية
   initTeamManagement();
 });
@@ -26,10 +29,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 let allTeams = [];
 let selectedTeamId = null;
 
-// عناصر الواجهة الرئيسية
+// عناصر الواجهة الرئيسية مع دعم المعرفات البديلة لضمان مطابقة الـ HTML تماماً
 const teamsLoadingEl = document.getElementById('teams-loading');
 const teamsEmptyEl = document.getElementById('teams-empty');
-const teamsGridEl = document.getElementById('teams-grid');
+const teamsGridEl = document.getElementById('teams-grid') || 
+                    document.getElementById('teams-list') || 
+                    document.getElementById('teams-container') || 
+                    document.querySelector('.teams-list-body');
 const teamsCountEl = document.getElementById('teams-count');
 
 // أزرار ونماذج الفرق
@@ -60,6 +66,17 @@ const playerModal = document.getElementById('player-modal');
 const playerForm = document.getElementById('player-form');
 const playerIdInput = document.getElementById('player-id-input');
 const playerModalTitle = document.getElementById('player-modal-title');
+
+// تحويل مدخل رابط صورة اللاعب برمجياً إلى رافع ملفات حقيقي
+function setupPlayerPhotoInputToUpload() {
+  const photoInput = document.getElementById('player-photo');
+  if (photoInput && photoInput.type !== 'file') {
+    photoInput.type = 'file';
+    photoInput.accept = 'image/*';
+    photoInput.removeAttribute('value');
+    photoInput.placeholder = '';
+  }
+}
 
 function initTeamManagement() {
   loadTeams();
@@ -105,7 +122,7 @@ function initTeamManagement() {
   }
 }
 
-// دالة مساعدة لضغط الصور قبل رفعها لتفادي مشاكل الحجم ومحدودية قاعدة البيانات
+// دالة ضغط وتغيير حجم الصور باستخدام الـ Canvas لتجنب تجاوز قيود السيرفر
 async function compressImage(file, maxWidth = 300, maxHeight = 300) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -134,8 +151,7 @@ async function compressImage(file, maxWidth = 300, maxHeight = 300) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        // تصدير بصيغة JPEG بجودة 75% لضغط المساحة بشكل آمن وملائم للشبكات الرياضية
-        resolve(canvas.toDataURL('image/jpeg', 0.75));
+        resolve(canvas.toDataURL('image/jpeg', 0.75)); // ضغط جودة بـ 75%
       };
       img.onerror = reject;
     };
@@ -152,7 +168,7 @@ async function loadTeams() {
 
     const response = await api.get('/teams');
     
-    // دعم المرونة لقراءة البيانات سواء كـ Array مباشر أو كائن يحتوي حقول نجاح
+    // التعامل المرن مع شكل استجابة السيرفر
     let teamsData = [];
     if (response) {
       if (Array.isArray(response)) {
@@ -186,7 +202,11 @@ async function loadTeams() {
 
 // عرض الفرق في الشبكة
 function renderTeamsGrid(teams) {
-  if (!teamsGridEl) return;
+  if (!teamsGridEl) {
+    console.error('تنبيه: لم يتم العثور على عنصر شبكة عرض الفرق في صفحة HTML الحالية.');
+    return;
+  }
+  
   teamsGridEl.innerHTML = '';
 
   teams.forEach(team => {
@@ -262,8 +282,8 @@ async function selectTeamForPlayers(teamId) {
   showEl(playerPanelActive);
 
   // تعبئة بيانات لوحة معلومات الفريق
-  if (selectedTeamCrest) selectedTeamCrest.src = team.crestUrl || '/img/default-crest.png';
   if (selectedTeamCrest) {
+    selectedTeamCrest.src = team.crestUrl || '/img/default-crest.png';
     selectedTeamCrest.onerror = function() { this.src = '/img/default-crest.png'; };
   }
   if (selectedTeamName) selectedTeamName.textContent = team.name;
@@ -283,7 +303,6 @@ async function loadPlayers(teamId) {
 
     const response = await api.get(`/teams/${teamId}`);
     
-    // قراءة مرنة ومقاومة للأخطاء في حال اختلاف هيكل استجابة تفاصيل الفريق
     let players = [];
     if (response) {
       if (Array.isArray(response.players)) {
@@ -306,7 +325,8 @@ async function loadPlayers(teamId) {
     showEl(playersListEl);
   } catch (error) {
     console.error('فشل في جلب قائمة اللاعبين:', error);
-    alert('تعذر تحميل تشكيلة اللاعبين.');
+    const detail = error.message || error.statusText || 'خطأ غير معروف في الاتصال';
+    alert(`تعذر تحميل تشكيلة اللاعبين.\nالسبب: ${detail}`);
   }
 }
 
@@ -321,9 +341,10 @@ function renderPlayersList(players) {
 
     row.innerHTML = `
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-xs font-bold text-slate-300">
+        <div class="w-8 h-8 rounded-full bg-slate-900 border border-slate-800 flex flex-shrink-0 items-center justify-center text-xs font-bold text-slate-300">
           ${player.jerseyNumber}
         </div>
+        <img src="${player.photoUrl || '/img/default-player.png'}" class="w-8 h-8 rounded-full object-cover bg-slate-900" onerror="this.src='/img/default-player.png'">
         <div>
           <h4 class="font-bold text-white text-xs">${player.name}</h4>
           <p class="text-[10px] text-slate-400 mt-0.5">${player.position}</p>
@@ -369,7 +390,6 @@ function openTeamModal(team = null) {
     if (teamIdInput) teamIdInput.value = team.id;
     document.getElementById('team-name').value = team.name;
     
-    // تفريغ حقل الملف وتخزين مسار الشعار الحالي للاحتفاظ به إذا لم يتم رفع شعار جديد
     crestInput.value = '';
     crestInput.dataset.existingUrl = team.crestUrl || '';
 
@@ -413,13 +433,12 @@ async function handleTeamSubmit(e) {
   const crestInput = document.getElementById('team-crest');
   let crestUrlValue = crestInput.dataset.existingUrl || null;
 
-  // في حال قام المستخدم برفع ملف شعار جديد، نضغطه تلقائياً لتفادي كسر أحجام حمولات قاعدة البيانات
   if (crestInput.files.length > 0) {
     const file = crestInput.files[0];
     try {
       crestUrlValue = await compressImage(file, 200, 200);
     } catch (compressionError) {
-      console.warn('فشل نظام الضغط التلقائي، سيتم الرفع بالحجم الأصلي:', compressionError);
+      console.warn('فشل الضغط التلقائي، سيتم الرفع بالحجم الأصلي:', compressionError);
       crestUrlValue = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result);
@@ -429,16 +448,14 @@ async function handleTeamSubmit(e) {
     }
   }
 
-  // تنظيف رمز اللون لضمان توافقه مع صيغة Hex القياسية ومنع فشل التحقق في السيرفر
   let colorValue = document.getElementById('team-color').value.trim();
   if (colorValue) {
-    colorValue = colorValue.replace(/#/g, ''); // حذف أي علامة # موجودة
-    colorValue = '#' + colorValue; // إعادة إضافتها في البداية بشكل صحيح
+    colorValue = colorValue.replace(/#/g, '');
+    colorValue = '#' + colorValue;
   } else {
     colorValue = '#f59e0b';
   }
 
-  // صياغة البيانات في JSON عادي دون الحاجة لمكتبة Multer
   const payload = {
     name: document.getElementById('team-name').value,
     crestUrl: crestUrlValue,
@@ -455,7 +472,6 @@ async function handleTeamSubmit(e) {
       result = await api.post('/teams', payload);
     }
 
-    // دعم أكثر مرونة للتحقق من حالة نجاح الإرسال بمختلف الأشكال المرتجعة من السيرفر
     const isSuccess = result && (result.success === true || result.id || (result.team && result.team.id));
 
     if (isSuccess) {
@@ -469,14 +485,11 @@ async function handleTeamSubmit(e) {
     }
   } catch (error) {
     console.error('خطأ أثناء حفظ الفريق:', error);
-    
-    // جلب رسالة الخطأ الدقيقة والتفصيلية القادمة من السيرفر
     let serverErrorMsg = '';
     if (error.data) {
       serverErrorMsg = error.data.error || error.data.message || JSON.stringify(error.data);
     }
-    
-    alert('تعذر حفظ بيانات الفريق.\n\nالسبب الدقيق من السيرفر: ' + (serverErrorMsg || error.message || 'خطأ غير معروف في المدخلات.'));
+    alert('تعذر حفظ بيانات الفريق.\n\nالسبب: ' + (serverErrorMsg || error.message || 'خطأ غير معروف.'));
   }
 }
 
@@ -517,17 +530,27 @@ async function deleteTeam(id) {
 function openPlayerModal(player = null) {
   if (!playerModal) return;
 
+  const photoInput = document.getElementById('player-photo');
+
   if (player) {
     if (playerModalTitle) playerModalTitle.textContent = 'تعديل بيانات اللاعب';
     if (playerIdInput) playerIdInput.value = player.id;
     document.getElementById('player-name').value = player.name;
     document.getElementById('player-number').value = player.jerseyNumber;
     document.getElementById('player-position').value = player.position;
-    document.getElementById('player-photo').value = player.photoUrl || '';
+    
+    if (photoInput) {
+      photoInput.value = '';
+      photoInput.dataset.existingUrl = player.photoUrl || '';
+    }
   } else {
     if (playerModalTitle) playerModalTitle.textContent = 'إضافة لاعب للتشكيلة';
     if (playerForm) playerForm.reset();
     if (playerIdInput) playerIdInput.value = '';
+    if (photoInput) {
+      photoInput.value = '';
+      delete photoInput.dataset.existingUrl;
+    }
   }
 
   playerModal.classList.remove('hidden');
@@ -548,17 +571,36 @@ function closePlayerModal() {
   }, 300);
 }
 
-// حفظ أو تعديل لاعب
+// حفظ أو تعديل لاعب مع تحويل الصورة المرفوعة ديناميكياً لـ Base64 خفيف
 async function handlePlayerSubmit(e) {
   e.preventDefault();
   if (!selectedTeamId) return;
 
   const id = playerIdInput ? playerIdInput.value : '';
+  const photoInput = document.getElementById('player-photo');
+  let playerPhotoValue = (photoInput && photoInput.dataset.existingUrl) ? photoInput.dataset.existingUrl : null;
+
+  // في حال قام المسؤول برفع صورة اللاعب، نقوم بضغطها إلى حجم مصغر (أفاتار 150x150)
+  if (photoInput && photoInput.files && photoInput.files.length > 0) {
+    const file = photoInput.files[0];
+    try {
+      playerPhotoValue = await compressImage(file, 150, 150);
+    } catch (err) {
+      console.warn('تعذر ضغط صورة اللاعب، سيتم محاولة القراءة المباشرة:', err);
+      playerPhotoValue = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+
   const payload = {
     name: document.getElementById('player-name').value,
     jerseyNumber: parseInt(document.getElementById('player-number').value),
     position: document.getElementById('player-position').value,
-    photoUrl: document.getElementById('player-photo').value || null
+    photoUrl: playerPhotoValue
   };
 
   try {
@@ -577,7 +619,11 @@ async function handlePlayerSubmit(e) {
     }
   } catch (error) {
     console.error('خطأ أثناء حفظ اللاعب:', error);
-    alert('فشل حفظ بيانات اللاعب. تأكد من رقم القميص وصحة المدخلات.');
+    let detailedMsg = '';
+    if (error.data) {
+      detailedMsg = error.data.error || error.data.message || JSON.stringify(error.data);
+    }
+    alert('فشل حفظ بيانات اللاعب.\n\nالسبب الدقيق من السيرفر: ' + (detailedMsg || error.message || 'تأكد من عدم تكرار رقم القميص وصحة البيانات.'));
   }
 }
 
@@ -606,12 +652,17 @@ async function deletePlayer(id) {
   }
 }
 
-// دوال مساعدة لإظهار وإخفاء العناصر بشكل آمن
+// دوال مساعدة لإظهار وإخفاء العناصر بشكل آمن مع إزالة قسرية لقواعد الـ CSS التي تمنع الرؤية
 function showEl(el) {
-  if (el) el.classList.remove('hidden');
+  if (el) {
+    el.classList.remove('hidden');
+    el.style.display = ''; // إزالة أي إخفاء مباشر عبر الـ Style
+  }
 }
 
 // إخفاء العناصر
 function hideEl(el) {
-  if (el) el.classList.add('hidden');
+  if (el) {
+    el.classList.add('hidden');
+  }
 }
