@@ -108,7 +108,7 @@ function initTeamManagement() {
   }
 }
 
-// دالة ضغط الصور
+// دالة ضغط الصور وتحجيمها محلياً
 async function compressImage(file, maxWidth = 300, maxHeight = 300) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -564,7 +564,7 @@ function closePlayerModal() {
   }, 300);
 }
 
-// حفظ أو تعديل لاعب
+// حفظ أو تعديل لاعب بالتكامل مع الحفظ الفعلي لـ Base64 في قاعدة البيانات
 async function handlePlayerSubmit(e) {
   e.preventDefault();
   if (!selectedTeamId) return;
@@ -573,18 +573,29 @@ async function handlePlayerSubmit(e) {
   const photoInput = document.getElementById('player-photo');
   let playerPhotoValue = (photoInput && photoInput.dataset.existingUrl) ? photoInput.dataset.existingUrl : null;
 
-  // حل مؤقت وذكي للتحايل على قيود رابط الصورة الصارمة في قاعدة البيانات (Photo URL must be a valid URL)
-  // في حال تم اختيار ملف، سنقوم بتوليد رابط إنترنت افتراضي صالح وثابت لتجنب رفض السيرفر للطلب
+  // بما أن نموذج اللاعب وقاعدة البيانات يدعمان حالياً صيغ النصوص الطويلة بالكامل (TEXT)،
+  // فسنقوم برفع الصورة والاحتفاظ برمز Base64 الفعلي لتخزين صورتك الحقيقية
   if (photoInput && photoInput.files && photoInput.files.length > 0) {
-    console.log('ملاحظة: السيرفر يرفض الصور المحلية ويشترط رابط ويب حقيقي. سيتم إرسال رابط بديل مؤقت لتفادي المشكلة.');
-    playerPhotoValue = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150&auto=format&fit=crop"; 
+    const file = photoInput.files[0];
+    try {
+      // ضغط صورة اللاعب إلى قياس أيقوني مصغر وخفيف (150x150)
+      playerPhotoValue = await compressImage(file, 150, 150);
+    } catch (err) {
+      console.warn('تعذر ضغط صورة اللاعب، سيتم محاولة القراءة المباشرة دون ضغط:', err);
+      playerPhotoValue = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
   }
 
   const payload = {
     name: document.getElementById('player-name').value,
     jerseyNumber: parseInt(document.getElementById('player-number').value),
     position: document.getElementById('player-position').value,
-    photoUrl: playerPhotoValue || "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150&auto=format&fit=crop"
+    photoUrl: playerPhotoValue
   };
 
   try {
