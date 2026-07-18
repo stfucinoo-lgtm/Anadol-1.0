@@ -242,4 +242,24 @@ router.post('/:id/events', verifyToken, isEditorOrAdmin, async (req, res) => {
     }
 });
 
+/**
+ * 7. DELETE /api/matches/:id
+ * حذف مباراة نهائياً من الأرشيف (صلاحية Admin/Editor فقط)
+ */
+router.delete('/:id', verifyToken, isEditorOrAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const match = await Match.findByPk(id);
+        if (!match) {
+            return res.status(404).json({ error: 'المباراة المراد حذفها غير موجودة' });
+        }
+
+        // حذف المباراة (سيتم حذف الأحداث الفنية المرتبطة بها تلقائياً بفضل Cascade)
+        await match.destroy();
+        return res.status(200).json({ success: true, message: 'تم حذف المباراة بنجاح من الأرشيف' });
+    } catch (error) {
+        return res.status(500).json({ error: 'حدث خطأ أثناء حذف المباراة: ' + error.message });
+    }
+});
+
 module.exports = router;
