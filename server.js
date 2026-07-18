@@ -89,14 +89,26 @@ async function startServer() {
         await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bio" TEXT;');
         await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;');
         
-        // تعديل نوع عمود crestUrl الخاص بالفرق يدوياً ليتسع لحجم صور الـ Base64 المرفوعة دون قيود الحجم
-        await sequelize.query('ALTER TABLE "teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;');
-        await sequelize.query('ALTER TABLE "teams" ALTER COLUMN "crestUrl" TYPE TEXT;');
-        
+        // توسيع عمود شعار الفرق يدوياً ليتسع لصور الـ Base64 (فحص الجدولين "Teams" و "teams" لضمان التوافق مع التسميات)
+        try {
+            await sequelize.query('ALTER TABLE "Teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;');
+            await sequelize.query('ALTER TABLE "Teams" ALTER COLUMN "crestUrl" TYPE TEXT;');
+            console.log('Database table "Teams" crestUrl expanded successfully.');
+        } catch (e1) {
+            console.log('Notice: Altering table "Teams" was skipped, trying lowercase "teams".');
+        }
+
+        try {
+            await sequelize.query('ALTER TABLE "teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;');
+            await sequelize.query('ALTER TABLE "teams" ALTER COLUMN "crestUrl" TYPE TEXT;');
+            console.log('Database table "teams" crestUrl expanded successfully.');
+        } catch (e2) {
+            console.log('Notice: Altering table "teams" was skipped.');
+        }
+
         console.log('Database columns checked/updated successfully.');
     } catch (queryErr) {
-        // في حال لم يكن الجدول منشأ بعد (أول تشغيل)، سيتم تجاوز الخطأ لتتولى sync المزامنة والإنشاء الآمن
-        console.log('Notice: Manual column addition skipped (table may be newly created):', queryErr.message);
+        console.log('Notice: Manual column addition skipped:', queryErr.message);
     }
 
     // مزامنة قاعدة البيانات القياسية الآمنة وتشغيل الخادم
