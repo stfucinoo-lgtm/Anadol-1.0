@@ -105,6 +105,44 @@ function initTeamManagement() {
   }
 }
 
+// دالة مساعدة لضغط الصور قبل رفعها لتفادي مشاكل الحجم ومحدودية قاعدة البيانات
+async function compressImage(file, maxWidth = 300, maxHeight = 300) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        // تصدير بصيغة JPEG بجودة 75% لضغط المساحة بشكل آمن وملائم للشبكات الرياضية
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.onerror = reject;
+    };
+    reader.onerror = reject;
+  });
+}
+
 // جلب الفرق من الخادم
 async function loadTeams() {
   try {
@@ -113,7 +151,20 @@ async function loadTeams() {
     hideEl(teamsEmptyEl);
 
     const response = await api.get('/teams');
-    allTeams = response || [];
+    
+    // دعم المرونة لقراءة البيانات سواء كـ Array مباشر أو كائن يحتوي حقول نجاح
+    let teamsData = [];
+    if (response) {
+      if (Array.isArray(response)) {
+        teamsData = response;
+      } else if (response.teams && Array.isArray(response.teams)) {
+        teamsData = response.teams;
+      } else if (response.data && Array.isArray(response.data)) {
+        teamsData = response.data;
+      }
+    }
+
+    allTeams = teamsData;
     if (teamsCountEl) {
       teamsCountEl.textContent = allTeams.length;
     }
@@ -146,7 +197,7 @@ function renderTeamsGrid(teams) {
     card.innerHTML = `
       <div class="flex items-start justify-between gap-3">
         <div class="flex items-center gap-3">
-          <img src="${team.crestUrl || '/img/default-crest.png'}" alt="شعار ${team.name}" class="w-12 h-12 object-contain rounded-md bg-slate-950/60 p-1">
+          <img src="${team.crestUrl || '/img/default-crest.png'}" alt="شعار ${team.name}" class="w-12 h-12 object-contain rounded-md bg-slate-950/60 p-1" onerror="this.src='/img/default-crest.png'">
           <div>
             <h3 class="font-bold text-white text-sm leading-snug">${team.name}</h3>
             <p class="text-xs text-slate-400 mt-0.5">${team.stadium || 'دون ملعب رسمي'}</p>
@@ -212,6 +263,9 @@ async function selectTeamForPlayers(teamId) {
 
   // تعبئة بيانات لوحة معلومات الفريق
   if (selectedTeamCrest) selectedTeamCrest.src = team.crestUrl || '/img/default-crest.png';
+  if (selectedTeamCrest) {
+    selectedTeamCrest.onerror = function() { this.src = '/img/default-crest.png'; };
+  }
   if (selectedTeamName) selectedTeamName.textContent = team.name;
   if (selectedTeamYear) selectedTeamYear.textContent = team.foundedYear || '-';
   if (selectedTeamStadium) selectedTeamStadium.textContent = team.stadium || '-';
@@ -228,7 +282,18 @@ async function loadPlayers(teamId) {
     hideEl(playersEmptyEl);
 
     const response = await api.get(`/teams/${teamId}`);
-    const players = response.players || [];
+    
+    // قراءة مرنة ومقاومة للأخطاء في حال اختلاف هيكل استجابة تفاصيل الفريق
+    let players = [];
+    if (response) {
+      if (Array.isArray(response.players)) {
+        players = response.players;
+      } else if (response.team && Array.isArray(response.team.players)) {
+        players = response.team.players;
+      } else if (response.data && Array.isArray(response.data.players)) {
+        players = response.data.players;
+      }
+    }
 
     if (players.length === 0) {
       hideEl(playersLoadingEl);
@@ -340,7 +405,7 @@ function closeTeamModal() {
   }, 300);
 }
 
-// معالجة إرسال نموذج الفريق لحفظ أو تعديل البيانات باستخدام ترميز Base64
+// معالجة إرسال نموذج الفريق لحفظ أو تعديل البيانات باستخدام ترميز Base64 مضغوط
 async function handleTeamSubmit(e) {
   e.preventDefault();
 
@@ -348,15 +413,20 @@ async function handleTeamSubmit(e) {
   const crestInput = document.getElementById('team-crest');
   let crestUrlValue = crestInput.dataset.existingUrl || null;
 
-  // في حال قام المستخدم برفع ملف شعار جديد، نقوم بتحويله لـ Base64
+  // في حال قام المستخدم برفع ملف شعار جديد، نضغطه تلقائياً لتفادي كسر أحجام حمولات قاعدة البيانات
   if (crestInput.files.length > 0) {
     const file = crestInput.files[0];
-    crestUrlValue = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+    try {
+      crestUrlValue = await compressImage(file, 200, 200);
+    } catch (compressionError) {
+      console.warn('فشل نظام الضغط التلقائي، سيتم الرفع بالحجم الأصلي:', compressionError);
+      crestUrlValue = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
   }
 
   // تنظيف رمز اللون لضمان توافقه مع صيغة Hex القياسية ومنع فشل التحقق في السيرفر
@@ -385,12 +455,16 @@ async function handleTeamSubmit(e) {
       result = await api.post('/teams', payload);
     }
 
-    if (result && result.success) {
+    // دعم أكثر مرونة للتحقق من حالة نجاح الإرسال بمختلف الأشكال المرتجعة من السيرفر
+    const isSuccess = result && (result.success === true || result.id || (result.team && result.team.id));
+
+    if (isSuccess) {
       closeTeamModal();
       await loadTeams();
       
-      if (selectedTeamId && selectedTeamId == id) {
-        selectTeamForPlayers(id);
+      const updatedId = id || (result.team ? result.team.id : result.id);
+      if (updatedId) {
+        selectTeamForPlayers(updatedId);
       }
     }
   } catch (error) {
@@ -422,7 +496,9 @@ async function deleteTeam(id) {
   if (confirm(`هل أنت متأكد من حذف الفريق "${team.name}" وكل البيانات المرتبطة به؟ لا يمكن التراجع.`)) {
     try {
       const response = await api.delete(`/teams/${id}`);
-      if (response && response.success) {
+      const isSuccess = response && (response.success === true);
+      
+      if (isSuccess) {
         if (selectedTeamId == id) {
           selectedTeamId = null;
           showEl(playerPanelPlaceholder);
@@ -493,13 +569,15 @@ async function handlePlayerSubmit(e) {
       result = await api.post(`/teams/${selectedTeamId}/players`, payload);
     }
 
-    if (result && result.success) {
+    const isSuccess = result && (result.success === true || result.id || (result.player && result.player.id));
+
+    if (isSuccess) {
       closePlayerModal();
       await loadPlayers(selectedTeamId);
     }
   } catch (error) {
     console.error('خطأ أثناء حفظ اللاعب:', error);
-    alert('فشل حفظ بيانات اللاعب. تأكد من الرقم وصحة المدخلات.');
+    alert('فشل حفظ بيانات اللاعب. تأكد من رقم القميص وصحة المدخلات.');
   }
 }
 
@@ -516,7 +594,9 @@ async function deletePlayer(id) {
   if (confirm('هل أنت متأكد من رغبتك في حذف هذا اللاعب نهائياً من تشكيلة الفريق؟')) {
     try {
       const response = await api.delete(`/players/${id}`);
-      if (response && response.success) {
+      const isSuccess = response && (response.success === true);
+      
+      if (isSuccess) {
         await loadPlayers(selectedTeamId);
       }
     } catch (error) {
