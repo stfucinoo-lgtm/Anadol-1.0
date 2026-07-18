@@ -112,6 +112,22 @@ async function startServer() {
             console.log('Notice: Altering table "teams" was skipped.');
         }
 
+        // --- التحديث القاطع والجذري لإصلاح حقل صور اللاعبين في قاعدة البيانات الحية ---
+        try {
+            await sequelize.query('ALTER TABLE "Players" ALTER COLUMN "photoUrl" TYPE TEXT;');
+            console.log('Database table "Players" photoUrl expanded to TEXT successfully.');
+        } catch (e3) {
+            console.log('Notice: Altering table "Players" was skipped, trying lowercase "players".');
+        }
+
+        try {
+            await sequelize.query('ALTER TABLE "players" ALTER COLUMN "photoUrl" TYPE TEXT;');
+            console.log('Database table "players" photoUrl expanded to TEXT successfully.');
+            console.log('Database column photoUrl checked/updated to TEXT successfully.');
+        } catch (e4) {
+            console.log('Notice: Altering table "players" was skipped.');
+        }
+
         console.log('Database columns checked/updated successfully.');
     } catch (queryErr) {
         console.log('Notice: Manual column addition skipped:', queryErr.message);
