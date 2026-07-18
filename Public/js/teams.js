@@ -4,7 +4,8 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  const teamsContainer = document.getElementById('teams-grid');
+  // تصحيح المعرّف ليتطابق تماماً مع المعرّف الموجود في ملف HTML (teamsGrid)
+  const teamsContainer = document.getElementById('teamsGrid');
   const loadingSpinner = document.getElementById('loading-spinner');
 
   async function loadTeams() {
@@ -20,6 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingSpinner.style.display = 'none';
       }
 
+      if (!teamsContainer) return;
+
+      // تفريغ الحاوية تماماً لإزالة جميع الفرق الوهمية المكتوبة في كود الـ HTML
+      teamsContainer.innerHTML = '';
+
       if (!teams || teams.length === 0) {
         teamsContainer.innerHTML = `
           <div class="col-span-full text-center py-12 text-neutral-400">
@@ -29,36 +35,34 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // تفريغ الحاوية قبل التحديث
-      teamsContainer.innerHTML = '';
-
-      // بناء عناصر العرض للفرق
+      // بناء عناصر العرض للفرق المستوردة من قاعدة البيانات الحية
       teams.forEach(team => {
         const teamCard = document.createElement('div');
-        // الفئات الافتراضية للتحضير لحركة GSAP
-        teamCard.className = 'team-card bg-neutral-900 border border-neutral-800 rounded-xl p-6 flex flex-col items-center justify-between transition hover:border-emerald-500 duration-300 opacity-0 transform translate-y-4';
         
-        const crestUrl = team.crestUrl || '/images/default-crest.png';
-        const badgeColor = team.primaryColor || '#10b981';
+        // إعطاء الكلاسات الأصلية لتتوافق مع التنسيق العام ونظام البحث الفوري
+        teamCard.className = 'card team-card team-item transition hover:border-emerald-500 duration-300 opacity-0 transform translate-y-4';
+        teamCard.setAttribute('data-name', team.name);
+        
+        // استخدام شعار افتراضي لائق في حال لم يقم الأدمن برفع شعار مخصص
+        const crestUrl = team.crestUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=200';
 
         teamCard.innerHTML = `
-          <div class="relative w-24 h-24 mb-4 flex items-center justify-center rounded-full bg-neutral-800 p-2 border-2" style="border-color: ${badgeColor}">
-            <img src="${crestUrl}" alt="${team.name}" class="w-20 h-20 object-contain" onerror="this.src='/images/default-crest.png'">
-          </div>
-          <h3 class="text-xl font-bold text-white mb-1 text-center">${team.name}</h3>
-          <p class="text-xs text-neutral-400 mb-3 flex items-center gap-1">
-            <span>🏟️</span> ${team.stadium || 'ملعب غير محدد'}
+          <img src="${crestUrl}" alt="${team.name}" class="team-card-crest" onerror="this.src='https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=200'">
+          <h3 class="team-card-name">${team.name}</h3>
+          <p class="team-card-stadium">
+            <i class="fa-solid fa-location-dot"></i> ${team.stadium || 'ملعب غير محدد'}
           </p>
-          <div class="text-xs text-neutral-500 mb-5">تأسس عام: ${team.foundedYear || '-'}</div>
-          <a href="team-profile.html?id=${team.id}" class="w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
-            عرض الملف الكامل
-          </a>
+          <div style="margin-top: auto; width: 100%;">
+            <a href="team-profile.html?id=${team.id}" class="btn btn-secondary btn-sm" style="display: block; width: 100%;">
+              عرض ملف الفريق
+            </a>
+          </div>
         `;
 
         teamsContainer.appendChild(teamCard);
       });
 
-      // تشغيل تأثيرات الدخول عبر GSAP إن وجدت المكتبة، أو إظهار العناصر مباشرة كبديل آمن
+      // تشغيل تأثيرات الدخول التدريجي عبر مكتبة GSAP
       if (typeof gsap !== 'undefined') {
         gsap.to('.team-card', {
           opacity: 1,
@@ -78,11 +82,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (loadingSpinner) {
         loadingSpinner.style.display = 'none';
       }
-      teamsContainer.innerHTML = `
-        <div class="col-span-full text-center py-12 text-red-500">
-          <p class="text-lg">حدث خطأ أثناء تحميل بيانات الفرق. يرجى المحاولة لاحقاً.</p>
-        </div>
-      `;
+      if (teamsContainer) {
+        teamsContainer.innerHTML = `
+          <div class="col-span-full text-center py-12 text-red-500">
+            <p class="text-lg">حدث خطأ أثناء تحميل بيانات الفرق. يرجى المحاولة لاحقاً.</p>
+          </div>
+        `;
+      }
     }
   }
 
