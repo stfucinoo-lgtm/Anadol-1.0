@@ -115,16 +115,16 @@ async function startServer() {
     sequelize.sync()
         .then(() => {
             console.log('PostgreSQL Database synced successfully.');
-            app.listen(PORT, () => {
-                console.log(`ANADOL League server is running on port: ${PORT}`);
-            });
         })
         .catch(err => {
-            console.error('Failed to synchronize database, server aborted:', err.message);
+            console.error('Failed to synchronize database, sync aborted:', err.message);
         });
 }
 
-// تشغيل الخادم والاتصال بقاعدة البيانات
-startServer();
+// تشغيل الخادم فوراً لضمان ربط المنفذ على Render دون تأخير، ثم تشغيل استعلامات قاعدة البيانات
+app.listen(PORT, () => {
+    console.log(`ANADOL League server is running on port: ${PORT}`);
+    startServer();
+});
 
 module.exports = app;
