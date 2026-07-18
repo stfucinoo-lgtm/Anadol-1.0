@@ -117,7 +117,11 @@ router.post('/', verifyToken, isAdmin, async (req, res) => {
             return res.status(400).json({ error: 'اسم الفريق حقل مطلوب ولا يمكن تركه فارغاً' });
         }
 
-        const team = await Team.create({ name, crestUrl, primaryColor, stadium, foundedYear });
+        // تم تمرير الخيار { validate: false } لتخطي شرط رابط الويب من أجل قبول أكواد الصور المرفوعة
+        const team = await Team.create(
+            { name, crestUrl, primaryColor, stadium, foundedYear }, 
+            { validate: false }
+        );
         return res.status(201).json({ success: true, team });
     } catch (error) {
         return res.status(500).json({ error: 'حدث خطأ أثناء إضافة الفريق: ' + error.message });
@@ -137,7 +141,8 @@ router.put('/:id', verifyToken, isAdmin, async (req, res) => {
             return res.status(404).json({ error: 'الفريق المطلوب تعديله غير موجود' });
         }
 
-        await team.update(req.body);
+        // تم تمرير الخيار { validate: false } لتخطي شرط رابط الويب عند التعديل
+        await team.update(req.body, { validate: false });
         return res.status(200).json({ success: true, team });
     } catch (error) {
         return res.status(500).json({ error: 'حدث خطأ أثناء تحديث بيانات الفريق: ' + error.message });
