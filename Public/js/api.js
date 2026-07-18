@@ -61,5 +61,28 @@ const api = {
   delete: (endpoint, options = {}) => apiFetch(endpoint, { ...options, method: 'DELETE' })
 };
 
-// إتاحة الكائن دولياً في المتصفح
+/**
+ * دالة fetchAPI العالمية المتوافقة مع ملفات إدارة المباريات واللاعبين
+ * تدعم التوقيع: fetchAPI(endpoint, method, body)
+ */
+async function fetchAPI(endpoint, method = 'GET', body = null) {
+  // تلافي تكرار مسار /api إذا تم تمريره مسبقاً في دالة الاستدعاء
+  let targetEndpoint = endpoint;
+  if (targetEndpoint.startsWith('/api')) {
+    targetEndpoint = targetEndpoint.substring(4); // إزالة الـ "/api" الأولى
+  }
+
+  const options = {
+    method: method.toUpperCase()
+  };
+
+  if (body) {
+    options.body = body;
+  }
+
+  return apiFetch(targetEndpoint, options);
+}
+
+// إتاحة الكائنات والدوال دولياً في المتصفح لتعمل مع كافة سكربتات الصفحات
 window.api = api;
+window.fetchAPI = fetchAPI;
