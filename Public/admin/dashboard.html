@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" class="h-full">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,10 +33,26 @@
     <link rel="stylesheet" href="../css/style.css">
     <!-- مكتبة FontAwesome للأيقونات -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="bg-brand-dark text-zinc-100 font-cairo min-h-screen flex flex-col justify-between selection:bg-brand-accent selection:text-brand-dark overflow-y-auto">
 
-    <!-- 1. شريط التنقل الإداري (Navbar) المنسق بأسلوب الصفحة الرئيسية -->
+    <!-- تنسيقات إضافية لضمان سلامة التمرير والوضوح الكامل للبطاقات -->
+    <style>
+        /* تأمين التمرير الطبيعي ومنع الضغط */
+        html, body {
+            height: auto !important;
+            min-height: 100vh;
+            overflow-y: auto !important;
+            scroll-behavior: smooth;
+        }
+        /* منع الكروت من الانضغاط وضمان ظهورها بكامل ألوانها */
+        .admin-card {
+            flex-shrink: 0 !important;
+            opacity: 1 !important; /* حماية من تعليق الـ GSAP */
+        }
+    </style>
+</head>
+<body class="bg-brand-dark text-zinc-100 font-cairo flex flex-col selection:bg-brand-accent selection:text-brand-dark">
+
+    <!-- 1. شريط التنقل الإداري (Navbar) -->
     <nav class="border-b border-brand-border bg-brand-dark/95 backdrop-blur-md sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
@@ -76,7 +92,7 @@
                     </p>
                 </div>
                 
-                <!-- لوحة التحكم بوضع الصيانة العام (تظهر للمسؤولين فقط كما هو مبرمج في ملف الـ js) -->
+                <!-- لوحة التحكم بوضع الصيانة العام -->
                 <div id="maintenance-panel" class="hidden border border-brand-border bg-brand-dark/50 p-4 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-[280px]">
                     <div>
                         <div class="text-xs text-zinc-400 font-semibold mb-1">وضع الصيانة العام</div>
@@ -89,8 +105,8 @@
             </div>
         </header>
 
-        <!-- شبكة بطاقات التحكم بالعمليات الإدارية (Grid) مع تفعيل تأثيرات الدخول التدريجي -->
-        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- شبكة بطاقات التحكم بالعمليات الإدارية (Grid) -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
             
             <!-- 1. بطاقة الفرق واللاعبين -->
             <div class="admin-card bg-brand-card border border-brand-border hover:border-brand-accent/50 rounded-xl p-6 transition-all duration-300 flex flex-col justify-between shadow-lg">
@@ -99,7 +115,7 @@
                     <h3 class="text-lg font-bold text-white mb-2">إدارة الفرق واللاعبين</h3>
                     <p class="text-xs text-zinc-400 leading-relaxed mb-6">إضافة أندية دوري الأناضول الجديدة، تعديل بيانات الملاعب، إدارة التشكيلات، تسجيل اللاعبين الجدد وشطبهم بالكامل.</p>
                 </div>
-                <a href="teams-manage.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline">
+                <a href="teams-manage.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline mt-auto">
                     دخول الإدارة <i class="fa-solid fa-chevron-left mr-1"></i>
                 </a>
             </div>
@@ -111,7 +127,7 @@
                     <h3 class="text-lg font-bold text-white mb-2">جدولة المباريات والنتائج</h3>
                     <p class="text-xs text-zinc-400 leading-relaxed mb-6">تنظيم لقاءات الدوري، تحديث حالات البث المباشر فورياً، تسجيل تفاصيل الأهداف، الكروت، التبديلات والإحصائيات الخاصة بالملعب.</p>
                 </div>
-                <a href="matches-manage.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline">
+                <a href="matches-manage.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline mt-auto">
                     دخول الإدارة <i class="fa-solid fa-chevron-left mr-1"></i>
                 </a>
             </div>
@@ -123,7 +139,7 @@
                     <h3 class="text-lg font-bold text-white mb-2">استخراج الإحصائيات بالـ AI</h3>
                     <p class="text-xs text-zinc-400 leading-relaxed mb-6">ارفع صورة لوحة إحصائيات المباراة الملتقطة من الملعب، وسيقوم نظام ذكاء Gemini الاصطناعي بتحليلها وصياغتها للاعتماد الفوري.</p>
                 </div>
-                <a href="imports.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline">
+                <a href="imports.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline mt-auto">
                     استيراد البيانات <i class="fa-solid fa-chevron-left mr-1"></i>
                 </a>
             </div>
@@ -135,7 +151,7 @@
                     <h3 class="text-lg font-bold text-white mb-2">المدونة والمحتوى التحريري</h3>
                     <p class="text-xs text-zinc-400 leading-relaxed mb-6">كتابة الأخبار الرسمية وتجهيز التحليلات الفنية ومراجعة المقالات الرياضية التي تغطي جولات البطولة لنشرها للجمهور.</p>
                 </div>
-                <a href="blog-manage.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline">
+                <a href="blog-manage.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline mt-auto">
                     إدارة المدونة <i class="fa-solid fa-chevron-left mr-1"></i>
                 </a>
             </div>
@@ -147,7 +163,7 @@
                     <h3 class="text-lg font-bold text-white mb-2">رقابة تعليقات الجمهور</h3>
                     <p class="text-xs text-zinc-400 leading-relaxed mb-6">متابعة تفاعل الزوار على المقالات التحريرية، الموافقة على التعليقات المناسبة، أو حذف التجاوزات غير الرياضية فوراً.</p>
                 </div>
-                <a href="comments-manage.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline">
+                <a href="comments-manage.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline mt-auto">
                     مراقبة التعليقات <i class="fa-solid fa-chevron-left mr-1"></i>
                 </a>
             </div>
@@ -159,7 +175,7 @@
                     <h3 class="text-lg font-bold text-white mb-2">إدارة حسابات المسؤولين</h3>
                     <p class="text-xs text-zinc-400 leading-relaxed mb-6">تنظيم الأدوار الفنية للمشرفين والمنسقين، توزيع صلاحيات الإدخال والتعديل، ومتابعة نشاطات الطاقم الإداري للمنصة.</p>
                 </div>
-                <a href="users-manage.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline">
+                <a href="users-manage.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline mt-auto">
                     تنظيم الصلاحيات <i class="fa-solid fa-chevron-left mr-1"></i>
                 </a>
             </div>
@@ -171,7 +187,7 @@
                     <h3 class="text-lg font-bold text-white mb-2">مستعرض قاعدة البيانات</h3>
                     <p class="text-xs text-zinc-400 leading-relaxed mb-6">فحص مباشر لجداول قاعدة البيانات، وتفقد سلامة هيكلة معلومات اللاعبين والأرشيف التاريخي لمباريات البطولة.</p>
                 </div>
-                <a href="database-viewer.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline">
+                <a href="database-viewer.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline mt-auto">
                     فحص قاعدة البيانات <i class="fa-solid fa-chevron-left mr-1"></i>
                 </a>
             </div>
@@ -183,7 +199,7 @@
                     <h3 class="text-lg font-bold text-white mb-2">سجلات الأمان والعمليات</h3>
                     <p class="text-xs text-zinc-400 leading-relaxed mb-6">مراجعة كامل سجلات النشاط والتدقيق الأمني (Audit Logs) للعمليات الحساسة التي تمت على النظام لمنع أي تلاعب فني.</p>
                 </div>
-                <a href="audit-log.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline">
+                <a href="audit-log.html" class="w-full text-center py-2.5 rounded-lg text-xs font-bold bg-brand-dark border border-brand-border text-zinc-300 hover:text-brand-dark hover:bg-brand-accent hover:border-brand-accent transition-all duration-200 no-underline mt-auto">
                     عرض سجل الأمان <i class="fa-solid fa-chevron-left mr-1"></i>
                 </a>
             </div>
@@ -191,8 +207,8 @@
         </section>
     </main>
 
-    <!-- 3. تذييل الصفحة (Footer) منسق ومحدد التناغم البصري -->
-    <footer class="border-t border-brand-border bg-brand-card/30 py-6 text-center mt-12">
+    <!-- 3. تذييل الصفحة (Footer) -->
+    <footer class="border-t border-brand-border bg-brand-card/30 py-6 text-center mt-auto">
         <div class="max-w-7xl mx-auto px-4 text-xs text-zinc-500">
             <p>&copy; <span id="current-year">2026</span> دوري الأناضول الرياضي. جميع الصلاحيات محفوظة ومراقبة أمنياً.</p>
         </div>
