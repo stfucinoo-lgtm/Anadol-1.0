@@ -38,6 +38,12 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/standings', standingsRoutes);
 
+// وسيط إعادة التوجيه الذكي لربط مسارات اللاعبين المباشرة /api/players بمسارات الفريق برمجياً دون الحاجة لتغيير هيكل الملفات
+app.use('/api/players', (req, res, next) => {
+    req.url = '/players' + req.url; // تحويل المسار داخلياً من /:id إلى /players/:id لتتوافق مع ملف routes/teams.js
+    next();
+}, teamRoutes);
+
 // 3. دالة تفادي الانهيار للتحميل التدريجي للمسارات القادمة (Phase 3+ Routes)
 function safeMountRoute(routePath, moduleName) {
     try {
