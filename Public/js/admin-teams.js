@@ -395,8 +395,14 @@ async function handleTeamSubmit(e) {
     }
   } catch (error) {
     console.error('خطأ أثناء حفظ الفريق:', error);
-    // إظهار رسالة الخطأ الدقيقة القادمة من السيرفر لمعرفتها فوراً
-    alert('تعذر حفظ بيانات الفريق: ' + (error.message || 'يرجى التحقق من المدخلات وصحة البيانات.'));
+    
+    // جلب رسالة الخطأ الدقيقة والتفصيلية القادمة من السيرفر
+    let serverErrorMsg = '';
+    if (error.data) {
+      serverErrorMsg = error.data.error || error.data.message || JSON.stringify(error.data);
+    }
+    
+    alert('تعذر حفظ بيانات الفريق.\n\nالسبب الدقيق من السيرفر: ' + (serverErrorMsg || error.message || 'خطأ غير معروف في المدخلات.'));
   }
 }
 
