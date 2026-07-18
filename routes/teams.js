@@ -1,14 +1,43 @@
 /**
  * ANADOL League - Teams & Players Routes
- * مسارات التحكم بالفرق واللاعبين (عرض، إضافة، تعديل، حذف) مع حساب الإحصائيات التراكمية.
+ * مسارات التحكم بالفرق واللاعبين (عرض، إضافة، تعديل، حذف) مع حساب الإحصائيات التراكمية ورفع الملفات.
  */
 
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
 const Team = require('../models/Team');
 const Player = require('../models/Player');
 const Match = require('../models/Match');
+
+// إعداد مجلد حفظ صور الفرق بشكل ديناميكي آمن يتطابق مع إعدادات server.js
+let publicDirName = 'public';
+if (!fs.existsSync(path.join(__dirname, '../public')) && fs.existsSync(path.join(__dirname, '../Public'))) {
+    publicDirName = 'Public';
+}
+const uploadDir = path.join(__dirname, '..', publicDirName, 'uploads', 'teams');
+
+// إنشاء مجلد الرفع في حال عدم وجوده لتجنب توقف الخادم عن العمل
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// إعداد محرك التخزين لمكتبة multer
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'team-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
 
 // تعريف علاقات التبعية برمجياً كحماية دفاعية ضد اختلاف ترتيب التحميل
 if (!Team.hasMany(Player)) {
@@ -108,16 +137,29 @@ router.get('/:id', async (req, res) => {
 
 /**
  * 3. POST /api/teams
- * إضافة فريق جديد (صلاحية Admin فقط)
+ * إضافة فريق جديد مع دعم رفع الشعار كملف ثنائي (صلاحية Admin فقط)
  */
-router.post('/', verifyToken, isAdmin, async (req, res) => {
+router.post('/', verifyToken, isAdmin, upload.single('logo'), async (req, res) => {
     try {
-        const { name, crestUrl, primaryColor, stadium, foundedYear } = req.body;
+        const { name, primaryColor, stadium, foundedYear } = req.body;
         if (!name) {
             return res.status(400).json({ error: 'اسم الفريق حقل مطلوب ولا يمكن تركه فارغاً' });
         }
 
-        const team = await Team.create({ name, crestUrl, primaryColor, stadium, foundedYear });
+        let crestUrl = null;
+        if (req.file) {
+            // حفظ المسار النسبي ليكون متاحاً عبر استدعاءات الويب الساكنة
+            crestUrl = `/uploads/teams/${req.file.filename}`;
+        }
+
+        const team = await Team.create({ 
+            name, 
+            crestUrl, 
+            primaryColor, 
+            stadium, 
+            foundedYear: foundedYear ? parseInt(foundedYear, 10) : null 
+        });
+        
         return res.status(201).json({ success: true, team });
     } catch (error) {
         return res.status(500).json({ error: 'حدث خطأ أثناء إضافة الفريق: ' + error.message });
@@ -126,9 +168,9 @@ router.post('/', verifyToken, isAdmin, async (req, res) => {
 
 /**
  * 4. PUT /api/teams/:id
- * تحديث بيانات فريق موجود (صلاحية Admin فقط)
+ * تحديث بيانات فريق موجود مع دعم تعديل الصورة أو إبقائها (صلاحية Admin فقط)
  */
-router.put('/:id', verifyToken, isAdmin, async (req, res) => {
+router.put('/:id', verifyToken, isAdmin, upload.single('logo'), async (req, res) => {
     try {
         const { id } = req.params;
         const team = await Team.findByPk(id);
@@ -137,7 +179,21 @@ router.put('/:id', verifyToken, isAdmin, async (req, res) => {
             return res.status(404).json({ error: 'الفريق المطلوب تعديله غير موجود' });
         }
 
-        await team.update(req.body);
+        const { name, primaryColor, stadium, foundedYear, crestUrl: existingCrestUrl } = req.body;
+        
+        let crestUrl = existingCrestUrl || team.crestUrl;
+        if (req.file) {
+            crestUrl = `/uploads/teams/${req.file.filename}`;
+        }
+
+        await team.update({
+            name,
+            crestUrl,
+            primaryColor,
+            stadium,
+            foundedYear: foundedYear ? parseInt(foundedYear, 10) : null
+        });
+
         return res.status(200).json({ success: true, team });
     } catch (error) {
         return res.status(500).json({ error: 'حدث خطأ أثناء تحديث بيانات الفريق: ' + error.message });
