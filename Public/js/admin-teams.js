@@ -112,7 +112,6 @@ async function loadTeams() {
     hideEl(teamsGridEl);
     hideEl(teamsEmptyEl);
 
-    // تعديل لاستخدام كائن api المدمج بدلاً من الدالة المفقودة
     const response = await api.get('/teams');
     allTeams = response || [];
     if (teamsCountEl) {
@@ -360,11 +359,20 @@ async function handleTeamSubmit(e) {
     });
   }
 
+  // تنظيف رمز اللون لضمان توافقه مع صيغة Hex القياسية ومنع فشل التحقق في السيرفر
+  let colorValue = document.getElementById('team-color').value.trim();
+  if (colorValue) {
+    colorValue = colorValue.replace(/#/g, ''); // حذف أي علامة # موجودة
+    colorValue = '#' + colorValue; // إعادة إضافتها في البداية بشكل صحيح
+  } else {
+    colorValue = '#f59e0b';
+  }
+
   // صياغة البيانات في JSON عادي دون الحاجة لمكتبة Multer
   const payload = {
     name: document.getElementById('team-name').value,
     crestUrl: crestUrlValue,
-    primaryColor: document.getElementById('team-color').value,
+    primaryColor: colorValue,
     stadium: document.getElementById('team-stadium').value || null,
     foundedYear: parseInt(document.getElementById('team-founded').value) || null
   };
@@ -387,7 +395,8 @@ async function handleTeamSubmit(e) {
     }
   } catch (error) {
     console.error('خطأ أثناء حفظ الفريق:', error);
-    alert('تعذر حفظ بيانات الفريق. يرجى التحقق من المدخلات.');
+    // إظهار رسالة الخطأ الدقيقة القادمة من السيرفر لمعرفتها فوراً
+    alert('تعذر حفظ بيانات الفريق: ' + (error.message || 'يرجى التحقق من المدخلات وصحة البيانات.'));
   }
 }
 
