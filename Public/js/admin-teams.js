@@ -307,7 +307,6 @@ async function loadPlayers(teamId) {
   } catch (error) {
     console.error('فشل في جلب قائمة اللاعبين:', error);
     
-    // عند حدوث الخطأ 500 في السيرفر نقوم بتهيئة وعرض واجهة فارغة للمستخدم بدلاً من تعليق شاشة التحميل بشكل غير مريح
     hideEl(playersLoadingEl);
     showEl(playersEmptyEl);
     
@@ -517,6 +516,14 @@ function openPlayerModal(player = null) {
   if (!playerModal) return;
 
   const photoInput = document.getElementById('player-photo');
+
+  // إجبار الحقل ديناميكياً وفي كل مرة تفتح فيها النافذة على أن يكون رافع ملفات لمنع إعادة تهيئته بواسطة المتصفح
+  if (photoInput) {
+    photoInput.type = 'file';
+    photoInput.accept = 'image/*';
+    photoInput.removeAttribute('value');
+    photoInput.placeholder = '';
+  }
 
   if (player) {
     if (playerModalTitle) playerModalTitle.textContent = 'تعديل بيانات اللاعب';
