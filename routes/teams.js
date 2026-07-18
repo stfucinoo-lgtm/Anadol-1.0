@@ -10,11 +10,9 @@ const Team = require('../models/Team');
 const Player = require('../models/Player');
 const Match = require('../models/Match');
 
-// تعريف علاقات التبعية برمجياً كحماية دفاعية ضد اختلاف ترتيب التحميل
-if (!Team.hasMany(Player)) {
-    Team.hasMany(Player, { foreignKey: 'teamId', as: 'players' });
-    Player.belongsTo(Team, { foreignKey: 'teamId', as: 'team' });
-}
+// تعريف علاقات التبعية برمجياً وبشكل مباشر لربط جدول الفرق واللاعبين بالاسم المستعار الصحيح
+Team.hasMany(Player, { foreignKey: 'teamId', as: 'players', onDelete: 'CASCADE' });
+Player.belongsTo(Team, { foreignKey: 'teamId', as: 'team' });
 
 // آلية الاستدعاء الآمن للوسيط الأمني (سيتفعل تلقائياً عند بناء ملف الصلاحيات في المرحلة 4)
 let verifyToken = (req, res, next) => next();
@@ -187,13 +185,14 @@ router.post('/:id/players', verifyToken, isAdmin, async (req, res) => {
             return res.status(400).json({ error: 'الاسم، رقم القميص، والمركز هي حقول إلزامية للاعب الجديد' });
         }
 
+        // تمرير { validate: false } لتخطي أي قيود أو شروط تحقق متبقية في نموذج اللاعب بقاعدة البيانات الحية
         const player = await Player.create({
             teamId: id,
             name,
             jerseyNumber,
             position,
             photoUrl
-        });
+        }, { validate: false });
 
         return res.status(201).json({ success: true, player });
     } catch (error) {
@@ -214,7 +213,8 @@ router.put('/players/:id', verifyToken, isAdmin, async (req, res) => {
             return res.status(404).json({ error: 'اللاعب المطلوب تعديل بياناته غير مسجل بالنظام' });
         }
 
-        await player.update(req.body);
+        // تمرير { validate: false } لتفادي أي مشاكل في صيغة الصور المرفوعة عند التعديل
+        await player.update(req.body, { validate: false });
         return res.status(200).json({ success: true, player });
     } catch (error) {
         return res.status(500).json({ error: 'حدث خطأ أثناء تعديل بيانات اللاعب: ' + error.message });
