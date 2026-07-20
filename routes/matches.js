@@ -9,7 +9,7 @@ const { Op } = require('sequelize');
 const Match = require('../models/Match');
 const Team = require('../models/Team');
 
-// استدعاء دفاعي مرن لنموذج أحداث المباريات واللاعبين
+// استدعاء دفاعي مرن لنموذج أحداث المباريات واللاعبين والتشكيلات
 let MatchEvent = null;
 try {
     MatchEvent = require('../models/MatchEvent');
@@ -24,6 +24,13 @@ try {
     // لم يتم بناء نموذج اللاعبين بعد
 }
 
+let MatchPlayer = null;
+try {
+    MatchPlayer = require('../models/MatchPlayer');
+} catch (e) {
+    // لم يتم بناء نموذج تشكيلة المباراة بعد
+}
+
 // تعريف العلاقات برمجياً وتلقائياً وتجنب التكرار بفحص المسميات البديلة
 if (!Match.associations || !Match.associations.homeTeam) {
     Match.belongsTo(Team, { as: 'homeTeam', foreignKey: 'homeTeamId' });
@@ -36,6 +43,13 @@ if (!Match.associations || !Match.associations.awayTeam) {
 if (MatchEvent && Player) {
     if (!MatchEvent.associations || !MatchEvent.associations.player) {
         MatchEvent.belongsTo(Player, { as: 'player', foreignKey: 'playerId' });
+    }
+}
+
+// ربط علاقة التشكيلة باللاعبين برمجياً للحصول على البيانات التفصيلية للاعبين (الاسم، الصورة، الرقم)
+if (MatchPlayer && Player) {
+    if (!MatchPlayer.associations || !MatchPlayer.associations.player) {
+        MatchPlayer.belongsTo(Player, { as: 'player', foreignKey: 'playerId' });
     }
 }
 
@@ -132,6 +146,38 @@ router.get('/:id', async (req, res) => {
 });
 
 /**
+ * 2.5 GET /api/matches/:id/lineup
+ * جلب قائمة تشكيلة المباراة للاعبين والتقييمات المسجلة
+ */
+router.get('/:id/lineup', async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!MatchPlayer) {
+            return res.status(503).json({ error: 'نظام تشكيلات المباريات قيد التحديث وغير متوفر حالياً' });
+        }
+
+        const includeOptions = [];
+        if (Player) {
+            includeOptions.push({
+                model: Player,
+                as: 'player',
+                attributes: ['id', 'name', 'jerseyNumber', 'photoUrl', 'position']
+            });
+        }
+
+        const lineup = await MatchPlayer.findAll({
+            where: { matchId: id },
+            include: includeOptions,
+            order: [['isStarting', 'DESC'], ['id', 'ASC']]
+        });
+
+        return res.status(200).json(lineup);
+    } catch (error) {
+        return res.status(500).json({ error: 'حدث خطأ أثناء جلب تشكيلة المباراة: ' + error.message });
+    }
+});
+
+/**
  * 3. POST /api/matches
  * جدولة مباراة جديدة (صلاحية Admin / Editor فقط)
  */
@@ -169,6 +215,51 @@ router.post('/', verifyToken, isEditorOrAdmin, async (req, res) => {
 });
 
 /**
+ * 3.5 POST /api/matches/:id/lineup
+ * حفظ وتعديل تشكيلة المباراة بالكامل (صلاحية Admin / Editor فقط)
+ */
+router.post('/:id/lineup', verifyToken, isEditorOrAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { lineup } = req.body; // ننتظر مصفوفة تحتوي على اللاعبين ومواقعهم
+
+        if (!MatchPlayer) {
+            return res.status(503).json({ error: 'نظام تشكيلات المباريات قيد التحديث وغير متوفر حالياً' });
+        }
+
+        const match = await Match.findByPk(id);
+        if (!match) {
+            return res.status(404).json({ error: 'المباراة المستهدفة لحفظ التشكيلة غير موجودة' });
+        }
+
+        if (!lineup || !Array.isArray(lineup)) {
+            return res.status(400).json({ error: 'حقل التشكيلة (lineup) إلزامي ويجب أن يكون مصفوفة صالحة' });
+        }
+
+        // مسح التشكيلة القديمة للمباراة لتهيئة تخزين نظيف وخالٍ من الأخطاء والتعارض
+        await MatchPlayer.destroy({ where: { matchId: id } });
+
+        // تجهيز السجلات الجديدة دفعة واحدة
+        const records = lineup.map(item => ({
+            matchId: id,
+            teamId: item.teamId,
+            playerId: item.playerId,
+            isStarting: item.isStarting ?? false,
+            position: item.position ?? '',
+            positionX: item.positionX ?? null,
+            positionY: item.positionY ?? null,
+            rating: item.rating ?? null
+        }));
+
+        const savedLineup = await MatchPlayer.bulkCreate(records);
+
+        return res.status(200).json({ success: true, lineup: savedLineup });
+    } catch (error) {
+        return res.status(500).json({ error: 'حدث خطأ أثناء حفظ تشكيلة المباراة: ' + error.message });
+    }
+});
+
+/**
  * 4. PUT /api/matches/:id
  * تعديل شامل لبيانات مباراة، ونتيجة اللقاء، ونسب الاستحواذ (صلاحية Admin / Editor فقط)
  */
@@ -193,6 +284,39 @@ router.put('/:id', verifyToken, isEditorOrAdmin, async (req, res) => {
         return res.status(200).json({ success: true, match });
     } catch (error) {
         return res.status(500).json({ error: 'حدث خطأ أثناء تحديث بيانات اللقاء: ' + error.message });
+    }
+});
+
+/**
+ * 4.5 PUT /api/matches/:id/lineup/ratings
+ * تحديث سريع وجماعي لتقييمات اللاعبين في اللقاء (صلاحية Admin / Editor فقط)
+ */
+router.put('/:id/lineup/ratings', verifyToken, isEditorOrAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { ratings } = req.body; // ننتظر مصفوفة على الشكل: [{ playerId, rating }, ...]
+
+        if (!MatchPlayer) {
+            return res.status(503).json({ error: 'نظام تشكيلات المباريات قيد التحديث وغير متوفر حالياً' });
+        }
+
+        if (!ratings || !Array.isArray(ratings)) {
+            return res.status(400).json({ error: 'حقل التقييمات (ratings) إلزامي ويجب أن يكون مصفوفة صالحة' });
+        }
+
+        // تحديث كل لاعب بشكل منفصل بناءً على معرف المباراة ومعرف اللاعب
+        for (const record of ratings) {
+            if (record.playerId && record.rating !== undefined) {
+                await MatchPlayer.update(
+                    { rating: record.rating },
+                    { where: { matchId: id, playerId: record.playerId } }
+                );
+            }
+        }
+
+        return res.status(200).json({ success: true, message: 'تم تحديث تقييمات التشكيلة بنجاح' });
+    } catch (error) {
+        return res.status(500).json({ error: 'حدث خطأ أثناء تحديث تقييمات اللاعبين: ' + error.message });
     }
 });
 
