@@ -15,12 +15,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   initMatchesManagement();
+  initTabsManagement();
 });
 
 let allMatches = [];
 let allTeams = [];
 let selectedMatchId = null;
 let activeMatchData = null;
+let currentLineup = []; // تخزين التشكيلة الحالية للمباراة النشطة
 
 // عناصر التحكم الرئيسية للمباريات
 const matchesLoadingEl = document.getElementById('matches-loading');
@@ -60,6 +62,17 @@ const eventCoordY = document.getElementById('event-coord-y');
 const interactivePitch = document.getElementById('interactive-pitch');
 const coordinateDot = document.getElementById('coordinate-dot');
 const activeMatchEventsList = document.getElementById('active-match-events-list');
+
+// عناصر إدارة التشكيلات والتقييمات الجديدة
+const lineupTeamSelect = document.getElementById('lineup-team-select');
+const lineupFormationSelect = document.getElementById('lineup-formation-select');
+const lineupPlayersRoster = document.getElementById('lineup-players-roster');
+const btnSaveLineup = document.getElementById('btn-save-lineup');
+const btnSaveRatings = document.getElementById('btn-save-ratings');
+const ratingsHomeList = document.getElementById('ratings-home-list');
+const ratingsAwayList = document.getElementById('ratings-away-list');
+const ratingHomeTitle = document.getElementById('rating-home-title');
+const ratingAwayTitle = document.getElementById('rating-away-title');
 
 // تهيئة إعدادات وأحداث الشاشة
 async function initMatchesManagement() {
@@ -102,12 +115,64 @@ async function initMatchesManagement() {
     });
   }
 
+  // ربط تغيير فريق التشكيلة لتحديث قائمة لاعبي الفريق المختار
+  if (lineupTeamSelect) {
+    lineupTeamSelect.addEventListener('change', (e) => {
+      renderTeamRosterForLineup(parseInt(e.target.value));
+    });
+  }
+
+  // حفظ التشكيلة
+  if (btnSaveLineup) {
+    btnSaveLineup.addEventListener('click', handleSaveLineup);
+  }
+
+  // حفظ التقييمات
+  if (btnSaveRatings) {
+    btnSaveRatings.addEventListener('click', handleSaveRatings);
+  }
+
   // تهيئة أزرار تبديل الحالة السريع
   document.querySelectorAll('.btn-status-switch').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const status = e.currentTarget.getAttribute('data-status');
       handleStatusSwitch(status);
     });
+  });
+}
+
+// تهيئة تبديل التبويبات الثلاثة
+function initTabsManagement() {
+  const tabs = ['tab-events', 'tab-lineups', 'tab-ratings'];
+  tabs.forEach(tabId => {
+    const btn = document.getElementById(tabId);
+    if (btn) {
+      btn.addEventListener('click', () => {
+        // إزالة الفاعلية عن الجميع
+        tabs.forEach(t => {
+          const b = document.getElementById(t);
+          if (b) {
+            b.classList.remove('active', 'border-brand-accent', 'text-brand-accent');
+            b.classList.add('text-slate-400');
+          }
+        });
+        
+        // تفعيل التبويب المختار
+        btn.classList.add('active', 'border-brand-accent', 'text-brand-accent');
+        btn.classList.remove('text-slate-400');
+
+        // إخفاء كافة محتويات التبويبات وعرض المستهدف
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+        const targetContentId = `tab-content-${tabId.split('-')[1]}`;
+        const targetContent = document.getElementById(targetContentId);
+        if (targetContent) targetContent.classList.remove('hidden');
+
+        // تحديث قائمة التقييمات فوراً عند الانتقال لتبويب التقييمات
+        if (tabId === 'tab-ratings') {
+          loadRatingsLists();
+        }
+      });
+    }
   });
 }
 
@@ -212,7 +277,7 @@ function renderMatchesList(matches) {
           <i class="fa-solid fa-trash-can"></i> حذف
         </button>
         <button class="btn-manage-match-events bg-brand-card hover:bg-slate-800 text-slate-300 hover:text-brand-accent px-4 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1" data-id="${match.id}">
-          <i class="fa-solid fa-gears"></i> إدارة وإدخل الأحداث
+          <i class="fa-solid fa-gears"></i> إدارة وإدخال الأحداث
         </button>
       </div>
     `;
@@ -260,13 +325,13 @@ function renderMatchesList(matches) {
         y: 0, 
         duration: 0.3, 
         stagger: 0.04, 
-        clearProps: "all" // تنظيف الخصائص فور انتهاء الحركة لمنع أي تعارض مع الـ CSS Transitions
+        clearProps: "all"
       }
     );
   }
 }
 
-// تفعيل لوحة الإدارة للمباراة المحددة وتفصيل أحداثها
+// تفعيل لوحة الإدارة للمباراة المحددة وتفصيل أحداثها وتشكيلتها
 async function selectMatchForManagement(matchId) {
   selectedMatchId = matchId;
   
@@ -274,7 +339,7 @@ async function selectMatchForManagement(matchId) {
     hideEl(matchPanelPlaceholder);
     showEl(matchPanelActive);
 
-    // جلب تفاصيل المباراة مع أحداثها
+    // جلب تفاصيل المباراة مع أحداثها وتشكيلتها
     const match = await fetchAPI(`/api/matches/${matchId}`);
     activeMatchData = match;
 
@@ -303,6 +368,16 @@ async function selectMatchForManagement(matchId) {
       eventPlayerSelect.innerHTML = '<option value="">اختر اللاعب</option>';
     }
 
+    // تهيئة خيارات تحديد الفريق لإعداد التشكيلة
+    if (lineupTeamSelect) {
+      lineupTeamSelect.innerHTML = `
+        <option value="">اختر فريقاً لتعديله</option>
+        <option value="${match.homeTeamId}">${homeTeam.name} (الأرض)</option>
+        <option value="${match.awayTeamId}">${awayTeam.name} (الضيف)</option>
+      `;
+      lineupPlayersRoster.innerHTML = '<p class="text-slate-600 text-xs text-center py-4">اختر فريقاً من القائمة لبدء تعيين تشكيلته.</p>';
+    }
+
     // إعادة ضبط حقول تسجيل الإحداثيات وإخفاء مؤشر النقطة
     if (eventCoordX) eventCoordX.value = '';
     if (eventCoordY) eventCoordY.value = '';
@@ -311,12 +386,304 @@ async function selectMatchForManagement(matchId) {
     // تحديث شارات الحالة وأزرار التفعيل السريع
     updateStatusInterface(match.status);
 
+    // جلب التشكيلة الحالية المسجلة للمباراة
+    const lineup = await fetchAPI(`/api/matches/${matchId}/lineup`);
+    currentLineup = lineup || [];
+
     // تحميل وعرض الأحداث المسجلة للمباراة
     renderActiveMatchEvents(match.events || []);
+
+    // إعادة العودة إلى التبويب الرئيسي كحالة افتراضية
+    const firstTab = document.getElementById('tab-events');
+    if (firstTab) firstTab.click();
 
   } catch (err) {
     console.error('فشل في جلب تفاصيل المباراة:', err);
     alert('تعذر تفعيل إدارة هذه المباراة حالياً.');
+  }
+}
+
+// جلب وعرض قائمة لاعبي الفريق الحالي لإعداد التشكيلة
+async function renderTeamRosterForLineup(teamId) {
+  if (!lineupPlayersRoster) return;
+  if (!teamId) {
+    lineupPlayersRoster.innerHTML = '<p class="text-slate-600 text-xs text-center py-4">اختر فريقاً من القائمة لبدء تعيين تشكيلته.</p>';
+    return;
+  }
+
+  try {
+    lineupPlayersRoster.innerHTML = '<p class="text-slate-400 text-xs text-center py-4"><i class="fa-solid fa-circle-notch animate-spin text-brand-accent"></i> جاري جلب لاعبي النادي...</p>';
+    
+    const response = await fetchAPI(`/api/teams/${teamId}`);
+    const players = response.players || [];
+
+    if (players.length === 0) {
+      lineupPlayersRoster.innerHTML = '<p class="text-slate-500 text-xs text-center py-4">لم يتم العثور على أي لاعبين مسجلين لهذا النادي.</p>';
+      return;
+    }
+
+    lineupPlayersRoster.innerHTML = '';
+    
+    players.forEach(player => {
+      // التحقق مما إذا كان اللاعب مسجلاً مسبقاً في تشكيلة المباراة الحالية
+      const savedRecord = currentLineup.find(lp => lp.playerId === player.id);
+      
+      let statusVal = 'none';
+      let positionVal = player.position || 'CM';
+
+      if (savedRecord) {
+        statusVal = savedRecord.isStarting ? 'starting' : 'sub';
+        positionVal = savedRecord.position || positionVal;
+      }
+
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between p-2 bg-slate-900/50 rounded-lg border border-slate-800/80 hover:border-slate-700/80 transition';
+      row.innerHTML = `
+        <div class="flex items-center gap-2">
+          <span class="text-xs bg-slate-950 text-slate-400 w-5 h-5 flex items-center justify-center rounded font-mono">${player.jerseyNumber}</span>
+          <span class="text-xs font-semibold text-slate-200">${player.name}</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- تحديد الأساسي والاحتياطي -->
+          <select class="lineup-player-status bg-slate-950 border border-slate-800 focus:border-brand-accent rounded px-1.5 py-1 text-[11px] text-slate-300 focus:outline-none" data-player-id="${player.id}">
+            <option value="none" ${statusVal === 'none' ? 'selected' : ''}>خارج التشكيلة</option>
+            <option value="starting" ${statusVal === 'starting' ? 'selected' : ''}>أساسي (Starter)</option>
+            <option value="sub" ${statusVal === 'sub' ? 'selected' : ''}>احتياطي (Sub)</option>
+          </select>
+          <!-- تحديد رمز المركز التكتيكي لتحديد الإحداثيات -->
+          <select class="lineup-player-position bg-slate-950 border border-slate-800 focus:border-brand-accent rounded px-1.5 py-1 text-[11px] text-slate-300 focus:outline-none" data-player-id="${player.id}">
+            <option value="GK" ${positionVal === 'GK' ? 'selected' : ''}>حارس (GK)</option>
+            <option value="LB" ${positionVal === 'LB' ? 'selected' : ''}>ظهير أيسر (LB)</option>
+            <option value="LCB" ${positionVal === 'LCB' ? 'selected' : ''}>دفاع أيسر (LCB)</option>
+            <option value="RCB" ${positionVal === 'RCB' ? 'selected' : ''}>دفاع أيمن (RCB)</option>
+            <option value="RB" ${positionVal === 'RB' ? 'selected' : ''}>ظهير أيمن (RB)</option>
+            <option value="LM" ${positionVal === 'LM' ? 'selected' : ''}>وسط أيسر (LM)</option>
+            <option value="LCM" ${positionVal === 'LCM' ? 'selected' : ''}>وسط دفاعي (LCM)</option>
+            <option value="RCM" ${positionVal === 'RCM' ? 'selected' : ''}>وسط هجومي (RCM)</option>
+            <option value="RM" ${positionVal === 'RM' ? 'selected' : ''}>وسط أيمن (RM)</option>
+            <option value="LS" ${positionVal === 'LS' ? 'selected' : ''}>هجوم أيسر (LS)</option>
+            <option value="RS" ${positionVal === 'RS' ? 'selected' : ''}>هجوم أيمن (RS)</option>
+          </select>
+        </div>
+      `;
+      lineupPlayersRoster.appendChild(row);
+    });
+
+  } catch (err) {
+    console.error('فشل تحميل تشكيلة النادي للإعداد:', err);
+    lineupPlayersRoster.innerHTML = '<p class="text-red-500 text-xs text-center py-4">تعذر جلب لاعبي الفريق.</p>';
+  }
+}
+
+// دالة حساب الإحداثيات التكتيكية (X, Y) لتنظيم الفقاعات على الملعب
+function getTacticalCoordinates(role, isHome) {
+  // إحداثيات ملعب متناظر بالكامل (0-100)
+  // فريق الأرض يلعب من اليسار لليمين (X من 0 لـ 50)
+  // فريق الضيف يلعب من اليمين لليسار (X من 100 لـ 50)
+  if (isHome) {
+    switch (role) {
+      case 'GK':  return { x: 8,  y: 50 };
+      case 'LB':  return { x: 22, y: 15 };
+      case 'LCB': return { x: 20, y: 38 };
+      case 'RCB': return { x: 20, y: 62 };
+      case 'RB':  return { x: 22, y: 85 };
+      case 'LM':  return { x: 35, y: 15 };
+      case 'LCM': return { x: 32, y: 38 };
+      case 'RCM': return { x: 32, y: 62 };
+      case 'RM':  return { x: 35, y: 85 };
+      case 'LS':  return { x: 45, y: 32 };
+      case 'RS':  return { x: 45, y: 68 };
+      default:    return { x: 25, y: 50 };
+    }
+  } else {
+    // الضيف (معاكس)
+    switch (role) {
+      case 'GK':  return { x: 92, y: 50 };
+      case 'LB':  return { x: 78, y: 85 };
+      case 'LCB': return { x: 80, y: 62 };
+      case 'RCB': return { x: 80, y: 38 };
+      case 'RB':  return { x: 78, y: 15 };
+      case 'LM':  return { x: 65, y: 85 };
+      case 'LCM': return { x: 68, y: 62 };
+      case 'RCM': return { x: 68, y: 38 };
+      case 'RM':  return { x: 65, y: 15 };
+      case 'LS':  return { x: 55, y: 68 };
+      case 'RS':  return { x: 55, y: 32 };
+      default:    return { x: 75, y: 50 };
+    }
+  }
+}
+
+// معالجة وحفظ التشكيلة للفريق الحالي المختار
+async function handleSaveLineup() {
+  if (!selectedMatchId || !activeMatchData) return;
+  const teamId = parseInt(lineupTeamSelect.value);
+  if (!teamId) {
+    alert('الرجاء اختيار النادي أولاً.');
+    return;
+  }
+
+  const isHome = (teamId === activeMatchData.homeTeamId);
+  const statusSelectors = document.querySelectorAll('.lineup-player-status');
+  
+  const selectedTeamRecords = [];
+
+  statusSelectors.forEach(select => {
+    const playerId = parseInt(select.getAttribute('data-player-id'));
+    const status = select.value;
+    
+    if (status !== 'none') {
+      const isStarting = (status === 'starting');
+      const roleSelect = document.querySelector(`.lineup-player-position[data-player-id="${playerId}"]`);
+      const positionRole = roleSelect ? roleSelect.value : 'CM';
+
+      // حساب الإحداثيات للاعبين الأساسيين فقط، والاحتياط يأخذون قيمة null
+      let coords = { x: null, y: null };
+      if (isStarting) {
+        coords = getTacticalCoordinates(positionRole, isHome);
+      }
+
+      selectedTeamRecords.push({
+        teamId: teamId,
+        playerId: playerId,
+        isStarting: isStarting,
+        position: positionRole,
+        positionX: coords.x,
+        positionY: coords.y,
+        rating: 6.0 // التقييم الافتراضي الأولي
+      });
+    }
+  });
+
+  // تصفية وحفظ تشكيلة الفريق الآخر لضمان عدم فقدانها عند تحديث الفريق الحالي
+  const otherTeamRecords = currentLineup
+    .filter(lp => lp.teamId !== teamId)
+    .map(lp => ({
+      teamId: lp.teamId,
+      playerId: lp.playerId,
+      isStarting: lp.isStarting,
+      position: lp.position,
+      positionX: lp.positionX,
+      positionY: lp.positionY,
+      rating: lp.rating
+    }));
+
+  const fullLineupPayload = [...otherTeamRecords, ...selectedTeamRecords];
+
+  try {
+    const result = await fetchAPI(`/api/matches/${selectedMatchId}/lineup`, 'POST', { lineup: fullLineupPayload });
+    if (result && result.success) {
+      alert('تم حفظ وتحديث تشكيلة هذا النادي بنجاح.');
+      // إعادة تحميل التشكيلة محلياً لتحديث الحالة
+      currentLineup = result.lineup || [];
+    }
+  } catch (err) {
+    console.error('فشل في حفظ التشكيلة:', err);
+    alert('حدث خطأ أثناء حفظ التشكيلة.');
+  }
+}
+
+// عرض وإعداد قوائم إدخال تقييمات اللاعبين المشاركين للمباراة الحالية
+async function loadRatingsLists() {
+  if (!ratingsHomeList || !ratingsAwayList || !selectedMatchId || !activeMatchData) return;
+
+  try {
+    ratingsHomeList.innerHTML = '<p class="text-slate-500 text-xs">جاري تحميل تشكيلة اللقاء...</p>';
+    ratingsAwayList.innerHTML = '<p class="text-slate-500 text-xs">جاري تحميل تشكيلة اللقاء...</p>';
+
+    // تحديث عناوين التقييم لتناسب أسماء فريقي اللقاء
+    const homeTeam = allTeams.find(t => t.id === activeMatchData.homeTeamId) || { name: 'صاحب الأرض' };
+    const awayTeam = allTeams.find(t => t.id === activeMatchData.awayTeamId) || { name: 'الضيف' };
+    
+    if (ratingHomeTitle) ratingHomeTitle.innerHTML = `<span class="w-2 h-2 rounded bg-brand-accent"></span> تقييمات لاعبي: ${homeTeam.name}`;
+    if (ratingAwayTitle) ratingAwayTitle.innerHTML = `<span class="w-2 h-2 rounded bg-slate-500"></span> تقييمات لاعبي: ${awayTeam.name}`;
+
+    // جلب أحدث تشكيلة لتحديث شاشة التقييمات
+    const lineup = await fetchAPI(`/api/matches/${selectedMatchId}/lineup`);
+    currentLineup = lineup || [];
+
+    const homePlayers = currentLineup.filter(lp => lp.teamId === activeMatchData.homeTeamId);
+    const awayPlayers = currentLineup.filter(lp => lp.teamId === activeMatchData.awayTeamId);
+
+    // بناء واجهة الأرض
+    ratingsHomeList.innerHTML = '';
+    if (homePlayers.length === 0) {
+      ratingsHomeList.innerHTML = '<p class="text-slate-600 text-xs py-2">لا يوجد لاعبين مشاركين بالتشكيلة حالياً.</p>';
+    } else {
+      homePlayers.forEach(p => {
+        const playerName = p.player ? p.player.name : 'لاعب غير معروف';
+        const roleText = p.isStarting ? 'أساسي' : 'بديل';
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-2 bg-slate-900/50 rounded-lg border border-slate-800/80';
+        item.innerHTML = `
+          <div class="flex flex-col">
+            <span class="text-xs font-semibold text-slate-200 truncate max-w-[140px]">${playerName}</span>
+            <span class="text-[9px] text-slate-500">${roleText} | ${p.position}</span>
+          </div>
+          <input type="number" step="0.1" min="1.0" max="10.0" class="rating-input bg-slate-950 border border-slate-800 focus:border-brand-accent rounded text-center w-14 py-1 text-xs font-bold text-brand-accent" data-player-id="${p.playerId}" value="${p.rating ?? 6.0}">
+        `;
+        ratingsHomeList.appendChild(item);
+      });
+    }
+
+    // بناء واجهة الضيف
+    ratingsAwayList.innerHTML = '';
+    if (awayPlayers.length === 0) {
+      ratingsAwayList.innerHTML = '<p class="text-slate-600 text-xs py-2">لا يوجد لاعبين مشاركين بالتشكيلة حالياً.</p>';
+    } else {
+      awayPlayers.forEach(p => {
+        const playerName = p.player ? p.player.name : 'لاعب غير معروف';
+        const roleText = p.isStarting ? 'أساسي' : 'بديل';
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-2 bg-slate-900/50 rounded-lg border border-slate-800/80';
+        item.innerHTML = `
+          <div class="flex flex-col">
+            <span class="text-xs font-semibold text-slate-200 truncate max-w-[140px]">${playerName}</span>
+            <span class="text-[9px] text-slate-500">${roleText} | ${p.position}</span>
+          </div>
+          <input type="number" step="0.1" min="1.0" max="10.0" class="rating-input bg-slate-950 border border-slate-800 focus:border-brand-accent rounded text-center w-14 py-1 text-xs font-bold text-brand-accent" data-player-id="${p.playerId}" value="${p.rating ?? 6.0}">
+        `;
+        ratingsAwayList.appendChild(item);
+      });
+    }
+
+  } catch (err) {
+    console.error('خطأ أثناء جلب وإخراج التقييمات للتشكيلة:', err);
+  }
+}
+
+// حفظ وتحديث التقييمات الرقمية المدخلة دفعة واحدة
+async function handleSaveRatings() {
+  if (!selectedMatchId) return;
+
+  const ratingInputs = document.querySelectorAll('.rating-input');
+  if (ratingInputs.length === 0) {
+    alert('لا يوجد لاعبين مشاركين في تشكيلة المباراة لتعديل تقييماتهم.');
+    return;
+  }
+
+  const ratingsPayload = [];
+  ratingInputs.forEach(input => {
+    const playerId = parseInt(input.getAttribute('data-player-id'));
+    const rating = parseFloat(input.value);
+
+    if (playerId && !isNaN(rating)) {
+      ratingsPayload.push({
+        playerId: playerId,
+        rating: rating
+      });
+    }
+  });
+
+  try {
+    const result = await fetchAPI(`/api/matches/${selectedMatchId}/lineup/ratings`, 'PUT', { ratings: ratingsPayload });
+    if (result && result.success) {
+      alert('تم حفظ وتحديث تقييمات اللاعبين للمباراة بنجاح.');
+      await loadRatingsLists(); // إعادة تحميل التقييمات لتأكيد القيم
+    }
+  } catch (err) {
+    console.error('فشل في حفظ التقييمات الرقمية:', err);
+    alert('فشل حفظ وتحديث التقييمات.');
   }
 }
 
