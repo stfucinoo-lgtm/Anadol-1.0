@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مركز المباريات - ANADOL League</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0f172a',
+              card: '#1e293b',
+              accent: '#f59e0b',
+              accentHover: '#d97706',
+              success: '#10b981',
+              danger: '#ef4444',
+              live: '#ef4444'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+    }
+    .match-filter-btn.active {
+      background-color: #f59e0b;
+      color: #0f172a;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <nav class="bg-brand-dark/95 backdrop-blur-md border-b border-slate-900 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/" class="text-brand-accent font-black text-lg tracking-wider flex items-center gap-2">
+          ⚽ ANADOL <span class="text-white text-sm font-semibold px-2 py-0.5 bg-slate-800 rounded">League</span>
+        </a>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="/matches.html" class="text-xs sm:text-sm font-bold text-brand-accent transition">المباريات</a>
+        <a href="/standings.html" class="text-xs sm:text-sm font-semibold text-slate-300 hover:text-brand-accent transition">الترتيب</a>
+        <a href="/teams.html" class="text-xs sm:text-sm font-semibold text-slate-300 hover:text-brand-accent transition">الفرِق</a>
+        <a href="/blog.html" class="text-xs sm:text-sm font-semibold text-slate-300 hover:text-brand-accent transition">أخبار الدوري</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="flex-grow max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    
+    <!-- Page Header & Overview -->
+    <div class="text-center space-y-2">
+      <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center justify-center gap-2">
+        <i class="fa-solid fa-calendar-day text-brand-accent"></i>
+        مركز مباريات دوري الأناضول
+      </h1>
+      <p class="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto">تابع جدول مواعيد مباريات اليوم، النتائج المباشرة للبطولة، والتقارير الفنية المفصلة لكل لقاء.</p>
+    </div>
+
+    <!-- Live / Today Filter Navigation (شريط التصفية السريع) -->
+    <div class="flex justify-center">
+      <div class="grid grid-cols-3 gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 max-w-md w-full shadow-inner">
+        <button type="button" id="filter-today" class="match-filter-btn active text-xs py-2 px-3 rounded-lg font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-slate-400 inline-block" id="today-indicator"></span>
+          مباريات اليوم
+        </button>
+        <button type="button" id="filter-live" class="match-filter-btn text-xs py-2 px-3 rounded-lg font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-brand-live animate-pulse inline-block"></span>
+          مباشر الآن
+        </button>
+        <button type="button" id="filter-all" class="match-filter-btn text-xs py-2 px-3 rounded-lg font-semibold text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5">
+          كل المباريات
+        </button>
+      </div>
+    </div>
+
+    <!-- Match Day List Wrapper -->
+    <section class="bg-brand-card rounded-2xl border border-slate-900 p-6 shadow-xl space-y-4">
+      
+      <!-- Loading State -->
+      <div id="center-loading" class="py-20 text-center text-slate-400">
+        <i class="fa-solid fa-spinner animate-spin text-2xl text-brand-accent mb-2"></i>
+        <p class="text-xs">جاري تحميل جدول المباريات النشطة...</p>
+      </div>
+
+      <!-- Empty Matches State -->
+      <div id="center-empty" class="hidden py-20 text-center text-slate-500">
+        <i class="fa-solid fa-circle-info text-3xl mb-2 text-slate-600"></i>
+        <p class="text-xs" id="empty-state-message">لا توجد مباريات مجدولة لهذا اليوم.</p>
+      </div>
+
+      <!-- Cards Container -->
+      <div id="center-matches-list" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Dynamically populated clickable match cards -->
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-brand-dark border-t border-slate-900 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-xs">
+      <p>&copy; 2026 دوري الأناضول (ANADOL League). جميع الحقوق محفوظة.</p>
+    </div>
+  </footer>
+
+  <!-- App JS Scripts -->
+  <script src="/js/api.js"></script>
+  <!-- ملف التحكم المرفق وسنقوم بكتابته في الخطوة التالية لتفعيل العمليات تفاعلياً -->
+  <script src="/js/matches.js"></script>
+</body>
+</html>
