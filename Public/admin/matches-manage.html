@@ -42,6 +42,10 @@
         linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
       background-size: 100% 100%, 10% 10%, 10% 10%;
     }
+    .tab-btn.active {
+      color: #f59e0b;
+      border-color: #f59e0b;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
@@ -72,7 +76,7 @@
     <!-- Action Top Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
       <div>
-        <p class="text-slate-400 text-sm">جدولة مواعيد المباريات، تبديل حالات اللعب، وتحديث الأهداف التفصيلية والخرائط الحرارية.</p>
+        <p class="text-slate-400 text-sm">جدولة مواعيد المباريات، تبديل حالات اللعب، وتعديل تشكيلات وتقييمات اللاعبين لتقديم إحصائيات متقدمة.</p>
       </div>
       <div>
         <button id="btn-open-match-modal" class="w-full sm:w-auto bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-bold px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 transition duration-200">
@@ -86,7 +90,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
       
       <!-- Matches List Section -->
-      <section class="lg:col-span-6 space-y-6">
+      <section class="lg:col-span-5 space-y-6">
         <div class="bg-brand-card rounded-xl border border-slate-800 p-5">
           
           <!-- Filters -->
@@ -118,14 +122,14 @@
           </div>
 
           <!-- Matches Container -->
-          <div id="matches-list" class="hidden space-y-4 max-h-[600px] overflow-y-auto pr-1 custom-scrollbar">
+          <div id="matches-list" class="hidden space-y-4 max-h-[650px] overflow-y-auto pr-1 custom-scrollbar">
             <!-- Dynamic match cards added by admin-matches.js -->
           </div>
         </div>
       </section>
 
-      <!-- Event Logger & Live Management Section -->
-      <section class="lg:col-span-6 space-y-6">
+      <!-- Event Logger, Lineup & Ratings Management Section -->
+      <section class="lg:col-span-7 space-y-6">
         <div class="bg-brand-card rounded-xl border border-slate-800 p-5 sticky top-24">
           
           <!-- Placeholder State -->
@@ -193,90 +197,185 @@
               </div>
             </form>
 
-            <!-- Interactive Match Event Logger -->
-            <div class="space-y-4">
-              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                <span>تسجيل حدث جديد تفصيلي</span>
-                <span class="text-[10px] text-slate-500 font-normal">انقر على الملعب لتحديد الإحداثيات</span>
-              </h3>
-
-              <!-- Event Form -->
-              <form id="match-event-form" class="space-y-4">
-                
-                <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <label for="event-team" class="block text-[10px] font-semibold text-slate-300 mb-1">الفريق المعني *</label>
-                    <select id="event-team" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none transition">
-                      <!-- Dynamic select options -->
-                    </select>
-                  </div>
-                  <div>
-                    <label for="event-player" class="block text-[10px] font-semibold text-slate-300 mb-1">اللاعب المعني *</label>
-                    <select id="event-player" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none transition">
-                      <option value="">اختر اللاعب</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2">
-                  <div>
-                    <label for="event-type" class="block text-[10px] font-semibold text-slate-300 mb-1">نوع الحدث *</label>
-                    <select id="event-type" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-1.5 py-1.5 text-xs text-white focus:outline-none transition">
-  <option value="goal">هدف ⚽</option>
-  <option value="yellow_card">بطاقة صفراء 🟨</option>
-  <option value="red_card">بطاقة حمراء 🟥</option>
-  <option value="substitution">تبديل 🔄</option>
-  <option value="shot">تسديدة 🎯</option>
-  <option value="tackle">تدخل ⚔️</option>
-  <option value="foul">خطأ ⚠️</option>
-  <option value="free_kick">ركلة حرة 📐</option>
-  <option value="penalty">ركلة جزاء 🥅</option>
-</select>
-                  </div>
-                  <div>
-                    <label for="event-minute" class="block text-[10px] font-semibold text-slate-300 mb-1">الدقيقة *</label>
-                    <input type="number" id="event-minute" required min="1" max="120" placeholder="45" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none transition">
-                  </div>
-                  <div class="grid grid-cols-2 gap-1">
-                    <div>
-                      <label class="block text-[10px] font-semibold text-slate-300 mb-1">X (0-100)</label>
-                      <input type="number" id="event-coord-x" readonly required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-1 py-1.5 text-xs text-center text-slate-400">
-                    </div>
-                    <div>
-                      <label class="block text-[10px] font-semibold text-slate-300 mb-1">Y (0-100)</label>
-                      <input type="number" id="event-coord-y" readonly required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-1 py-1.5 text-xs text-center text-slate-400">
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Interactive Pitch Field Coordinates Picker -->
-                <div class="relative w-full aspect-[3/2] bg-emerald-800 rounded-lg border border-emerald-950 overflow-hidden cursor-crosshair shadow-md pitch-grid" id="interactive-pitch">
-                  <!-- Lines and elements on the field -->
-                  <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-emerald-500/40"></div>
-                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-emerald-500/40"></div>
-                  <!-- Penalty Box Right -->
-                  <div class="absolute right-0 top-1/4 bottom-1/4 w-12 border-y border-l border-emerald-500/40"></div>
-                  <!-- Penalty Box Left -->
-                  <div class="absolute left-0 top-1/4 bottom-1/4 w-12 border-y border-r border-emerald-500/40"></div>
-                  
-                  <!-- Target coordinate indicator dot -->
-                  <div id="coordinate-dot" class="absolute w-3.5 h-3.5 bg-brand-accent border-2 border-white rounded-full -translate-x-1/2 -translate-y-1/2 hidden shadow-lg"></div>
-                </div>
-
-                <div class="flex justify-end">
-                  <button type="submit" class="bg-brand-success hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg transition duration-200 flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-check"></i>
-                    تسجيل الحدث في الإحصائيات
-                  </button>
-                </div>
-              </form>
+            <!-- Navigation Tabs (نظام التبويبات الجديد) -->
+            <div class="flex border-b border-slate-800 gap-1 mt-6">
+              <button type="button" id="tab-events" class="tab-btn active border-b-2 border-transparent px-4 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-chart-line"></i> الأحداث
+              </button>
+              <button type="button" id="tab-lineups" class="tab-btn border-b-2 border-transparent px-4 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-users-gear"></i> التشكيلة
+              </button>
+              <button type="button" id="tab-ratings" class="tab-btn border-b-2 border-transparent px-4 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-star-half-stroke"></i> التقييمات
+              </button>
             </div>
 
-            <!-- Historical Match Events Feed -->
-            <div class="pt-4 border-t border-slate-800">
-              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">شريط الأحداث المسجلة للمباراة</h4>
-              <div id="active-match-events-list" class="space-y-2 max-h-[160px] overflow-y-auto pr-1 text-xs">
-                <!-- Dynamically populated events checklist -->
+            <!-- ==================== TAB 1: EVENTS LOGGER ==================== -->
+            <div id="tab-content-events" class="tab-content space-y-4">
+              <!-- Interactive Match Event Logger -->
+              <div class="space-y-4">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                  <span>تسجيل حدث جديد تفصيلي</span>
+                  <span class="text-[10px] text-slate-500 font-normal">انقر على الملعب لتحديد الإحداثيات</span>
+                </h3>
+
+                <!-- Event Form -->
+                <form id="match-event-form" class="space-y-4">
+                  
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-[10px] font-semibold text-slate-300 mb-1">الفريق المعني *</label>
+                      <select id="event-team" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none transition">
+                        <!-- Dynamic select options -->
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-semibold text-slate-300 mb-1">اللاعب المعني *</label>
+                      <select id="event-player" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none transition">
+                        <option value="">اختر اللاعب</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-3 gap-2">
+                    <div>
+                      <label class="block text-[10px] font-semibold text-slate-300 mb-1">نوع الحدث *</label>
+                      <select id="event-type" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-1.5 py-1.5 text-xs text-white focus:outline-none transition">
+                        <option value="goal">هدف ⚽</option>
+                        <option value="yellow_card">بطاقة صفراء 🟨</option>
+                        <option value="red_card">بطاقة حمراء 🟥</option>
+                        <option value="substitution">تبديل 🔄</option>
+                        <option value="shot">تسديدة 🎯</option>
+                        <option value="tackle">تدخل ⚔️</option>
+                        <option value="foul">خطأ ⚠️</option>
+                        <option value="free_kick">ركلة حرة 📐</option>
+                        <option value="penalty">ركلة جزاء 🥅</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-semibold text-slate-300 mb-1">الدقيقة *</label>
+                      <input type="number" id="event-minute" required min="1" max="120" placeholder="45" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none transition">
+                    </div>
+                    <div class="grid grid-cols-2 gap-1">
+                      <div>
+                        <label class="block text-[10px] font-semibold text-slate-300 mb-1">X (0-100)</label>
+                        <input type="number" id="event-coord-x" readonly required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-1 py-1.5 text-xs text-center text-slate-400">
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-semibold text-slate-300 mb-1">Y (0-100)</label>
+                        <input type="number" id="event-coord-y" readonly required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-1 py-1.5 text-xs text-center text-slate-400">
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Interactive Pitch Field Coordinates Picker -->
+                  <div class="relative w-full aspect-[3/2] bg-emerald-800 rounded-lg border border-emerald-950 overflow-hidden cursor-crosshair shadow-md pitch-grid" id="interactive-pitch">
+                    <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-emerald-500/40"></div>
+                    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-emerald-500/40"></div>
+                    <div class="absolute right-0 top-1/4 bottom-1/4 w-12 border-y border-l border-emerald-500/40"></div>
+                    <div class="absolute left-0 top-1/4 bottom-1/4 w-12 border-y border-r border-emerald-500/40"></div>
+                    <div id="coordinate-dot" class="absolute w-3.5 h-3.5 bg-brand-accent border-2 border-white rounded-full -translate-x-1/2 -translate-y-1/2 hidden shadow-lg"></div>
+                  </div>
+
+                  <div class="flex justify-end">
+                    <button type="submit" class="bg-brand-success hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg transition duration-200 flex items-center gap-1.5">
+                      <i class="fa-solid fa-circle-check"></i> تسجيل الحدث في الإحصائيات
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Historical Match Events Feed -->
+              <div class="pt-4 border-t border-slate-800">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">شريط الأحداث المسجلة للمباراة</h4>
+                <div id="active-match-events-list" class="space-y-2 max-h-[160px] overflow-y-auto pr-1 text-xs">
+                  <!-- Dynamically populated events -->
+                </div>
+              </div>
+            </div>
+
+            <!-- ==================== TAB 2: LINEUPS MANAGEMENT ==================== -->
+            <div id="tab-content-lineups" class="tab-content hidden space-y-4">
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">إعداد تشكيلة الفريق والخطة</h3>
+              
+              <div class="grid grid-cols-2 gap-3 bg-slate-900 p-3 rounded-lg border border-slate-800">
+                <div>
+                  <label class="block text-[10px] font-semibold text-slate-300 mb-1">تعديل تشكيلة فريق:</label>
+                  <select id="lineup-team-select" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded px-2 py-1.5 text-xs text-white">
+                    <!-- الخيارات تضاف عبر الـ JS بناءً على طرفي المباراة الحالية -->
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-slate-300 mb-1">خطة اللعب المقترحة:</label>
+                  <select id="lineup-formation-select" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded px-2 py-1.5 text-xs text-white">
+                    <option value="4-4-2">4-4-2 (الخطة الكلاسيكية)</option>
+                    <option value="4-3-3">4-3-3 (خطة هجومية)</option>
+                    <option value="4-2-3-1">4-2-3-1 (متوازنة حديثة)</option>
+                    <option value="3-5-2">3-5-2 (قوة وسط الملعب)</option>
+                    <option value="5-4-1">5-4-1 (دفاعية محكمة)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- قائمة اللاعبين للتعيين -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-slate-400 text-[10px] px-2 font-bold uppercase">
+                  <span>اللاعب</span>
+                  <div class="flex gap-16 pl-6">
+                    <span>حالة المشاركة</span>
+                    <span>المركز</span>
+                  </div>
+                </div>
+
+                <div id="lineup-players-roster" class="space-y-1.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                  <!-- تملأ برمجياً عبر الـ JS لتعرض لاعبي الفريق المختار وحقول تحديد كونه (أساسي / احتياطي / غير مشارك) ومركزه -->
+                  <p class="text-slate-600 text-xs text-center py-4">اختر فريقاً من القائمة لبدء تعيين تشكيلته.</p>
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-2 border-t border-slate-800">
+                <button type="button" id="btn-save-lineup" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark text-xs font-bold px-5 py-2.5 rounded-lg transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-save"></i> حفظ تشكيلة الفريق الحالي
+                </button>
+              </div>
+            </div>
+
+            <!-- ==================== TAB 3: RATINGS MANAGEMENT ==================== -->
+            <div id="tab-content-ratings" class="tab-content hidden space-y-4">
+              <div class="flex justify-between items-center">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">تقييم اللاعبين المشاركين</h3>
+                <span class="text-[9px] text-slate-500">ملاحظة: تظهر هنا الأسماء التي تم تعيينها في التشكيلة فقط.</span>
+              </div>
+
+              <!-- حاويات التقييمات للفريقين -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
+                <!-- قسم الأرض -->
+                <div class="space-y-2">
+                  <h4 id="rating-home-title" class="text-[10px] font-bold text-slate-400 border-b border-slate-800 pb-1 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded bg-brand-accent"></span> صاحب الأرض
+                  </h4>
+                  <div id="ratings-home-list" class="space-y-2">
+                    <!-- تملأ برمجياً بقائمة المدخلات الرقمية للاعبي الأرض -->
+                    <p class="text-slate-600 text-xs py-2">لا يوجد لاعبين في التشكيلة حالياً.</p>
+                  </div>
+                </div>
+
+                <!-- قسم الضيف -->
+                <div class="space-y-2">
+                  <h4 id="rating-away-title" class="text-[10px] font-bold text-slate-400 border-b border-slate-800 pb-1 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded bg-slate-500"></span> الضيف
+                  </h4>
+                  <div id="ratings-away-list" class="space-y-2">
+                    <!-- تملأ برمجياً بقائمة المدخلات الرقمية للاعبي الضيف -->
+                    <p class="text-slate-600 text-xs py-2">لا يوجد لاعبين في التشكيلة حالياً.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-2 border-t border-slate-800">
+                <button type="button" id="btn-save-ratings" class="bg-brand-success hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-star"></i> حفظ وتحديث جميع التقييمات
+                </button>
               </div>
             </div>
 
@@ -291,7 +390,7 @@
   <!-- Footer -->
   <footer class="bg-brand-dark border-t border-slate-900 py-6 mt-auto">
     <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-xs">
-      <p>&copy; 2026 دوري الأناضول (ANADOL League). قسم إدارة أحداث المباريات.</p>
+      <p>&copy; 2026 دوري الأناضول (ANADOL League). قسم إدارة أحداث ومخططات المباريات.</p>
     </div>
   </footer>
 
