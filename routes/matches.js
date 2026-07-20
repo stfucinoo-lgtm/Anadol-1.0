@@ -9,12 +9,19 @@ const { Op } = require('sequelize');
 const Match = require('../models/Match');
 const Team = require('../models/Team');
 
-// استدعاء دفاعي مرن لنموذج أحداث المباريات (والذي يتم بناؤه تالياً في المرحلة 3)
+// استدعاء دفاعي مرن لنموذج أحداث المباريات واللاعبين
 let MatchEvent = null;
 try {
     MatchEvent = require('../models/MatchEvent');
 } catch (e) {
     // لم يتم بناء نموذج الأحداث بعد في هذه المرحلة من خطة البناء
+}
+
+let Player = null;
+try {
+    Player = require('../models/Player');
+} catch (e) {
+    // لم يتم بناء نموذج اللاعبين بعد
 }
 
 // تعريف العلاقات برمجياً وتلقائياً وتجنب التكرار بفحص المسميات البديلة
@@ -23,6 +30,13 @@ if (!Match.associations || !Match.associations.homeTeam) {
 }
 if (!Match.associations || !Match.associations.awayTeam) {
     Match.belongsTo(Team, { as: 'awayTeam', foreignKey: 'awayTeamId' });
+}
+
+// ربط علاقة أحداث المباراة باللاعبين برمجياً للحصول على اسم اللاعب ورقم قميصه
+if (MatchEvent && Player) {
+    if (!MatchEvent.associations || !MatchEvent.associations.player) {
+        MatchEvent.belongsTo(Player, { as: 'player', foreignKey: 'playerId' });
+    }
 }
 
 // آلية الاستدعاء الآمن لوسيط الصلاحيات (سيتفعل تلقائياً عند بناء الصلاحيات في المرحلة 4)
@@ -90,11 +104,20 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ error: 'المباراة المطلوبة غير موجودة في الأرشيف' });
         }
 
-        // جلب الأحداث في حال تم بناء النموذج الخاص بها
+        // جلب الأحداث مع بيانات اللاعب المرتبط بكل حدث
         let events = [];
         if (MatchEvent) {
+            const includeOptions = [];
+            if (Player) {
+                includeOptions.push({
+                    model: Player,
+                    as: 'player',
+                    attributes: ['id', 'name', 'jerseyNumber']
+                });
+            }
             events = await MatchEvent.findAll({
                 where: { matchId: id },
+                include: includeOptions,
                 order: [['minute', 'ASC']]
             });
         }
