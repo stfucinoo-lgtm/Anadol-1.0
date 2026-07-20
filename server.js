@@ -11,6 +11,9 @@ require('dotenv').config();
 
 const sequelize = require('./config/db');
 
+// استدعاء نموذج التشكيلة والتقييمات لضمان جلب ومزامنة الجدول الجديد تلقائياً في PostgreSQL
+require('./models/MatchPlayer');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
