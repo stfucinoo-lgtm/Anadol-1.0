@@ -171,7 +171,9 @@ function renderMatchesList(matches) {
   matches.forEach(match => {
     const homeTeam = allTeams.find(t => t.id === match.homeTeamId) || { name: 'فريق غير معروف', crestUrl: '' };
     const awayTeam = allTeams.find(t => t.id === match.awayTeamId) || { name: 'فريق غير معروف', crestUrl: '' };
-    const matchDateFormatted = new Date(match.matchDate).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' });
+    
+    // استخدام ترميز ar-EG-u-nu-latn لضمان إخراج الوقت والتاريخ بالأرقام العربية (1، 2، 3...) وليس الهندية
+    const matchDateFormatted = new Date(match.matchDate).toLocaleString('ar-EG-u-nu-latn', { dateStyle: 'short', timeStyle: 'short' });
 
     let statusText = 'لم تبدأ بعد';
     let statusClass = 'bg-slate-800 text-slate-300';
@@ -210,7 +212,7 @@ function renderMatchesList(matches) {
           <i class="fa-solid fa-trash-can"></i> حذف
         </button>
         <button class="btn-manage-match-events bg-brand-card hover:bg-slate-800 text-slate-300 hover:text-brand-accent px-4 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1" data-id="${match.id}">
-          <i class="fa-solid fa-gears"></i> إدارة وإدخال الأحداث
+          <i class="fa-solid fa-gears"></i> إدارة وإدخل الأحداث
         </button>
       </div>
     `;
@@ -486,6 +488,9 @@ function renderActiveMatchEvents(events) {
     else if (evt.type === 'free_kick') { typeIcon = '📐'; typeName = 'ركلة حرة'; }
     else if (evt.type === 'penalty') { typeIcon = '🥅'; typeName = 'ركلة جزاء'; }
 
+    // قراءة بيانات اللاعب المرتبط بالحدث من الاستجابة المحدثة
+    const playerName = evt.player ? `${evt.player.name} (${evt.player.jerseyNumber}#)` : 'لاعب غير معروف';
+
     const item = document.createElement('div');
     item.className = 'flex items-center justify-between p-2 bg-slate-950/60 rounded border border-slate-900';
     item.innerHTML = `
@@ -494,6 +499,8 @@ function renderActiveMatchEvents(events) {
         <span>د ${evt.minute}'</span>
         <span class="text-slate-400">|</span>
         <span class="text-slate-300 font-bold">${typeName}</span>
+        <span class="text-slate-500">-</span>
+        <span class="text-slate-200 font-semibold text-xs">${playerName}</span>
       </div>
       <div class="text-[10px] text-slate-500 font-mono">الإحداثيات: [X:${evt.x}, Y:${evt.y}]</div>
     `;
