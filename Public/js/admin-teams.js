@@ -137,7 +137,6 @@ async function compressImage(file, maxWidth = 400, maxHeight = 400) {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        // تصدير بجودة 85% لضمان وضوح ملامح وتفاصيل الصورة بشكل ممتاز
         resolve(canvas.toDataURL('image/jpeg', 0.85));
       };
       img.onerror = reject;
@@ -177,9 +176,11 @@ async function loadTeams() {
       return;
     }
 
-    renderTeamsGrid(allTeams);
+    // تصحيح: إخفاء مؤشر التحميل وإظهار شبكة الفرق قبل توليد البطاقات
     hideEl(teamsLoadingEl);
     showEl(teamsGridEl);
+
+    renderTeamsGrid(allTeams);
   } catch (error) {
     console.error('حدث خطأ أثناء جلب قائمة الفرق:', error);
     alert('تعذر جلب قائمة الفرق من الخادم.');
@@ -247,9 +248,12 @@ function renderTeamsGrid(teams) {
     });
   });
 
-  // إضافة حركات GSAP لظهور العناصر إذا كانت المكتبة محملة
+  // حركة دخول آمنة وتأكيد الظهور التام بـ GSAP
   if (window.gsap) {
-    gsap.from('.team-card-item', { opacity: 0, y: 15, duration: 0.3, stagger: 0.05, ease: 'power2.out' });
+    gsap.fromTo('.team-card-item', 
+      { opacity: 0, y: 15 },
+      { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out' }
+    );
   }
 }
 
@@ -302,9 +306,10 @@ async function loadPlayers(teamId) {
       return;
     }
 
-    renderPlayersList(players);
     hideEl(playersLoadingEl);
     showEl(playersListEl);
+
+    renderPlayersList(players);
   } catch (error) {
     console.error('فشل في جلب قائمة اللاعبين:', error);
     
@@ -312,7 +317,7 @@ async function loadPlayers(teamId) {
     showEl(playersEmptyEl);
     
     const detail = error.message || error.statusText || 'خطأ غير معروف 500';
-    alert(`تعذر استدعاء قائمة تشكيلة اللاعبين من السيرفر.\n\nالسبب: طلب غير ناجح (رمز الخطأ 500).\nيرجى تعديل الباك-إند لضمان توافق جدول اللاعبين.`);
+    alert(`تعذر استدعاء قائمة تشكيلة اللاعبين من السيرفر.\n\nالسبب: طلب غير ناجح (${detail}).`);
   }
 }
 
@@ -363,6 +368,13 @@ function renderPlayersList(players) {
       deletePlayer(id);
     });
   });
+
+  if (window.gsap) {
+    gsap.fromTo('.player-row-item',
+      { opacity: 0, x: -10 },
+      { opacity: 1, x: 0, duration: 0.25, stagger: 0.04, ease: 'power2.out' }
+    );
+  }
 }
 
 // نافذة الفريق المنبثقة
@@ -376,8 +388,10 @@ function openTeamModal(team = null) {
     if (teamIdInput) teamIdInput.value = team.id;
     document.getElementById('team-name').value = team.name;
     
-    crestInput.value = '';
-    crestInput.dataset.existingUrl = team.crestUrl || '';
+    if (crestInput) {
+      crestInput.value = '';
+      crestInput.dataset.existingUrl = team.crestUrl || '';
+    }
 
     document.getElementById('team-color').value = team.primaryColor || '#f59e0b';
     document.getElementById('team-color-picker').value = team.primaryColor || '#f59e0b';
@@ -387,8 +401,10 @@ function openTeamModal(team = null) {
     if (teamModalTitle) teamModalTitle.textContent = 'إضافة فريق جديد';
     if (teamForm) teamForm.reset();
     if (teamIdInput) teamIdInput.value = '';
-    crestInput.value = '';
-    delete crestInput.dataset.existingUrl;
+    if (crestInput) {
+      crestInput.value = '';
+      delete crestInput.dataset.existingUrl;
+    }
     document.getElementById('team-color').value = '#f59e0b';
     document.getElementById('team-color-picker').value = '#f59e0b';
   }
@@ -411,18 +427,17 @@ function closeTeamModal() {
   }, 300);
 }
 
-// معالجة إرسال نموذج الفريق لحفظ أو تعديل البيانات باستخدام ترميز Base64 مضغوط بجودة عالية
+// معالجة إرسال نموذج الفريق
 async function handleTeamSubmit(e) {
   e.preventDefault();
 
   const id = teamIdInput ? teamIdInput.value : '';
   const crestInput = document.getElementById('team-crest');
-  let crestUrlValue = crestInput.dataset.existingUrl || null;
+  let crestUrlValue = (crestInput && crestInput.dataset.existingUrl) ? crestInput.dataset.existingUrl : null;
 
-  if (crestInput.files.length > 0) {
+  if (crestInput && crestInput.files && crestInput.files.length > 0) {
     const file = crestInput.files[0];
     try {
-      // ضغط وتعديل حجم الشعار إلى دقة عالية واضحة (350x350)
       crestUrlValue = await compressImage(file, 350, 350);
     } catch (compressionError) {
       console.warn('فشل الضغط التلقائي، سيتم الرفع بالحجم الأصلي:', compressionError);
@@ -519,14 +534,6 @@ function openPlayerModal(player = null) {
 
   const photoInput = document.getElementById('player-photo');
 
-  // إجبار الحقل ديناميكياً وفي كل مرة تفتح فيها النافذة على أن يكون رافع ملفات لمنع إعادة تهيئته بواسطة المتصفح
-  if (photoInput) {
-    photoInput.type = 'file';
-    photoInput.accept = 'image/*';
-    photoInput.removeAttribute('value');
-    photoInput.placeholder = '';
-  }
-
   if (player) {
     if (playerModalTitle) playerModalTitle.textContent = 'تعديل بيانات اللاعب';
     if (playerIdInput) playerIdInput.value = player.id;
@@ -566,7 +573,7 @@ function closePlayerModal() {
   }, 300);
 }
 
-// حفظ أو تعديل لاعب بالتكامل مع الحفظ الفعلي لـ Base64 بدقة وضوح عالية (400x400)
+// حفظ أو تعديل لاعب
 async function handlePlayerSubmit(e) {
   e.preventDefault();
   if (!selectedTeamId) return;
@@ -575,14 +582,12 @@ async function handlePlayerSubmit(e) {
   const photoInput = document.getElementById('player-photo');
   let playerPhotoValue = (photoInput && photoInput.dataset.existingUrl) ? photoInput.dataset.existingUrl : null;
 
-  // قراءة الصورة وضغطها محلياً بأبعاد نقية وواضحة (400x400) لمنع التشويش عند التكبير
   if (photoInput && photoInput.files && photoInput.files.length > 0) {
     const file = photoInput.files[0];
     try {
-      // ضغط صورة اللاعب إلى قياس واضحة وممتازة (400x400)
       playerPhotoValue = await compressImage(file, 400, 400);
     } catch (err) {
-      console.warn('تعذر ضغط صورة اللاعب، سيتم محاولة القراءة المباشرة دون ضغط:', err);
+      console.warn('تعذر ضغط صورة اللاعب، سيتم القراءة المباشرة دون ضغط:', err);
       playerPhotoValue = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result);
@@ -619,7 +624,7 @@ async function handlePlayerSubmit(e) {
     if (error.data) {
       detailedMsg = error.data.error || error.data.message || JSON.stringify(error.data);
     }
-    alert('فشل حفظ بيانات اللاعب.\n\nالسبب الدقيق من السيرفر: ' + (detailedMsg || error.message || 'تأكد من عدم تكرار رقم القميص وصحة البيانات.'));
+    alert('فشل حفظ بيانات اللاعب.\n\nالسبب الدقيق من السيرفر: ' + (detailedMsg || error.message || 'تأكد من صحة البيانات.'));
   }
 }
 
@@ -648,7 +653,7 @@ async function deletePlayer(id) {
   }
 }
 
-// دوال مساعدة لإظهار وإخفاء العناصر بشكل آمن مع إزالة قسرية لقواعد الـ CSS التي تمنع الرؤية
+// دوال مساعدة لإظهار وإخفاء العناصر
 function showEl(el) {
   if (el) {
     el.classList.remove('hidden');
@@ -656,7 +661,6 @@ function showEl(el) {
   }
 }
 
-// إخفاء العناصر
 function hideEl(el) {
   if (el) {
     el.classList.add('hidden');
