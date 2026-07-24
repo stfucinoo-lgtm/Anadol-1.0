@@ -599,7 +599,7 @@ async function loadTeamLineupState(teamId) {
   }
 }
 
-// رسم الملعب التكتيكي التفاعلي بأسلوب SofaScore ونظيف دون تداخل
+// رسم الملعب التكتيكي التفاعلي بأسلوب SofaScore ونظيف دون تداخل مع دعم السحب
 function renderSofaScorePitch() {
   if (!sofascorePitchSlots) return;
   sofascorePitchSlots.innerHTML = '';
@@ -611,7 +611,6 @@ function renderSofaScorePitch() {
     const assignedStarter = activeLineupState.starters[index];
     const player = assignedStarter ? currentTeamRoster.find(p => p.id === assignedStarter.playerId) : null;
 
-    // استخدام الإحداثيات المخصصة إذا قام Admin بسحب اللاعب، وإلا استخدام الخطة
     const posX = (assignedStarter && assignedStarter.customX !== undefined && assignedStarter.customX !== null) ? assignedStarter.customX : slotDef.x;
     const posY = (assignedStarter && assignedStarter.customY !== undefined && assignedStarter.customY !== null) ? assignedStarter.customY : slotDef.y;
 
@@ -621,7 +620,6 @@ function renderSofaScorePitch() {
     slotNode.style.top = `${posY}%`;
 
     if (player) {
-      // إزالة الصندوق الأسود وإبقاء الاسم بخط ناصع مع ظلال أنيقة فقط دون تداخل
       slotNode.innerHTML = `
         <div class="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-brand-accent bg-slate-900 p-0.5 shadow-xl flex items-center justify-center group-hover:scale-110 transition duration-200 pointer-events-none">
           <img src="${player.photoUrl || '/img/default-player.png'}" class="w-full h-full rounded-full object-cover" onerror="this.src='/img/default-player.png'">
@@ -634,7 +632,6 @@ function renderSofaScorePitch() {
         </div>
       `;
     } else {
-      // مركز فارغ قابل للتعيين بالسحب أو النقر
       slotNode.innerHTML = `
         <div class="w-10 h-10 rounded-full border-2 border-dashed border-emerald-400/60 bg-emerald-950/70 hover:bg-emerald-800/80 hover:border-brand-accent transition duration-200 flex items-center justify-center text-emerald-300 shadow-md pointer-events-none">
           <i class="fa-solid fa-plus text-xs group-hover:scale-125 transition"></i>
@@ -645,7 +642,7 @@ function renderSofaScorePitch() {
       `;
     }
 
-    // تفعيل خاصية السحب والإفلات التفاعلي بالفأرة واللمس (Drag to move player on pitch)
+    // تفعيل خاصية السحب والإفلات التفاعلي
     let isDragging = false;
     let startX, startY;
 
@@ -1169,6 +1166,7 @@ async function handleEventSubmit(e) {
   }
 }
 
+// تعبئة قائمة الأحداث المسجلة مؤخراً مع إتاحة زر حذف الحدث الفردي
 function renderActiveMatchEvents(events) {
   if (!activeMatchEventsList) return;
   activeMatchEventsList.innerHTML = '';
@@ -1189,11 +1187,8 @@ function renderActiveMatchEvents(events) {
     else if (evt.type === 'shot') { typeIcon = '🎯'; typeName = 'تسديدة'; }
     else if (evt.type === 'tackle') { typeIcon = '⚔️'; typeName = 'تدخل دفاعي'; }
     else if (evt.type === 'goal') { typeIcon = '⚽'; typeName = 'هدف'; }
-    else if (evt.type === 'foul') { typeIcon = '⚠️'; typeName = 'خطأ'; }
-    else if (evt.type === 'free_kick') { typeIcon = '📐'; typeName = 'ركلة حرة'; }
-    else if (evt.type === 'penalty') { typeIcon = '🥅'; typeName = 'ركلة جزاء'; }
 
-    const playerName = evt.player ? `${evt.player.name} (${evt.player.jerseyNumber}#)` : 'لاعب غير معروف';
+    const playerName = evt.player ? `${evt.player.name} (#${evt.player.jerseyNumber})` : 'لاعب غير معروف';
 
     const item = document.createElement('div');
     item.className = 'flex items-center justify-between p-2 bg-slate-950/60 rounded border border-slate-900';
@@ -1206,8 +1201,28 @@ function renderActiveMatchEvents(events) {
         <span class="text-slate-500">-</span>
         <span class="text-slate-200 font-semibold text-xs">${playerName}</span>
       </div>
-      <div class="text-[10px] text-slate-500 font-mono">الإحداثيات: [X:${evt.x}, Y:${evt.y}]</div>
+      <div class="flex items-center gap-3">
+        <span class="text-[10px] text-slate-500 font-mono">[X:${evt.x}, Y:${evt.y}]</span>
+        <button type="button" class="btn-delete-single-event text-slate-500 hover:text-red-400 transition" data-event-id="${evt.id}" title="حذف هذا الحدث">
+          <i class="fa-solid fa-trash-can text-xs"></i>
+        </button>
+      </div>
     `;
+
+    item.querySelector('.btn-delete-single-event').addEventListener('click', async (e) => {
+      const eventId = e.currentTarget.getAttribute('data-event-id');
+      if (confirm('هل أنت متأكد من حذف هذا الحدث من شريط المباراة؟')) {
+        try {
+          const res = await fetchAPI(`/api/matches/events/${eventId}`, 'DELETE');
+          if (res && res.success) {
+            await selectMatchForManagement(selectedMatchId);
+          }
+        } catch (err) {
+          alert('فشل حذف الحدث.');
+        }
+      }
+    });
+
     activeMatchEventsList.appendChild(item);
   });
 }
