@@ -1,6 +1,6 @@
 /**
- * ANADOL League - Match Details Script (SofaScore Display)
- * يقرأ معرّف المباراة ويعرض النتيجة الاستحواذ، والملعب التكتيكي الموحد للفريقين، والتقييمات الملونة وشريط الأحداث الزمني.
+ * ANADOL League - Match Details Script (SofaScore Horizontal Display)
+ * يقرأ معرّف المباراة ويعرض النتيجة، الاستحواذ، مسجلي الأهداف، والملعب التكتيكي الأفقي الموحد للفريقين.
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    // 1. جلب تفاصيل المباراة وقائمة التشكيلة
+    // 1. جلب بيانات تفاصيل المباراة والتشكيلة من السيرفر
     const match = await fetchAPI(`/api/matches/${matchId}`);
     if (!match || !match.id) {
       if (loadingEl) loadingEl.classList.add('hidden');
@@ -28,19 +28,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const lineup = await fetchAPI(`/api/matches/${matchId}/lineup`).catch(() => []);
 
-    // 2. تحديث لوحة النتائج والمعلومات الرئيسية
+    // 2. تعبئة لوحة النتائج واسم الملعب ومسجلي الأهداف تحت الفرق
     renderScoreboard(match);
 
-    // 3. رسم الملعب التكتيكي التفاعلي الموحد للفريقين بأسلوب SofaScore
-    renderTacticalPitch(match, lineup || []);
+    // 3. رسم الملعب التكتيكي الأفقي الموحد للفريقين متقابلين (Left vs Right)
+    renderHorizontalSofaScorePitch(match, lineup || []);
 
-    // 4. عرض قوائم اللاعبين والبدلاء وتقييماتهم
+    // 4. عرض القوائم والبدلاء مع التقييمات الرقمية الملونة
     renderRostersList(match, lineup || []);
 
-    // 5. عرض شريط الأحداث المباشرة والزمنية للمباراة
+    // 5. عرض شريط الأحداث المباشرة
     renderTimelineFeed(match.events || []);
 
-    // إخفاء مؤشر التحميل وإظهار الصفحة
     if (loadingEl) loadingEl.classList.add('hidden');
     if (contentEl) contentEl.classList.remove('hidden');
 
@@ -51,9 +50,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// تعبئة بيانات بطاقة النتيجة والاستحواذ
+// تعبئة بطاقة النتيجة ومسجلي الأهداف واسم الملعب (طراز SofaScore)
 function renderScoreboard(match) {
-  const homeTeam = match.homeTeam || { name: 'صاحب الأرض', crestUrl: '/img/default-crest.png' };
+  const homeTeam = match.homeTeam || { name: 'صاحب الأرض', crestUrl: '/img/default-crest.png', stadium: 'ملعب الأناضول الرئيسي' };
   const awayTeam = match.awayTeam || { name: 'الضيف', crestUrl: '/img/default-crest.png' };
 
   const matchDateFormatted = new Date(match.matchDate).toLocaleDateString('ar-EG-u-nu-latn', {
@@ -64,6 +63,11 @@ function renderScoreboard(match) {
     hour: '2-digit',
     minute: '2-digit'
   });
+
+  const stadiumTextEl = document.getElementById('stadium-text');
+  if (stadiumTextEl) {
+    stadiumTextEl.textContent = homeTeam.stadium || 'ملعب الأناضول الرئيسي';
+  }
 
   document.getElementById('home-name').textContent = homeTeam.name;
   document.getElementById('home-crest').src = homeTeam.crestUrl || '/img/default-crest.png';
@@ -92,7 +96,33 @@ function renderScoreboard(match) {
     }
   }
 
-  // مؤشرات الاستحواذ
+  // استخراج وقراءة مسجلي الأهداف تحت أسماء الفرق (SofaScore Goal Scorers)
+  const events = match.events || [];
+  const goalEvents = events.filter(e => e.type === 'goal' || e.type === 'penalty');
+
+  const homeGoalScorers = goalEvents.filter(e => e.teamId === match.homeTeamId);
+  const awayGoalScorers = goalEvents.filter(e => e.teamId === match.awayTeamId);
+
+  const homeScorersListEl = document.getElementById('home-scorers-list');
+  const awayScorersListEl = document.getElementById('away-scorers-list');
+
+  if (homeScorersListEl) {
+    homeScorersListEl.innerHTML = homeGoalScorers.length === 0 ? '' : homeGoalScorers.map(g => {
+      const pName = g.player ? g.player.name : 'هدف';
+      const penText = g.type === 'penalty' ? ' (ر.ج)' : '';
+      return `<div class="flex items-center justify-center gap-1"><span>⚽</span> <span>${pName}</span> <strong class="text-brand-accent">${g.minute}'${penText}</strong></div>`;
+    }).join('');
+  }
+
+  if (awayScorersListEl) {
+    awayScorersListEl.innerHTML = awayGoalScorers.length === 0 ? '' : awayGoalScorers.map(g => {
+      const pName = g.player ? g.player.name : 'هدف';
+      const penText = g.type === 'penalty' ? ' (ر.ج)' : '';
+      return `<div class="flex items-center justify-center gap-1"><span>⚽</span> <span>${pName}</span> <strong class="text-brand-accent">${g.minute}'${penText}</strong></div>`;
+    }).join('');
+  }
+
+  // الاستحواذ
   const possHome = match.possessionHome ?? 50;
   const possAway = match.possessionAway ?? 50;
 
@@ -103,60 +133,80 @@ function renderScoreboard(match) {
   document.getElementById('poss-away-bar').style.width = `${possAway}%`;
 }
 
-// رسم الملعب التكتيكي الموحد للفريقين معاً بأسلوب SofaScore
-function renderTacticalPitch(match, lineup) {
+// رسم الملعب الأفقي الموحد بأسلوب SofaScore المباشر (Left vs Right)
+function renderHorizontalSofaScorePitch(match, lineup) {
   const pitchEl = document.getElementById('tactical-pitch');
   if (!pitchEl) return;
 
-  // إزالة أي دوائر سابقة
   const existingBubbles = pitchEl.querySelectorAll('.player-node-bubble');
   existingBubbles.forEach(b => b.remove());
+
+  const homeTeam = match.homeTeam || { name: 'الأرض' };
+  const awayTeam = match.awayTeam || { name: 'الضيف' };
+
+  const homeLabelEl = document.getElementById('pitch-home-team-label');
+  const awayLabelEl = document.getElementById('pitch-away-team-label');
+  if (homeLabelEl) homeLabelEl.textContent = homeTeam.name;
+  if (awayLabelEl) awayLabelEl.textContent = awayTeam.name;
 
   const homeStarters = lineup.filter(lp => lp.teamId === match.homeTeamId && lp.isStarting);
   const awayStarters = lineup.filter(lp => lp.teamId === match.awayTeamId && lp.isStarting);
 
-  // رسم فريق الأرض في نصف الملعب السفلي
-  homeStarters.forEach(lp => {
-    const rawX = lp.positionX ?? 50;
-    const rawY = lp.positionY ?? 70;
+  // احتساب متوسط تقييم الفريقين
+  let homeAvg = 6.0, awayAvg = 6.0;
+  if (homeStarters.length > 0) {
+    homeAvg = homeStarters.reduce((acc, curr) => acc + (curr.rating || 6.0), 0) / homeStarters.length;
+  }
+  if (awayStarters.length > 0) {
+    awayAvg = awayStarters.reduce((acc, curr) => acc + (curr.rating || 6.0), 0) / awayStarters.length;
+  }
 
-    // تحويل إحداثيات الأرض لتلائم النصف السفلي من الملعب الموحد (من 52% لـ 92%)
-    const finalX = rawX;
-    const finalY = 52 + (rawY * 0.42);
+  const homeRatingEl = document.getElementById('pitch-home-rating');
+  const awayRatingEl = document.getElementById('pitch-away-rating');
+  if (homeRatingEl) homeRatingEl.textContent = homeAvg.toFixed(2);
+  if (awayRatingEl) awayRatingEl.textContent = awayAvg.toFixed(2);
+
+  // 1. صاحب الأرض (في النصف الأيسر من الملعب - يدافع عن اليسار ويهجم لليمين)
+  homeStarters.forEach(lp => {
+    const rawX = lp.positionX ?? 50; // من 0 لـ 100
+    const rawY = lp.positionY ?? 50;
+
+    // تحويل الإحداثيات للملعب الأفقي (النصف الأيسر X من 6% لـ 46%)
+    const finalX = 6 + ((100 - rawY) * 0.40);
+    const finalY = rawX;
 
     createPitchPlayerNode(pitchEl, lp, finalX, finalY, true);
   });
 
-  // رسم فريق الضيف في نصف الملعب العلوي (معكوس)
+  // 2. الضيف (في النصف الأيمن من الملعب - يدافع عن اليمين ويهجم لليسار)
   awayStarters.forEach(lp => {
     const rawX = lp.positionX ?? 50;
-    const rawY = lp.positionY ?? 70;
+    const rawY = lp.positionY ?? 50;
 
-    // تحويل إحداثيات الضيف لتلائم النصف العلوي من الملعب الموحد (من 8% لـ 48%)
-    const finalX = 100 - rawX;
-    const finalY = 48 - (rawY * 0.42);
+    // تحويل الإحداثيات للملعب الأفقي المعاكس (النصف الأيمن X من 94% لـ 54%)
+    const finalX = 94 - ((100 - rawY) * 0.40);
+    const finalY = 100 - rawX;
 
     createPitchPlayerNode(pitchEl, lp, finalX, finalY, false);
   });
 }
 
-// بناء دوائر تقييمات اللاعبين على أرض الملعب
+// بناء دوائر تقييمات اللاعبين على أرض الملعب الأفقي
 function createPitchPlayerNode(pitchContainer, lineupRecord, posX, posY, isHome) {
   const player = lineupRecord.player || { name: 'لاعب', jerseyNumber: '-', photoUrl: '' };
   const rating = lineupRecord.rating ?? 6.0;
 
-  // دالة تحديد لون تقييم SofaScore المعتمد
   const ratingBadgeClass = getRatingBadgeClass(rating);
 
   const node = document.createElement('div');
-  node.className = 'absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center select-none player-node-bubble transition duration-300';
+  node.className = 'absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center select-none player-node-bubble transition duration-300 z-10';
   node.style.left = `${posX}%`;
   node.style.top = `${posY}%`;
 
-  const borderColor = isHome ? 'border-brand-accent' : 'border-slate-400';
+  const borderColor = isHome ? 'border-brand-accent' : 'border-slate-300';
 
   node.innerHTML = `
-    <div class="relative w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 ${borderColor} bg-slate-950 p-0.5 shadow-xl flex items-center justify-center">
+    <div class="relative w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 ${borderColor} bg-slate-950 p-0.5 shadow-2xl flex items-center justify-center">
       <img src="${player.photoUrl || '/img/default-player.png'}" class="w-full h-full rounded-full object-cover" onerror="this.src='/img/default-player.png'">
       
       <!-- شارة التقييم الملونة بأسلوب SofaScore -->
@@ -170,7 +220,7 @@ function createPitchPlayerNode(pitchContainer, lineupRecord, posX, posY, isHome)
       </span>
     </div>
 
-    <!-- اسم اللاعب فقط بخط ناصع وظل أنيق دون حواف سوداء -->
+    <!-- اسم اللاعب بخط أبيض ناصع مع ظلال أنيقة دون حواف سوداء -->
     <div class="mt-1 text-center font-bold text-[10px] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] max-w-[75px] truncate leading-tight pointer-events-none">
       ${player.name}
     </div>
@@ -181,11 +231,11 @@ function createPitchPlayerNode(pitchContainer, lineupRecord, posX, posY, isHome)
 
 // تصنيف ألوان التقييمات حسب الأداء المعياري بأسلوب SofaScore
 function getRatingBadgeClass(rating) {
-  if (rating >= 8.0) return 'bg-emerald-500 text-white';        // ممتاز جارف (أخضر زاهٍ)
-  if (rating >= 7.0) return 'bg-emerald-600 text-white';        // جبار (أخضر)
-  if (rating >= 6.5) return 'bg-amber-500 text-slate-950 font-black'; // متوسط مرتفع (أصفر)
-  if (rating >= 6.0) return 'bg-orange-500 text-white';         // عادي (برتقالي)
-  return 'bg-red-600 text-white';                               // ضعيف (أحمر)
+  if (rating >= 8.0) return 'bg-emerald-500 text-white';
+  if (rating >= 7.0) return 'bg-emerald-600 text-white';
+  if (rating >= 6.5) return 'bg-amber-500 text-slate-950 font-black';
+  if (rating >= 6.0) return 'bg-orange-500 text-white';
+  return 'bg-red-600 text-white';
 }
 
 // تعبئة قوائم تشكيلات وبدلاء الفريقين
@@ -252,7 +302,6 @@ function renderTimelineFeed(events) {
     return;
   }
 
-  // ترتيب الأحداث حسب الدقيقة (من الأحدث للأقدم)
   const sorted = [...events].sort((a, b) => b.minute - a.minute);
 
   sorted.forEach(evt => {
