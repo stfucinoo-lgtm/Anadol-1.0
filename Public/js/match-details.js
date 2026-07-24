@@ -1,108 +1,98 @@
+/**
+ * ANADOL League - Match Details Script (SofaScore Display)
+ * يقرأ معرّف المباراة ويعرض النتيجة الاستحواذ، والملعب التكتيكي الموحد للفريقين، والتقييمات الملونة وشريط الأحداث الزمني.
+ */
+
 document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const matchId = urlParams.get('id');
 
-  if (!matchId) {
-    showEl(document.getElementById('details-error'));
-    hideEl(document.getElementById('details-loading'));
-    return;
-  }
-
-  await loadMatchDetails(matchId);
-});
-
-// تحميل وعرض تفاصيل وإحصائيات المباراة بالكامل
-async function loadMatchDetails(matchId) {
   const loadingEl = document.getElementById('details-loading');
   const errorEl = document.getElementById('details-error');
   const contentEl = document.getElementById('details-content');
 
+  if (!matchId) {
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (errorEl) errorEl.classList.remove('hidden');
+    return;
+  }
+
   try {
-    // 1. جلب بيانات المباراة الأساسية والأحداث، وجلب بيانات التشكيلة والتقييمات
+    // 1. جلب تفاصيل المباراة وقائمة التشكيلة
     const match = await fetchAPI(`/api/matches/${matchId}`);
-    if (!match) {
-      showEl(errorEl);
-      hideEl(loadingEl);
+    if (!match || !match.id) {
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (errorEl) errorEl.classList.remove('hidden');
       return;
     }
 
-    const lineup = await fetchAPI(`/api/matches/${matchId}/lineup`);
-    const activeLineup = lineup || [];
+    const lineup = await fetchAPI(`/api/matches/${matchId}/lineup`).catch(() => []);
 
-    // 2. تحديث لوحة النتائج العلوية والاستحواذ
-    updateScoreboard(match);
+    // 2. تحديث لوحة النتائج والمعلومات الرئيسية
+    renderScoreboard(match);
 
-    // 3. رسم تشكيلة اللاعبين الـ 22 على الملعب الرسومي
-    renderTacticalPitch(match, activeLineup);
+    // 3. رسم الملعب التكتيكي التفاعلي الموحد للفريقين بأسلوب SofaScore
+    renderTacticalPitch(match, lineup || []);
 
-    // 4. بناء قوائم اللاعبين (الأساسيون والبدلاء)
-    renderRosterLists(match, activeLineup);
+    // 4. عرض قوائم اللاعبين والبدلاء وتقييماتهم
+    renderRostersList(match, lineup || []);
 
-    // 5. بناء شريط أحداث اللقاء الزمني
+    // 5. عرض شريط الأحداث المباشرة والزمنية للمباراة
     renderTimelineFeed(match.events || []);
 
-    // عرض المحتوى وإخفاء التحميل
-    hideEl(loadingEl);
-    showEl(contentEl);
-
-    // تفعيل حركات GSAP التدريجية لفقاعات اللاعبين والبطاقات فور العرض
-    if (window.gsap) {
-      gsap.fromTo('.player-bubble', 
-        { opacity: 0, scale: 0.3 }, 
-        { opacity: 1, scale: 1, duration: 0.5, stagger: 0.03, ease: "back.out(1.4)" }
-      );
-    }
+    // إخفاء مؤشر التحميل وإظهار الصفحة
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (contentEl) contentEl.classList.remove('hidden');
 
   } catch (err) {
-    console.error('فشل جلب وعرض تفاصيل اللقاء:', err);
-    showEl(errorEl);
-    hideEl(loadingEl);
+    console.error('حدث خطأ أثناء جلب تفاصيل المباراة:', err);
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (errorEl) errorEl.classList.remove('hidden');
   }
-}
+});
 
-// تحديث النتيجة ونسب الاستحواذ والتواريخ بالأرقام العربية
-function updateScoreboard(match) {
+// تعبئة بيانات بطاقة النتيجة والاستحواذ
+function renderScoreboard(match) {
   const homeTeam = match.homeTeam || { name: 'صاحب الأرض', crestUrl: '/img/default-crest.png' };
   const awayTeam = match.awayTeam || { name: 'الضيف', crestUrl: '/img/default-crest.png' };
 
-  // الأسماء والشعارات
-  document.getElementById('home-crest').src = homeTeam.crestUrl || '/img/default-crest.png';
-  document.getElementById('away-crest').src = awayTeam.crestUrl || '/img/default-crest.png';
-  document.getElementById('home-name').textContent = homeTeam.name;
-  document.getElementById('away-name').textContent = awayTeam.name;
+  const matchDateFormatted = new Date(match.matchDate).toLocaleDateString('ar-EG-u-nu-latn', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 
-  // الأهداف
+  document.getElementById('home-name').textContent = homeTeam.name;
+  document.getElementById('home-crest').src = homeTeam.crestUrl || '/img/default-crest.png';
+  document.getElementById('home-crest').onerror = function() { this.src = '/img/default-crest.png'; };
+
+  document.getElementById('away-name').textContent = awayTeam.name;
+  document.getElementById('away-crest').src = awayTeam.crestUrl || '/img/default-crest.png';
+  document.getElementById('away-crest').onerror = function() { this.src = '/img/default-crest.png'; };
+
   document.getElementById('score-home').textContent = match.homeScore ?? 0;
   document.getElementById('score-away').textContent = match.awayScore ?? 0;
 
-  // التواريخ والحالة بالأرقام العربية (latn)
-  const matchDateFormatted = new Date(match.matchDate).toLocaleString('ar-EG-u-nu-latn', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric', 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  });
   document.getElementById('match-date-badge').textContent = matchDateFormatted;
 
-  // شارة الحالة والأنماط البصرية المرافقة
   const statusBadge = document.getElementById('match-status-badge');
-  let statusText = 'لم تبدأ بعد';
-  let statusClass = 'bg-slate-900 border-slate-800 text-slate-400';
-
-  if (match.status === 'being_played_right_now') {
-    statusText = 'تُلعب الآن (مباشر)';
-    statusClass = 'bg-red-950/40 border-red-800 text-red-400 animate-pulse';
-  } else if (match.status === 'finished') {
-    statusText = 'انتهت المباراة';
-    statusClass = 'bg-emerald-950/40 border-emerald-800 text-emerald-400';
+  if (statusBadge) {
+    if (match.status === 'being_played_right_now') {
+      statusBadge.textContent = 'تُلعب الآن المباشرة';
+      statusBadge.className = 'px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border bg-red-950 text-red-400 border-red-800 animate-pulse';
+    } else if (match.status === 'finished') {
+      statusBadge.textContent = 'انتهت المباراة';
+      statusBadge.className = 'px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border bg-emerald-950 text-emerald-400 border-emerald-800';
+    } else {
+      statusBadge.textContent = 'لم تبدأ بعد';
+      statusBadge.className = 'px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border bg-slate-800 text-slate-300 border-slate-700';
+    }
   }
 
-  statusBadge.textContent = statusText;
-  statusBadge.className = `px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border ${statusClass}`;
-
-  // الاستحواذ
+  // مؤشرات الاستحواذ
   const possHome = match.possessionHome ?? 50;
   const possAway = match.possessionAway ?? 50;
 
@@ -113,231 +103,189 @@ function updateScoreboard(match) {
   document.getElementById('poss-away-bar').style.width = `${possAway}%`;
 }
 
-// دالة تحديد الأنماط اللونية لتقييمات اللاعبين على أساس القيم الرقمية
-function getRatingClass(rating) {
-  if (!rating) return 'bg-slate-600 text-slate-100';
-  const val = parseFloat(rating);
-  if (val >= 7.5) return 'bg-emerald-600 text-white font-extrabold'; // تقييم ممتاز جداً
-  if (val >= 6.5) return 'bg-emerald-500 text-white font-bold';    // تقييم مرتفع
-  if (val >= 5.5) return 'bg-amber-500 text-slate-950 font-semibold'; // تقييم متوسط
-  return 'bg-slate-600 text-slate-200'; // تقييم ضعيف
-}
-
-// رسم وإسقاط فقاعات اللاعبين على الملعب الرسومي بدقة
+// رسم الملعب التكتيكي الموحد للفريقين معاً بأسلوب SofaScore
 function renderTacticalPitch(match, lineup) {
-  const pitch = document.getElementById('tactical-pitch');
-  if (!pitch) return;
+  const pitchEl = document.getElementById('tactical-pitch');
+  if (!pitchEl) return;
 
-  // مسح أي فقاعات سابقة مع إبقاء الخطوط الأساسية
-  const oldBubbles = pitch.querySelectorAll('.player-bubble');
-  oldBubbles.forEach(b => b.remove());
+  // إزالة أي دوائر سابقة
+  const existingBubbles = pitchEl.querySelectorAll('.player-node-bubble');
+  existingBubbles.forEach(b => b.remove());
 
-  // تصفية اللاعبين الأساسيين فقط (الذين لديهم إحداثيات X و Y صالحة)
-  const starters = lineup.filter(lp => lp.isStarting && lp.positionX !== null && lp.positionY !== null);
+  const homeStarters = lineup.filter(lp => lp.teamId === match.homeTeamId && lp.isStarting);
+  const awayStarters = lineup.filter(lp => lp.teamId === match.awayTeamId && lp.isStarting);
 
-  starters.forEach(p => {
-    const playerInfo = p.player || { name: 'لاعب', photoUrl: '', jerseyNumber: '' };
-    const ratingVal = p.rating ? p.rating.toFixed(1) : '6.0';
-    const ratingColorClass = getRatingClass(p.rating);
+  // رسم فريق الأرض في نصف الملعب السفلي
+  homeStarters.forEach(lp => {
+    const rawX = lp.positionX ?? 50;
+    const rawY = lp.positionY ?? 70;
 
-    // تصفية وحساب الأحداث الفنية الخاصة بهذا اللاعب في هذا اللقاء لعرض شارات الإحصاء فوق دائرته
-    let overlayBadges = '';
-    const playerEvents = (match.events || []).filter(e => e.playerId === p.playerId);
-    
-    // حساب الأهداف
-    const goalsCount = playerEvents.filter(e => e.type === 'goal').length;
-    if (goalsCount > 0) {
-      overlayBadges += `<span class="bg-white text-slate-950 text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow">⚽</span>`;
-    }
+    // تحويل إحداثيات الأرض لتلائم النصف السفلي من الملعب الموحد (من 52% لـ 92%)
+    const finalX = rawX;
+    const finalY = 52 + (rawY * 0.42);
 
-    // حساب الإنذارات
-    const yellowsCount = playerEvents.filter(e => e.type === 'yellow_card').length;
-    const redsCount = playerEvents.filter(e => e.type === 'red_card').length;
-    if (redsCount > 0) {
-      overlayBadges += `<span class="bg-red-500 text-white text-[8px] w-2.5 h-3.5 rounded flex items-center justify-center shadow">🟥</span>`;
-    } else if (yellowsCount > 0) {
-      overlayBadges += `<span class="bg-yellow-400 text-slate-950 text-[8px] w-2.5 h-3.5 rounded flex items-center justify-center shadow">🟨</span>`;
-    }
+    createPitchPlayerNode(pitchEl, lp, finalX, finalY, true);
+  });
 
-    // بناء حاوية الفقاعة
-    const bubble = document.createElement('div');
-    bubble.className = 'absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center player-bubble z-20';
-    bubble.style.left = `${p.positionX}%`;
-    bubble.style.top = `${p.positionY}%`;
+  // رسم فريق الضيف في نصف الملعب العلوي (معكوس)
+  awayStarters.forEach(lp => {
+    const rawX = lp.positionX ?? 50;
+    const rawY = lp.positionY ?? 70;
 
-    bubble.innerHTML = `
-      <!-- شارات الأحداث المجهرية فوق رأس اللاعب -->
-      <div class="absolute -top-3 flex items-center gap-0.5 z-30">
-        ${overlayBadges}
-      </div>
+    // تحويل إحداثيات الضيف لتلائم النصف العلوي من الملعب الموحد (من 8% لـ 48%)
+    const finalX = 100 - rawX;
+    const finalY = 48 - (rawY * 0.42);
 
-      <!-- دائرة الصورة والتقييم -->
-      <div class="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-slate-900 bg-slate-950 flex items-center justify-center shadow-lg overflow-visible">
-        <img src="${playerInfo.photoUrl || '/img/default-player.png'}" alt="" class="w-full h-full rounded-full object-cover">
-        
-        <!-- التقييم ملصق بجانب الفقاعة -->
-        <span class="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] shadow-md border border-slate-950 font-mono ${ratingColorClass}">
-          ${ratingVal}
-        </span>
-      </div>
-
-      <!-- الاسم والرقم -->
-      <div class="text-[8px] sm:text-[10px] font-bold text-white bg-slate-950/85 px-1.5 py-0.5 rounded shadow mt-1.5 max-w-[75px] truncate text-center border border-slate-900/40">
-        ${playerInfo.jerseyNumber} ${playerInfo.name}
-      </div>
-    `;
-
-    pitch.appendChild(bubble);
+    createPitchPlayerNode(pitchEl, lp, finalX, finalY, false);
   });
 }
 
-// بناء وعرض قوائم التشكيلة المفصلة (الأساسيون والبدلاء)
-function renderRosterLists(match, lineup) {
-  const homeStartersEl = document.getElementById('list-home-starters');
-  const homeSubsEl = document.getElementById('list-home-subs');
-  const awayStartersEl = document.getElementById('list-away-starters');
-  const awaySubsEl = document.getElementById('list-away-subs');
+// بناء دوائر تقييمات اللاعبين على أرض الملعب
+function createPitchPlayerNode(pitchContainer, lineupRecord, posX, posY, isHome) {
+  const player = lineupRecord.player || { name: 'لاعب', jerseyNumber: '-', photoUrl: '' };
+  const rating = lineupRecord.rating ?? 6.0;
 
-  const homeTeamName = match.homeTeam ? match.homeTeam.name : 'الأرض';
-  const awayTeamName = match.awayTeam ? match.awayTeam.name : 'الضيف';
+  // دالة تحديد لون تقييم SofaScore المعتمد
+  const ratingBadgeClass = getRatingBadgeClass(rating);
 
-  document.getElementById('list-home-team-title').textContent = homeTeamName;
-  document.getElementById('list-away-team-title').textContent = awayTeamName;
+  const node = document.createElement('div');
+  node.className = 'absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center select-none player-node-bubble transition duration-300';
+  node.style.left = `${posX}%`;
+  node.style.top = `${posY}%`;
 
-  // تفريغ القوائم
-  homeStartersEl.innerHTML = '';
-  homeSubsEl.innerHTML = '';
-  awayStartersEl.innerHTML = '';
-  awaySubsEl.innerHTML = '';
+  const borderColor = isHome ? 'border-brand-accent' : 'border-slate-400';
 
-  const homePlayers = lineup.filter(lp => lp.teamId === match.homeTeamId);
-  const awayPlayers = lineup.filter(lp => lp.teamId === match.awayTeamId);
-
-  // دالة مساعدة لبناء الأسطر بشكل مفصل
-  const createPlayerRow = (p) => {
-    const playerInfo = p.player || { name: 'لاعب', photoUrl: '', jerseyNumber: '', position: 'وسط' };
-    const ratingVal = p.rating ? p.rating.toFixed(1) : '6.0';
-    const ratingColorClass = getRatingClass(p.rating);
-
-    const row = document.createElement('div');
-    row.className = 'flex items-center justify-between p-2 bg-slate-900/40 border border-slate-900 rounded-lg hover:bg-slate-900/75 transition';
-    row.innerHTML = `
-      <div class="flex items-center gap-2.5 truncate">
-        <span class="text-[10px] font-bold font-mono text-slate-500 w-4">${playerInfo.jerseyNumber}</span>
-        <img src="${playerInfo.photoUrl || '/img/default-player.png'}" alt="" class="w-6 h-6 rounded-full object-cover border border-slate-800">
-        <span class="text-xs font-semibold text-slate-200 truncate">${playerInfo.name}</span>
-        <span class="text-[9px] text-slate-500 px-1 py-0.5 bg-slate-950/40 rounded">${p.position || playerInfo.position}</span>
-      </div>
-      <span class="px-2 py-0.5 rounded text-[10px] font-mono shadow-sm border border-slate-950/60 ${ratingColorClass}">
-        ${ratingVal}
+  node.innerHTML = `
+    <div class="relative w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 ${borderColor} bg-slate-950 p-0.5 shadow-xl flex items-center justify-center">
+      <img src="${player.photoUrl || '/img/default-player.png'}" class="w-full h-full rounded-full object-cover" onerror="this.src='/img/default-player.png'">
+      
+      <!-- شارة التقييم الملونة بأسلوب SofaScore -->
+      <span class="absolute -top-2 -right-2 ${ratingBadgeClass} text-[9px] font-black px-1.5 py-0.2 rounded-full border border-slate-900 shadow">
+        ${rating.toFixed(1)}
       </span>
-    `;
-    return row;
-  };
 
-  // تعبئة الأرض
-  const homeStarters = homePlayers.filter(p => p.isStarting);
-  const homeSubs = homePlayers.filter(p => !p.isStarting);
+      <!-- رقم القميص -->
+      <span class="absolute -bottom-1 -left-1 bg-slate-900 text-slate-200 text-[8px] font-extrabold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-slate-800">
+        ${player.jerseyNumber}
+      </span>
+    </div>
 
-  if (homeStarters.length === 0) homeStartersEl.innerHTML = '<p class="text-slate-600 text-xs py-1">لا توجد بيانات متاحة.</p>';
-  else homeStarters.forEach(p => homeStartersEl.appendChild(createPlayerRow(p)));
+    <!-- اسم اللاعب فقط بخط ناصع وظل أنيق دون حواف سوداء -->
+    <div class="mt-1 text-center font-bold text-[10px] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] max-w-[75px] truncate leading-tight pointer-events-none">
+      ${player.name}
+    </div>
+  `;
 
-  if (homeSubs.length === 0) homeSubsEl.innerHTML = '<p class="text-slate-600 text-xs py-1">لا توجد بدلاء مسجلين.</p>';
-  else homeSubs.forEach(p => homeSubsEl.appendChild(createPlayerRow(p)));
-
-  // تعبئة الضيف
-  const awayStarters = awayPlayers.filter(p => p.isStarting);
-  const awaySubs = awayPlayers.filter(p => !p.isStarting);
-
-  if (awayStarters.length === 0) awayStartersEl.innerHTML = '<p class="text-slate-600 text-xs py-1">لا توجد بيانات متاحة.</p>';
-  else awayStarters.forEach(p => awayStartersEl.appendChild(createPlayerRow(p)));
-
-  if (awaySubs.length === 0) awaySubsEl.innerHTML = '<p class="text-slate-600 text-xs py-1">لا توجد بدلاء مسجلين.</p>';
-  else awaySubs.forEach(p => awaySubsEl.appendChild(createPlayerRow(p)));
+  pitchContainer.appendChild(node);
 }
 
-// بناء شريط أحداث اللقاء الزمني
-function renderTimelineFeed(events) {
-  const feed = document.getElementById('match-timeline-feed');
-  if (!feed) return;
+// تصنيف ألوان التقييمات حسب الأداء المعياري بأسلوب SofaScore
+function getRatingBadgeClass(rating) {
+  if (rating >= 8.0) return 'bg-emerald-500 text-white';        // ممتاز جارف (أخضر زاهٍ)
+  if (rating >= 7.0) return 'bg-emerald-600 text-white';        // جبار (أخضر)
+  if (rating >= 6.5) return 'bg-amber-500 text-slate-950 font-black'; // متوسط مرتفع (أصفر)
+  if (rating >= 6.0) return 'bg-orange-500 text-white';         // عادي (برتقالي)
+  return 'bg-red-600 text-white';                               // ضعيف (أحمر)
+}
 
-  if (events.length === 0) {
-    feed.innerHTML = '<p class="text-slate-600 text-center py-12 text-xs">لا توجد أحداث فنية مسجلة لشريط المباراة حتى الآن.</p>';
+// تعبئة قوائم تشكيلات وبدلاء الفريقين
+function renderRostersList(match, lineup) {
+  const homeTeam = match.homeTeam || { name: 'صاحب الأرض' };
+  const awayTeam = match.awayTeam || { name: 'الضيف' };
+
+  document.getElementById('list-home-team-title').textContent = homeTeam.name;
+  document.getElementById('list-away-team-title').textContent = awayTeam.name;
+
+  const homeStarters = lineup.filter(lp => lp.teamId === match.homeTeamId && lp.isStarting);
+  const homeSubs = lineup.filter(lp => lp.teamId === match.homeTeamId && !lp.isStarting);
+
+  const awayStarters = lineup.filter(lp => lp.teamId === match.awayTeamId && lp.isStarting);
+  const awaySubs = lineup.filter(lp => lp.teamId === match.awayTeamId && !lp.isStarting);
+
+  populateRosterGroup('list-home-starters', homeStarters);
+  populateRosterGroup('list-home-subs', homeSubs);
+  populateRosterGroup('list-away-starters', awayStarters);
+  populateRosterGroup('list-away-subs', awaySubs);
+}
+
+function populateRosterGroup(containerId, items) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (items.length === 0) {
+    container.innerHTML = '<p class="text-slate-600 text-xs py-1">غير مسجلين</p>';
     return;
   }
 
-  // فرز الأحداث تصاعدياً (من د 1 حتى د 90+)
-  const sortedEvents = [...events].sort((a, b) => a.minute - b.minute);
-  feed.innerHTML = '';
+  items.forEach(item => {
+    const player = item.player || { name: 'لاعب غير معروف', jerseyNumber: '-', photoUrl: '' };
+    const rating = item.rating ?? 6.0;
+    const ratingClass = getRatingBadgeClass(rating);
 
-  sortedEvents.forEach(evt => {
-    let typeIcon = '⚽';
-    let typeText = 'حدث فني';
-    let typeClass = 'bg-slate-900 border-slate-800 text-white';
-
-    if (evt.type === 'goal') {
-      typeIcon = '⚽';
-      typeText = 'هدف';
-      typeClass = 'bg-emerald-950 text-emerald-400 border-emerald-800';
-    } else if (evt.type === 'yellow_card') {
-      typeIcon = '🟨';
-      typeText = 'إنذار أصفر';
-      typeClass = 'bg-yellow-950/40 text-yellow-500 border-yellow-800';
-    } else if (evt.type === 'red_card') {
-      typeIcon = '🟥';
-      typeText = 'طرد أحمر';
-      typeClass = 'bg-red-950/40 text-red-500 border-red-800';
-    } else if (evt.type === 'substitution') {
-      typeIcon = '🔄';
-      typeText = 'تبديل';
-      typeClass = 'bg-slate-900 text-slate-300 border-slate-800';
-    } else if (evt.type === 'shot') {
-      typeIcon = '🎯';
-      typeText = 'تسديدة خطيرة';
-      typeClass = 'bg-slate-900 text-slate-300 border-slate-800';
-    } else if (evt.type === 'tackle') {
-      typeIcon = '⚔️';
-      typeText = 'تدخل دفاعي ممتاز';
-      typeClass = 'bg-slate-900 text-slate-300 border-slate-800';
-    } else if (evt.type === 'foul') {
-      typeIcon = '⚠️';
-      typeText = 'خطأ مرتكب';
-      typeClass = 'bg-slate-900 text-slate-300 border-slate-800';
-    } else if (evt.type === 'free_kick') {
-      typeIcon = '📐';
-      typeText = 'ركلة حرة مباشرة';
-      typeClass = 'bg-slate-900 text-slate-300 border-slate-800';
-    } else if (evt.type === 'penalty') {
-      typeIcon = '🥅';
-      typeText = 'ركلة جزاء';
-      typeClass = 'bg-slate-900 text-slate-300 border-slate-800';
-    }
-
-    const playerName = evt.player ? evt.player.name : 'لاعب غير معروف';
-
-    const item = document.createElement('div');
-    item.className = 'relative flex items-center gap-3.5 border-r-2 border-slate-800/80 pr-6 pb-2 last:pb-0';
-    item.innerHTML = `
-      <!-- عقدة الشارة الدائرية على الخط -->
-      <span class="absolute -right-[11px] top-1.5 w-5 h-5 rounded-full flex items-center justify-center border text-xs shadow-md ${typeClass}">
-        ${typeIcon}
-      </span>
-      <div class="flex flex-col gap-0.5">
-        <span class="text-xs font-bold text-white flex items-center gap-1.5">
-          د ${evt.minute}' - ${typeText}
+    const row = document.createElement('div');
+    row.className = 'flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/80';
+    row.innerHTML = `
+      <div class="flex items-center gap-2">
+        <span class="w-5 h-5 rounded bg-slate-950 font-mono text-[10px] font-bold text-slate-400 flex items-center justify-center border border-slate-800">
+          ${player.jerseyNumber}
         </span>
-        <span class="text-[11px] text-slate-400 font-semibold">${playerName}</span>
+        <img src="${player.photoUrl || '/img/default-player.png'}" class="w-6 h-6 rounded-full object-cover" onerror="this.src='/img/default-player.png'">
+        <span class="text-xs font-semibold text-slate-200 truncate max-w-[120px]">${player.name}</span>
       </div>
+      <span class="${ratingClass} text-[10px] px-2 py-0.5 rounded-full font-bold">
+        ${rating.toFixed(1)}
+      </span>
     `;
-    feed.appendChild(item);
+    container.appendChild(row);
   });
 }
 
-// دالتان مساعدتان آمنتان
-function showEl(el) {
-  if (el) el.classList.remove('hidden');
-}
+// عرض شريط الأحداث المباشرة التراكمية
+function renderTimelineFeed(events) {
+  const feedEl = document.getElementById('match-timeline-feed');
+  if (!feedEl) return;
+  feedEl.innerHTML = '';
 
-function hideEl(el) {
-  if (el) el.classList.add('hidden');
+  if (!events || events.length === 0) {
+    feedEl.innerHTML = '<p class="text-slate-500 text-xs text-center py-8">لا توجد أحداث مسجلة في شريط المباراة.</p>';
+    return;
+  }
+
+  // ترتيب الأحداث حسب الدقيقة (من الأحدث للأقدم)
+  const sorted = [...events].sort((a, b) => b.minute - a.minute);
+
+  sorted.forEach(evt => {
+    let icon = '⚽';
+    let title = 'حدث';
+    let badgeBg = 'bg-emerald-950 border-emerald-800 text-emerald-300';
+
+    if (evt.type === 'yellow_card') { icon = '🟨'; title = 'بطاقة صفراء'; badgeBg = 'bg-amber-950 border-amber-800 text-amber-300'; }
+    else if (evt.type === 'red_card') { icon = '🟥'; title = 'بطاقة حمراء'; badgeBg = 'bg-red-950 border-red-800 text-red-300'; }
+    else if (evt.type === 'substitution') { icon = '🔄'; title = 'تبديل لاعب'; badgeBg = 'bg-slate-900 border-slate-700 text-slate-300'; }
+    else if (evt.type === 'shot') { icon = '🎯'; title = 'تسديدة خطيرة'; }
+    else if (evt.type === 'tackle') { icon = '⚔️'; title = 'تدخل دفاعي'; }
+    else if (evt.type === 'goal') { icon = '⚽'; title = 'هدف للمباراة'; badgeBg = 'bg-emerald-900 border-emerald-700 text-white font-extrabold'; }
+
+    const playerName = evt.player ? `${evt.player.name} (#${evt.player.jerseyNumber})` : 'لاعب غير محدد';
+
+    const item = document.createElement('div');
+    item.className = 'relative flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80';
+    item.innerHTML = `
+      <div class="flex items-center gap-2.5">
+        <span class="w-7 h-7 rounded-lg ${badgeBg} border flex items-center justify-center text-xs shadow">
+          ${icon}
+        </span>
+        <div>
+          <p class="text-xs font-bold text-white leading-tight">${title}</p>
+          <span class="text-[10px] text-slate-400 font-semibold">${playerName}</span>
+        </div>
+      </div>
+      <span class="font-mono text-xs font-black text-brand-accent bg-slate-950 px-2 py-1 rounded border border-slate-800">
+        د ${evt.minute}'
+      </span>
+    `;
+
+    feedEl.appendChild(item);
+  });
 }
