@@ -68,7 +68,6 @@ function setupAuditLogger(req, res) {
   const originalJson = res.json;
 
   res.json = function (data) {
-    // نقوم بالتسجيل فقط في حال كانت الاستجابة ناجحة (حالة 2xx)
     if (res.statusCode >= 200 && res.statusCode < 300) {
       try {
         let AuditLog = null;
@@ -79,18 +78,15 @@ function setupAuditLogger(req, res) {
         }
 
         if (AuditLog && req.user) {
-          // استخراج اسم الجدول والمعرّف برمجياً من مسار الطلب النشط
           const pathParts = req.originalUrl.split('?')[0].split('/');
           let tableName = 'unknown';
           let recordId = null;
 
-          // فحص هل الوصول مباشر لقاعدة البيانات (Database Viewer)
           if (pathParts.includes('database')) {
             const dbIndex = pathParts.indexOf('database');
             tableName = pathParts[dbIndex + 1] || 'unknown';
             recordId = parseInt(pathParts[dbIndex + 2]) || null;
           } else {
-            // المسارات الافتراضية العامة مثل /api/teams/5
             const apiIndex = pathParts.indexOf('api');
             if (apiIndex !== -1 && pathParts[apiIndex + 1]) {
               const resource = pathParts[apiIndex + 1];
@@ -110,14 +106,13 @@ function setupAuditLogger(req, res) {
             }
           }
 
-          // تسجيل العملية بالخلفية دون تعطيل استجابة العميل الرئيسية
           AuditLog.create({
             userId: req.user.id,
             username: req.user.username,
             action: `${req.method.toLowerCase()}_record`,
             tableName: tableName,
             recordId: recordId,
-            oldValue: null, // يمكن معالجته لاحقاً وتوسيعه حسب الطلب
+            oldValue: null,
             newValue: req.method === 'PUT' ? req.body : null
           }).catch(err => console.error('Error writing to AuditLog:', err));
         }
@@ -129,10 +124,10 @@ function setupAuditLogger(req, res) {
   };
 }
 
-// تصدير واجهات برمجية متعددة المسميات لضمان التوافق مع كافة الهياكل
 module.exports = {
   authenticateToken,
-  verifyToken: authenticateToken, // مرادف متوافق
+  verifyToken: authenticateToken,
   requireRole,
-  isEditorOrAdmin: requireRole(['admin', 'editor']) // مرادف حماية مباشر
+  isEditorOrAdmin: requireRole(['admin', 'editor']),
+  isAdmin: requireRole(['admin']) // تصدير مباشر لصلاحية Admin
 };
