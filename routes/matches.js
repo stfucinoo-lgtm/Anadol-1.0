@@ -1,6 +1,6 @@
 /**
  * ANADOL League - Matches Routes
- * مسارات التحكم بالمباريات والنتائج (عرض، جدولة، تعديل النتائج، تحديث الحالة السريع، وتثبيت الأحداث).
+ * مسارات التحكم بالمباريات والنتائج (عرض، جدولة، تعديل النتائج، تحديث الحالة السريع، وتثبيت/حذف الأحداث).
  */
 
 const express = require('express');
@@ -88,8 +88,8 @@ router.get('/', async (req, res) => {
         const matches = await Match.findAll({
             where: whereClause,
             include: [
-                { model: Team, as: 'homeTeam', attributes: ['id', 'name', 'crestUrl', 'primaryColor'] },
-                { model: Team, as: 'awayTeam', attributes: ['id', 'name', 'crestUrl', 'primaryColor'] }
+                { model: Team, as: 'homeTeam', attributes: ['id', 'name', 'crestUrl', 'primaryColor', 'stadium'] },
+                { model: Team, as: 'awayTeam', attributes: ['id', 'name', 'crestUrl', 'primaryColor', 'stadium'] }
             ],
             order: [['matchDate', 'DESC']]
         });
@@ -221,7 +221,7 @@ router.post('/', verifyToken, isEditorOrAdmin, async (req, res) => {
 router.post('/:id/lineup', verifyToken, isEditorOrAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { lineup } = req.body; // ننتظر مصفوفة تحتوي على اللاعبين ومواقعهم
+        const { lineup } = req.body; // ننتظر مصفوفة تحتوي على اللاعبين وم مواقعهم
 
         if (!MatchPlayer) {
             return res.status(503).json({ error: 'نظام تشكيلات المباريات قيد التحديث وغير متوفر حالياً' });
@@ -386,6 +386,29 @@ router.post('/:id/events', verifyToken, isEditorOrAdmin, async (req, res) => {
         return res.status(201).json({ success: true, event });
     } catch (error) {
         return res.status(500).json({ error: 'حدث خطأ أثناء تقييد حدث المباراة: ' + error.message });
+    }
+});
+
+/**
+ * 6.5 DELETE /api/matches/events/:eventId
+ * حذف حدث محدد من أحداث المباراة (صلاحية Admin / Editor فقط)
+ */
+router.delete('/events/:eventId', verifyToken, isEditorOrAdmin, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        if (!MatchEvent) {
+            return res.status(503).json({ error: 'نظام الأحداث غير متوفر حالياً' });
+        }
+
+        const event = await MatchEvent.findByPk(eventId);
+        if (!event) {
+            return res.status(404).json({ error: 'الحدث المراد حذفه غير موجود' });
+        }
+
+        await event.destroy();
+        return res.status(200).json({ success: true, message: 'تم حذف الحدث من شريط المباراة بنجاح' });
+    } catch (error) {
+        return res.status(500).json({ error: 'حدث خطأ أثناء حذف الحدث: ' + error.message });
     }
 });
 
