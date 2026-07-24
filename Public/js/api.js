@@ -8,16 +8,13 @@ const API_BASE_URL = '/api';
 async function apiFetch(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   
-  // تهيئة الرأسيات إن لم تكن موجودة
   options.headers = options.headers || {};
 
-  // جلب التوكن من localStorage وإرفاقه برأس الطلب إذا كان متوفراً
   const token = localStorage.getItem('anadol_token');
   if (token) {
     options.headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // تحديد نوع المحتوى تلقائياً كـ JSON إذا كان هناك جسم للطلب ولم يكن FormData
   if (options.body && !(options.body instanceof FormData) && !options.headers['Content-Type']) {
     options.headers['Content-Type'] = 'application/json';
     if (typeof options.body === 'object') {
@@ -28,18 +25,30 @@ async function apiFetch(endpoint, options = {}) {
   try {
     const response = await fetch(url, options);
 
-    // التحقق من حالة وضع الصيانة (الرد بـ 503 أو رسالة صيانة مخصصة)
     if (response.status === 503) {
       const maintenanceData = await response.json().catch(() => ({}));
-      // إشعار المستخدم بوضع الصيانة
       alert(maintenanceData.message || 'الموقع قيد الصيانة حالياً. يرجى المحاولة لاحقاً.');
     }
 
-    // قراءة البيانات بصيغة JSON بأمان
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      const errorMsg = data && data.message ? data.message : `طلب غير ناجح: ${response.status}`;
+      // التعامل الذكي عند انتهاء صلاحية الجلسة (401 / 403)
+      if (response.status === 401 || response.status === 403) {
+        const msg = data && (data.message || data.error) ? (data.message || data.error) : '';
+        if (msg.includes('رمز الدخول') || msg.includes('تسجيل الدخول') || msg.includes('انتهت صلاحيته')) {
+          localStorage.removeItem('anadol_token');
+          localStorage.removeItem('anadol_user');
+          
+          if (window.location.pathname.includes('/admin/') && !window.location.pathname.includes('/login.html')) {
+            alert('انتهت صلاحية جلسة الدخول الخاصة بك. يرجى إعادة تسجيل الدخول لمتابعة العمل.');
+            window.location.href = '/admin/login.html';
+            return;
+          }
+        }
+      }
+
+      const errorMsg = data && (data.message || data.error) ? (data.message || data.error) : `طلب غير ناجح: ${response.status}`;
       const error = new Error(errorMsg);
       error.status = response.status;
       error.data = data;
@@ -53,7 +62,6 @@ async function apiFetch(endpoint, options = {}) {
   }
 }
 
-// كائن الخدمات لتسهيل الاستدعاء في واجهات المشروع المختلفة
 const api = {
   get: (endpoint, options = {}) => apiFetch(endpoint, { ...options, method: 'GET' }),
   post: (endpoint, body, options = {}) => apiFetch(endpoint, { ...options, method: 'POST', body }),
@@ -61,15 +69,10 @@ const api = {
   delete: (endpoint, options = {}) => apiFetch(endpoint, { ...options, method: 'DELETE' })
 };
 
-/**
- * دالة fetchAPI العالمية المتوافقة مع ملفات إدارة المباريات واللاعبين
- * تدعم التوقيع: fetchAPI(endpoint, method, body)
- */
 async function fetchAPI(endpoint, method = 'GET', body = null) {
-  // تلافي تكرار مسار /api إذا تم تمريره مسبقاً في دالة الاستدعاء
   let targetEndpoint = endpoint;
   if (targetEndpoint.startsWith('/api')) {
-    targetEndpoint = targetEndpoint.substring(4); // إزالة الـ "/api" الأولى
+    targetEndpoint = targetEndpoint.substring(4);
   }
 
   const options = {
@@ -83,6 +86,5 @@ async function fetchAPI(endpoint, method = 'GET', body = null) {
   return apiFetch(targetEndpoint, options);
 }
 
-// إتاحة الكائنات والدوال دولياً في المتصفح لتعمل مع كافة سكربتات الصفحات
 window.api = api;
 window.fetchAPI = fetchAPI;
