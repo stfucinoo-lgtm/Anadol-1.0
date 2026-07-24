@@ -9,22 +9,11 @@ const { Op } = require('sequelize');
 const Team = require('../models/Team');
 const Player = require('../models/Player');
 const Match = require('../models/Match');
+const { verifyToken, isAdmin } = require('../middleware/auth');
 
 // تعريف علاقات التبعية برمجياً وبشكل مباشر لربط جدول الفرق واللاعبين بالاسم المستعار الصحيح
 Team.hasMany(Player, { foreignKey: 'teamId', as: 'players', onDelete: 'CASCADE' });
 Player.belongsTo(Team, { foreignKey: 'teamId', as: 'team' });
-
-// آلية الاستدعاء الآمن للوسيط الأمني (سيتفعل تلقائياً عند بناء ملف الصلاحيات في المرحلة 4)
-let verifyToken = (req, res, next) => next();
-let isAdmin = (req, res, next) => next();
-
-try {
-    const auth = require('../middleware/auth');
-    if (auth.verifyToken) verifyToken = auth.verifyToken;
-    if (auth.isAdmin) isAdmin = auth.isAdmin;
-} catch (e) {
-    // ملف الحماية لم يُبْنَ بعد في هذه المرحلة من خطة التطوير
-}
 
 /**
  * 1. GET /api/teams
@@ -54,7 +43,6 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ error: 'الفريق المطلوب غير موجود في قاعدة البيانات' });
         }
 
-        // جلب مباريات الفريق (سواء كان المستضيف أو الضيف)
         const matches = await Match.findAll({
             where: {
                 [Op.or]: [
@@ -65,7 +53,6 @@ router.get('/:id', async (req, res) => {
             order: [['matchDate', 'DESC']]
         });
 
-        // احتساب الإحصائيات (TeamStats) ديناميكياً من واقع المباريات المنتهية (finished)
         let played = 0, won = 0, drawn = 0, lost = 0, goalsFor = 0, goalsAgainst = 0, cleanSheets = 0;
 
         matches.forEach(m => {
@@ -115,7 +102,6 @@ router.post('/', verifyToken, isAdmin, async (req, res) => {
             return res.status(400).json({ error: 'اسم الفريق حقل مطلوب ولا يمكن تركه فارغاً' });
         }
 
-        // تم تمرير الخيار { validate: false } لتخطي شرط رابط الويب من أجل قبول أكواد الصور المرفوعة
         const team = await Team.create(
             { name, crestUrl, primaryColor, stadium, foundedYear }, 
             { validate: false }
@@ -139,7 +125,6 @@ router.put('/:id', verifyToken, isAdmin, async (req, res) => {
             return res.status(404).json({ error: 'الفريق المطلوب تعديله غير موجود' });
         }
 
-        // تم تمرير الخيار { validate: false } لتخطي شرط رابط الويب عند التعديل
         await team.update(req.body, { validate: false });
         return res.status(200).json({ success: true, team });
     } catch (error) {
@@ -185,7 +170,6 @@ router.post('/:id/players', verifyToken, isAdmin, async (req, res) => {
             return res.status(400).json({ error: 'الاسم، رقم القميص، والمركز هي حقول إلزامية للاعب الجديد' });
         }
 
-        // تمرير { validate: false } لتخطي أي قيود أو شروط تحقق متبقية في نموذج اللاعب بقاعدة البيانات الحية
         const player = await Player.create({
             teamId: id,
             name,
@@ -213,7 +197,6 @@ router.put('/players/:id', verifyToken, isAdmin, async (req, res) => {
             return res.status(404).json({ error: 'اللاعب المطلوب تعديل بياناته غير مسجل بالنظام' });
         }
 
-        // تمرير { validate: false } لتفادي أي مشاكل في صيغة الصور المرفوعة عند التعديل
         await player.update(req.body, { validate: false });
         return res.status(200).json({ success: true, player });
     } catch (error) {
