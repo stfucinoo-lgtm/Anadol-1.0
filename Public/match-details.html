@@ -38,31 +38,25 @@
     .pitch-grid {
       background-image: 
         radial-gradient(circle, transparent 30%, rgba(255,255,255,0.05) 31%, transparent 32%),
-        linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
-      background-size: 100% 100%, 10% 10%, 10% 10%;
-    }
-    .player-bubble {
-      transition: transform 0.2s ease-in-out;
-    }
-    .player-bubble:hover {
-      transform: scale(1.12) translate(-50%, -50%);
-      z-index: 30;
+        linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px);
+      background-size: 100% 100%, 5% 5%, 5% 5%;
     }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
 
-  <!-- Navbar -->
-  <nav class="bg-brand-dark/95 backdrop-blur-md border-b border-slate-900 sticky top-0 z-50">
+  <!-- Public Navbar -->
+  <nav class="bg-brand-dark/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <a href="/" class="text-brand-accent font-black text-lg tracking-wider flex items-center gap-2">
-          ⚽ ANADOL <span class="text-white text-sm font-semibold px-2 py-0.5 bg-slate-800 rounded">League</span>
+        <a href="/" class="text-brand-accent font-black text-xl tracking-wider flex items-center gap-2">
+          ⚽ ANADOL <span class="text-white text-xs font-bold px-2 py-0.5 bg-slate-800 rounded-md">League</span>
         </a>
       </div>
       <div class="flex items-center gap-6">
-        <a href="/standings.html" class="text-xs sm:text-sm font-semibold text-slate-300 hover:text-brand-accent transition">ترتيب الدوري</a>
+        <a href="/index.html" class="text-xs sm:text-sm font-semibold text-slate-300 hover:text-brand-accent transition">الرئيسية</a>
+        <a href="/standings.html" class="text-xs sm:text-sm font-semibold text-slate-300 hover:text-brand-accent transition">جدول الترتيب</a>
         <a href="/teams.html" class="text-xs sm:text-sm font-semibold text-slate-300 hover:text-brand-accent transition">الفرق</a>
         <a href="/blog.html" class="text-xs sm:text-sm font-semibold text-slate-300 hover:text-brand-accent transition">الأخبار والتحليلات</a>
       </div>
@@ -75,156 +69,185 @@
     <!-- Loading State -->
     <div id="details-loading" class="py-32 text-center text-slate-400">
       <i class="fa-solid fa-circle-notch animate-spin text-3xl text-brand-accent mb-3"></i>
-      <p class="text-sm font-semibold">جاري تحميل إحصائيات المباراة وتشكيلة اللاعبين الفعالة...</p>
+      <p class="text-sm font-semibold">جاري تحضير إحصائيات والملعب التكتيكي للمباراة...</p>
     </div>
 
-    <!-- Error/Not Found State -->
+    <!-- Error State -->
     <div id="details-error" class="hidden py-32 text-center text-slate-500">
       <i class="fa-solid fa-circle-exclamation text-4xl text-brand-danger mb-3"></i>
-      <h3 class="text-lg font-bold text-slate-300">عذراً، المباراة غير موجودة</h3>
-      <p class="text-xs mt-1">تأكد من صحة رابط المباراة في المتصفح أو عد لصفحة الترتيب.</p>
+      <h3 class="text-lg font-bold text-slate-300">عذراً، لم يتم العثور على المباراة</h3>
+      <p class="text-xs mt-1">تأكد من صحة الرابط أو عد إلى قائمة المباريات.</p>
     </div>
 
-    <!-- Loaded Content Group -->
+    <!-- Main Active Content -->
     <div id="details-content" class="hidden space-y-8">
       
-      <!-- 1. Interactive Scoreboard Card -->
-      <section class="bg-brand-card rounded-2xl border border-slate-900 overflow-hidden shadow-xl">
-        <div class="p-6 sm:p-8 flex flex-col items-center justify-center relative bg-gradient-to-b from-slate-900/60 to-transparent">
+      <!-- 1. SofaScore Scoreboard Card Header -->
+      <section class="bg-brand-card rounded-2xl border border-slate-800 overflow-hidden shadow-2xl relative">
+        <div class="p-6 sm:p-8 flex flex-col items-center justify-center bg-gradient-to-b from-slate-900/80 via-brand-card to-brand-card">
           
-          <!-- Match Date & Status -->
-          <div class="flex flex-col items-center gap-1.5 mb-6 text-center">
-            <span id="match-date-badge" class="text-slate-400 font-mono text-xs">-</span>
-            <span id="match-status-badge" class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border"></span>
+          <!-- Stadium & Date Bar -->
+          <div class="flex flex-wrap items-center justify-center gap-3 mb-6 text-xs text-slate-400 font-semibold">
+            <span id="stadium-name-badge" class="flex items-center gap-1 text-slate-300">
+              <i class="fa-solid fa-location-dot text-brand-accent"></i> <strong id="stadium-text">ملعب المباراة</strong>
+            </span>
+            <span>•</span>
+            <span id="match-date-badge" class="font-mono text-slate-300">-</span>
+            <span>•</span>
+            <span id="match-status-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase"></span>
           </div>
 
-          <!-- Teams & Scores Row -->
-          <div class="flex items-center justify-between w-full max-w-3xl gap-4">
+          <!-- Teams & Goal Scorers Row -->
+          <div class="grid grid-cols-12 w-full max-w-4xl items-start gap-4">
             
-            <!-- Home Team -->
-            <div class="flex flex-col items-center text-center gap-2.5 w-[35%]">
-              <img id="home-crest" src="/img/default-crest.png" alt="" class="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-lg">
-              <h2 id="home-name" class="font-bold text-sm sm:text-base text-white truncate max-w-full">-</h2>
+            <!-- Home Team (Left) -->
+            <div class="col-span-5 flex flex-col items-center text-center space-y-2">
+              <img id="home-crest" src="/img/default-crest.png" alt="" class="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-xl">
+              <h2 id="home-name" class="font-black text-sm sm:text-lg text-white truncate max-w-full">-</h2>
+              
+              <!-- Home Goal Scorers List -->
+              <div id="home-scorers-list" class="text-[11px] text-slate-300 space-y-0.5 font-medium pt-1">
+              </div>
             </div>
 
-            <!-- Live Score Center -->
-            <div class="flex items-center gap-3 sm:gap-4 font-black text-2xl sm:text-4xl text-white bg-slate-950/80 px-6 py-2 rounded-2xl border border-slate-900 shadow-inner">
-              <span id="score-home">0</span>
-              <span class="text-slate-600">:</span>
-              <span id="score-away">0</span>
+            <!-- Score Badge Center -->
+            <div class="col-span-2 flex items-center justify-center pt-2">
+              <div class="flex items-center gap-2 sm:gap-3 font-black text-2xl sm:text-4xl text-white bg-slate-950/90 px-4 sm:px-6 py-2 rounded-2xl border border-slate-800 shadow-2xl font-mono">
+                <span id="score-home">0</span>
+                <span class="text-brand-accent">:</span>
+                <span id="score-away">0</span>
+              </div>
             </div>
 
-            <!-- Away Team -->
-            <div class="flex flex-col items-center text-center gap-2.5 w-[35%]">
-              <img id="away-crest" src="/img/default-crest.png" alt="" class="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-lg">
-              <h2 id="away-name" class="font-bold text-sm sm:text-base text-white truncate max-w-full">-</h2>
+            <!-- Away Team (Right) -->
+            <div class="col-span-5 flex flex-col items-center text-center space-y-2">
+              <img id="away-crest" src="/img/default-crest.png" alt="" class="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-xl">
+              <h2 id="away-name" class="font-black text-sm sm:text-lg text-white truncate max-w-full">-</h2>
+
+              <!-- Away Goal Scorers List -->
+              <div id="away-scorers-list" class="text-[11px] text-slate-300 space-y-0.5 font-medium pt-1">
+              </div>
             </div>
 
           </div>
 
-          <!-- Possession Stats Bar (مؤشر الاستحواذ البصري المزدوج) -->
-          <div class="w-full max-w-xl mt-8 space-y-2">
+          <!-- Possession Bar -->
+          <div class="w-full max-w-xl mt-8 space-y-1.5">
             <div class="flex items-center justify-between text-xs font-bold text-slate-400">
               <span id="poss-home-lbl">الاستحواذ: 50%</span>
               <span id="poss-away-lbl">50% :الاستحواذ</span>
             </div>
-            <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden flex border border-slate-900">
-              <div id="poss-home-bar" class="bg-brand-accent transition-all duration-700" style="width: 50%;"></div>
-              <div id="poss-away-bar" class="bg-slate-600 transition-all duration-700" style="width: 50%;"></div>
+            <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden flex border border-slate-800 p-0.5">
+              <div id="poss-home-bar" class="bg-brand-accent h-full rounded-l-full transition-all duration-700" style="width: 50%;"></div>
+              <div id="poss-away-bar" class="bg-slate-600 h-full rounded-r-full transition-all duration-700" style="width: 50%;"></div>
             </div>
           </div>
 
         </div>
       </section>
 
-      <!-- 2. Tactical Green Pitch Section (الملعب التكتيكي والفقاعات) -->
-      <section class="bg-brand-card rounded-2xl border border-slate-900 p-6 shadow-xl space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-3 gap-2">
-          <h3 class="text-base font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-map-location-dot text-brand-accent"></i>
-            التوزيع التكتيكي وتقييمات اللاعبين على الملعب
-          </h3>
-          <span class="text-[10px] text-slate-400">تمثل الأرقام الملونة تقييمات الأداء الفني لكل لاعب</span>
+      <!-- 2. SofaScore Horizontal Soccer Pitch Section -->
+      <section class="bg-brand-card rounded-2xl border border-slate-800 p-5 shadow-2xl space-y-4">
+        
+        <!-- Pitch Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-3 gap-3">
+          <div class="flex items-center gap-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-futbol text-brand-accent"></i>
+              الملعب التكتيكي والتقييمات الرقمية (SofaScore Lineups)
+            </h3>
+          </div>
+          
+          <!-- Team Rating Summary Badges -->
+          <div class="flex items-center gap-4 text-xs font-bold">
+            <span class="flex items-center gap-1.5 text-slate-300">
+              <span id="pitch-home-team-label" class="text-brand-accent">الأرض</span>
+              <span id="pitch-home-rating" class="bg-emerald-600 text-white px-2 py-0.5 rounded font-black text-[11px]">6.0</span>
+            </span>
+            <span class="text-slate-600">VS</span>
+            <span class="flex items-center gap-1.5 text-slate-300">
+              <span id="pitch-away-team-label" class="text-slate-400">الضيف</span>
+              <span id="pitch-away-rating" class="bg-emerald-600 text-white px-2 py-0.5 rounded font-black text-[11px]">6.0</span>
+            </span>
+          </div>
         </div>
 
-        <!-- The Soccer Pitch Container -->
-        <div class="relative w-full aspect-[3/2] md:aspect-[1.6/1] bg-emerald-800 rounded-xl border border-emerald-950 overflow-hidden shadow-2xl pitch-grid" id="tactical-pitch">
-          <!-- Central Circle Line -->
-          <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-emerald-500/40"></div>
-          <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 sm:w-28 sm:h-28 rounded-full border border-emerald-500/40"></div>
-          <!-- Penalty Box Right -->
-          <div class="absolute right-0 top-1/4 bottom-1/4 w-16 sm:w-24 border-y border-l border-emerald-500/40"></div>
-          <div class="absolute right-0 top-1/3 bottom-1/3 w-6 sm:w-8 border-y border-l border-emerald-500/30"></div>
-          <!-- Penalty Box Left -->
-          <div class="absolute left-0 top-1/4 bottom-1/4 w-16 sm:w-24 border-y border-r border-emerald-500/40"></div>
-          <div class="absolute left-0 top-1/3 bottom-1/3 w-6 sm:w-8 border-y border-r border-emerald-500/30"></div>
+        <!-- Horizontal Soccer Pitch Container -->
+        <div class="relative w-full aspect-[16/9] max-h-[560px] bg-emerald-950 rounded-2xl border-2 border-emerald-800/80 overflow-hidden shadow-2xl pitch-grid select-none mx-auto" id="tactical-pitch">
+          <!-- Pitch lines -->
+          <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/90 via-emerald-950 to-slate-950 opacity-90"></div>
+          <div class="absolute inset-2 border-2 border-emerald-500/30 rounded-xl pointer-events-none"></div>
+          
+          <!-- Center Vertical Line -->
+          <div class="absolute inset-y-2 left-1/2 -translate-x-1/2 border-r-2 border-emerald-500/30 pointer-events-none"></div>
+          <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full border-2 border-emerald-500/30 pointer-events-none"></div>
+          <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-500/50 pointer-events-none"></div>
 
-          <!-- Dynamic player bubbles will be absolutely placed here by match-details.js -->
+          <!-- Left Goal Box (Home Team Goal Area) -->
+          <div class="absolute left-2 top-1/2 -translate-y-1/2 w-20 h-52 border-y-2 border-r-2 border-emerald-500/30 pointer-events-none rounded-r-md"></div>
+          <div class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-24 border-y-2 border-r-2 border-emerald-500/30 pointer-events-none rounded-r-sm"></div>
+
+          <!-- Right Goal Box (Away Team Goal Area) -->
+          <div class="absolute right-2 top-1/2 -translate-y-1/2 w-20 h-52 border-y-2 border-l-2 border-emerald-500/30 pointer-events-none rounded-l-md"></div>
+          <div class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-24 border-y-2 border-l-2 border-emerald-500/30 pointer-events-none rounded-l-sm"></div>
+
+          <!-- Player Nodes placed dynamically by match-details.js -->
         </div>
       </section>
 
-      <!-- 3. Roster Lists (Starters & Substitutes) & Match Events Timeline -->
+      <!-- 3. Roster Lists & Chronological Timeline Feed -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <!-- Starters & Bench Lists (Right Side) -->
-        <div class="lg:col-span-8 bg-brand-card rounded-2xl border border-slate-900 p-6 shadow-xl space-y-6">
-          <h3 class="text-base font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
-            <i class="fa-solid fa-users-line text-brand-accent"></i>
-            تشكيلة الفريقين والتقييمات الرقمية
+        <!-- Starting Lineups & Substitutes Lists -->
+        <div class="lg:col-span-8 bg-brand-card rounded-2xl border border-slate-800 p-6 shadow-xl space-y-6">
+          <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-users text-brand-accent"></i>
+            قائمة تشكيلة الفريقين ومقاعد البدلاء
           </h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             
-            <!-- Home Team Lineup List -->
+            <!-- Home Team -->
             <div class="space-y-4">
-              <h4 id="list-home-team-title" class="font-extrabold text-xs text-brand-accent border-b border-slate-800 pb-1.5 uppercase tracking-wider">-</h4>
+              <h4 id="list-home-team-title" class="font-extrabold text-xs text-brand-accent border-b border-slate-800 pb-2 uppercase tracking-wider">-</h4>
               
               <div class="space-y-2">
-                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">الأساسيون</span>
-                <div id="list-home-starters" class="space-y-1.5">
-                  <!-- Starters -->
-                </div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">التشكيلة الأساسية</span>
+                <div id="list-home-starters" class="space-y-1.5"></div>
               </div>
 
               <div class="space-y-2 pt-2 border-t border-slate-800/50">
-                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">مقاعد البدلاء</span>
-                <div id="list-home-subs" class="space-y-1.5">
-                  <!-- Subs -->
-                </div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">مقاعد البدلاء</span>
+                <div id="list-home-subs" class="space-y-1.5"></div>
               </div>
             </div>
 
-            <!-- Away Team Lineup List -->
+            <!-- Away Team -->
             <div class="space-y-4">
-              <h4 id="list-away-team-title" class="font-extrabold text-xs text-slate-400 border-b border-slate-800 pb-1.5 uppercase tracking-wider">-</h4>
+              <h4 id="list-away-team-title" class="font-extrabold text-xs text-slate-300 border-b border-slate-800 pb-2 uppercase tracking-wider">-</h4>
               
               <div class="space-y-2">
-                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">الأساسيون</span>
-                <div id="list-away-starters" class="space-y-1.5">
-                  <!-- Starters -->
-                </div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">التشكيلة الأساسية</span>
+                <div id="list-away-starters" class="space-y-1.5"></div>
               </div>
 
               <div class="space-y-2 pt-2 border-t border-slate-800/50">
-                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">مقاعد البدلاء</span>
-                <div id="list-away-subs" class="space-y-1.5">
-                  <!-- Subs -->
-                </div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">مقاعد البدلاء</span>
+                <div id="list-away-subs" class="space-y-1.5"></div>
               </div>
             </div>
 
           </div>
         </div>
 
-        <!-- Chronological Match Timeline (Left Side) -->
-        <div class="lg:col-span-4 bg-brand-card rounded-2xl border border-slate-900 p-6 shadow-xl space-y-4">
-          <h3 class="text-base font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
-            <i class="fa-solid fa-timeline text-brand-accent"></i>
-            شريط أحداث اللقاء
+        <!-- Chronological Timeline Feed -->
+        <div class="lg:col-span-4 bg-brand-card rounded-2xl border border-slate-800 p-6 shadow-xl space-y-4">
+          <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-brand-accent"></i>
+            شريط أحداث اللقاء المباشرة
           </h3>
 
-          <div class="relative pl-4 border-r border-slate-800 mr-2 pr-4 space-y-4 max-h-[450px] overflow-y-auto custom-scrollbar" id="match-timeline-feed">
-            <!-- Timeline elements dynamically filled -->
+          <div class="space-y-3 max-h-[480px] overflow-y-auto custom-scrollbar pr-1" id="match-timeline-feed">
             <p class="text-slate-500 text-xs text-center py-8">لا توجد أحداث مسجلة في شريط المباراة.</p>
           </div>
         </div>
@@ -237,13 +260,12 @@
   <!-- Footer -->
   <footer class="bg-brand-dark border-t border-slate-900 py-6 mt-auto">
     <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-xs">
-      <p>&copy; 2026 دوري الأناضول (ANADOL League). جميع الحقوق محفوظة.</p>
+      <p>&copy; 2026 دوري الأناضول (ANADOL League). منصة التحليلات الرياضية.</p>
     </div>
   </footer>
 
   <!-- App JS Scripts -->
   <script src="/js/api.js"></script>
-  <!-- سنقوم بإنشاء ملف المنطق هذا تالياً في خطوة البناء القادمة لتعبئة وعرض كافة الإحصائيات -->
   <script src="/js/match-details.js"></script>
 </body>
 </html>
