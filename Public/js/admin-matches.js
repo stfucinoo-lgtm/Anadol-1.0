@@ -21,212 +21,208 @@ let allMatches = [];
 let allTeams = [];
 let selectedMatchId = null;
 let activeMatchData = null;
-let currentMatchLineup = []; // كافة التشكيلة المسجلة للمباراة
-let currentTeamRoster = [];  // كافة لاعبي النادي المختار من السيرفر
-let activeSlotIndex = null;  // المركز المحدد حالياً على الملعب للتعيين
-let isSubstituteMode = false;// تحديد هل الاختيار لبديل أم لأساسي
+let currentMatchLineup = [];
+let currentTeamRoster = [];
+let activeSlotIndex = null;
+let isSubstituteMode = false;
 
-// مكتبة الإحداثيات والخطط التكتيكية المتقدمة (13 خطة)
+// مكتبة الإحداثيات والخطط التكتيكية المتقدمة (مع توسيع المسافة بين الدفاع والحارس)
 const FORMATIONS_LIBRARY = {
   '4-3-3': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 72 },
-    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 74 },
-    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 74 },
-    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 72 },
-    { role: 'CM', label: 'وسط أيسر', x: 28, y: 48 },
-    { role: 'DM', label: 'وسط دفاعي', x: 50, y: 54 },
-    { role: 'CM', label: 'وسط أيمن', x: 72, y: 48 },
-    { role: 'LW', label: 'جناح أيسر', x: 20, y: 22 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 18 },
-    { role: 'RW', label: 'جناح أيمن', x: 80, y: 22 }
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 68 },
+    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 68 },
+    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 68 },
+    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 68 },
+    { role: 'CM', label: 'وسط أيسر', x: 28, y: 44 },
+    { role: 'DM', label: 'وسط دفاعي', x: 50, y: 50 },
+    { role: 'CM', label: 'وسط أيمن', x: 72, y: 44 },
+    { role: 'LW', label: 'جناح أيسر', x: 20, y: 20 },
+    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 },
+    { role: 'RW', label: 'جناح أيمن', x: 80, y: 20 }
   ],
   '4-2-3-1': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 74 },
-    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 76 },
-    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 76 },
-    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 74 },
-    { role: 'DM', label: 'محور أيسر', x: 35, y: 58 },
-    { role: 'DM', label: 'محور أيمن', x: 65, y: 58 },
-    { role: 'LAM', label: 'جناح أيسر', x: 20, y: 38 },
-    { role: 'CAM', label: 'صانع ألعاب', x: 50, y: 36 },
-    { role: 'RAM', label: 'جناح أيمن', x: 80, y: 38 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 18 }
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 68 },
+    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 68 },
+    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 68 },
+    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 68 },
+    { role: 'DM', label: 'محور أيسر', x: 35, y: 52 },
+    { role: 'DM', label: 'محور أيمن', x: 65, y: 52 },
+    { role: 'LAM', label: 'جناح أيسر', x: 20, y: 34 },
+    { role: 'CAM', label: 'صانع ألعاب', x: 50, y: 32 },
+    { role: 'RAM', label: 'جناح أيمن', x: 80, y: 34 },
+    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 }
   ],
   '4-4-2': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 72 },
-    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 74 },
-    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 74 },
-    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 72 },
-    { role: 'LM', label: 'وسط أيسر', x: 16, y: 46 },
-    { role: 'CM', label: 'وسط أيسر', x: 38, y: 48 },
-    { role: 'CM', label: 'وسط أيمن', x: 62, y: 48 },
-    { role: 'RM', label: 'وسط أيمن', x: 84, y: 46 },
-    { role: 'ST', label: 'مهاجم أيسر', x: 38, y: 20 },
-    { role: 'ST', label: 'مهاجم أيمن', x: 62, y: 20 }
-  ],
-  '3-5-2': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'CB', label: 'دفاع أيسر', x: 25, y: 74 },
-    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 76 },
-    { role: 'CB', label: 'دفاع أيمن', x: 75, y: 74 },
-    { role: 'LWB', label: 'جناح أيسر', x: 12, y: 48 },
-    { role: 'CM', label: 'وسط أيسر', x: 32, y: 52 },
-    { role: 'DM', label: 'وسط ارتكاز', x: 50, y: 50 },
-    { role: 'CM', label: 'وسط أيمن', x: 68, y: 52 },
-    { role: 'RWB', label: 'جناح أيمن', x: 88, y: 48 },
-    { role: 'ST', label: 'مهاجم أيسر', x: 38, y: 20 },
-    { role: 'ST', label: 'مهاجم أيمن', x: 62, y: 20 }
-  ],
-  '5-3-2': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'LWB', label: 'ظهير أيسر', x: 12, y: 68 },
-    { role: 'CB', label: 'دفاع أيسر', x: 31, y: 74 },
-    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 76 },
-    { role: 'CB', label: 'دفاع أيمن', x: 69, y: 74 },
-    { role: 'RWB', label: 'ظهير أيمن', x: 88, y: 68 },
-    { role: 'CM', label: 'وسط أيسر', x: 30, y: 48 },
-    { role: 'DM', label: 'وسط دفاعي', x: 50, y: 50 },
-    { role: 'CM', label: 'وسط أيمن', x: 70, y: 48 },
-    { role: 'ST', label: 'مهاجم أيسر', x: 38, y: 20 },
-    { role: 'ST', label: 'مهاجم أيمن', x: 62, y: 20 }
-  ],
-  '3-4-3': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'CB', label: 'دفاع أيسر', x: 25, y: 74 },
-    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 76 },
-    { role: 'CB', label: 'دفاع أيمن', x: 75, y: 74 },
-    { role: 'LM', label: 'وسط أيسر', x: 15, y: 48 },
-    { role: 'CM', label: 'وسط أيسر', x: 38, y: 50 },
-    { role: 'CM', label: 'وسط أيمن', x: 62, y: 50 },
-    { role: 'RM', label: 'وسط أيمن', x: 85, y: 48 },
-    { role: 'LW', label: 'جناح أيسر', x: 22, y: 22 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 18 },
-    { role: 'RW', label: 'جناح أيمن', x: 78, y: 22 }
-  ],
-  '4-1-4-1': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 74 },
-    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 74 },
-    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 74 },
-    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 74 },
-    { role: 'DM', label: 'وسط ارتكاز', x: 50, y: 60 },
-    { role: 'LM', label: 'وسط أيسر', x: 16, y: 40 },
-    { role: 'CM', label: 'وسط أيسر', x: 38, y: 38 },
-    { role: 'CM', label: 'وسط أيمن', x: 62, y: 38 },
-    { role: 'RM', label: 'وسط أيمن', x: 84, y: 40 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 18 }
-  ],
-  '4-5-1': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 74 },
-    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 74 },
-    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 74 },
-    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 74 },
-    { role: 'LM', label: 'وسط أيسر', x: 15, y: 48 },
-    { role: 'CM', label: 'وسط أيسر', x: 35, y: 52 },
-    { role: 'CM', label: 'وسط صريح', x: 50, y: 50 },
-    { role: 'CM', label: 'وسط أيمن', x: 65, y: 52 },
-    { role: 'RM', label: 'وسط أيمن', x: 85, y: 48 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 20 }
-  ],
-  '5-4-1': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'LWB', label: 'ظهير أيسر', x: 12, y: 70 },
-    { role: 'CB', label: 'دفاع أيسر', x: 31, y: 76 },
-    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 78 },
-    { role: 'CB', label: 'دفاع أيمن', x: 69, y: 76 },
-    { role: 'RWB', label: 'ظهير أيمن', x: 88, y: 70 },
-    { role: 'LM', label: 'وسط أيسر', x: 15, y: 48 },
-    { role: 'CM', label: 'وسط أيسر', x: 38, y: 50 },
-    { role: 'CM', label: 'وسط أيمن', x: 62, y: 50 },
-    { role: 'RM', label: 'وسط أيمن', x: 85, y: 48 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 20 }
-  ],
-  '4-1-2-1-2': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 74 },
-    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 74 },
-    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 74 },
-    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 74 },
-    { role: 'DM', label: 'ارتكاز دفاعي', x: 50, y: 62 },
-    { role: 'CM', label: 'وسط أيسر', x: 32, y: 46 },
-    { role: 'CM', label: 'وسط أيمن', x: 68, y: 46 },
-    { role: 'CAM', label: 'صانع ألعاب', x: 50, y: 32 },
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 68 },
+    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 68 },
+    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 68 },
+    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 68 },
+    { role: 'LM', label: 'وسط أيسر', x: 16, y: 44 },
+    { role: 'CM', label: 'وسط أيسر', x: 38, y: 46 },
+    { role: 'CM', label: 'وسط أيمن', x: 62, y: 46 },
+    { role: 'RM', label: 'وسط أيمن', x: 84, y: 44 },
     { role: 'ST', label: 'مهاجم أيسر', x: 38, y: 18 },
     { role: 'ST', label: 'مهاجم أيمن', x: 62, y: 18 }
   ],
-  '4-3-2-1': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 74 },
-    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 74 },
-    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 74 },
-    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 74 },
-    { role: 'CM', label: 'وسط أيسر', x: 28, y: 54 },
-    { role: 'CM', label: 'وسط أوسط', x: 50, y: 56 },
-    { role: 'CM', label: 'وسط أيمن', x: 72, y: 54 },
-    { role: 'CAM', label: 'صانع أيسر', x: 35, y: 34 },
-    { role: 'CAM', label: 'صانع أيمن', x: 65, y: 34 },
+  '3-5-2': [
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'CB', label: 'دفاع أيسر', x: 25, y: 68 },
+    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 70 },
+    { role: 'CB', label: 'دفاع أيمن', x: 75, y: 68 },
+    { role: 'LWB', label: 'جناح أيسر', x: 12, y: 46 },
+    { role: 'CM', label: 'وسط أيسر', x: 32, y: 48 },
+    { role: 'DM', label: 'وسط ارتكاز', x: 50, y: 48 },
+    { role: 'CM', label: 'وسط أيمن', x: 68, y: 48 },
+    { role: 'RWB', label: 'جناح أيمن', x: 88, y: 46 },
+    { role: 'ST', label: 'مهاجم أيسر', x: 38, y: 18 },
+    { role: 'ST', label: 'مهاجم أيمن', x: 62, y: 18 }
+  ],
+  '5-3-2': [
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'LWB', label: 'ظهير أيسر', x: 12, y: 64 },
+    { role: 'CB', label: 'دفاع أيسر', x: 31, y: 68 },
+    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 70 },
+    { role: 'CB', label: 'دفاع أيمن', x: 69, y: 68 },
+    { role: 'RWB', label: 'ظهير أيمن', x: 88, y: 64 },
+    { role: 'CM', label: 'وسط أيسر', x: 30, y: 44 },
+    { role: 'DM', label: 'وسط دفاعي', x: 50, y: 46 },
+    { role: 'CM', label: 'وسط أيمن', x: 70, y: 44 },
+    { role: 'ST', label: 'مهاجم أيسر', x: 38, y: 18 },
+    { role: 'ST', label: 'مهاجم أيمن', x: 62, y: 18 }
+  ],
+  '3-4-3': [
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'CB', label: 'دفاع أيسر', x: 25, y: 68 },
+    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 70 },
+    { role: 'CB', label: 'دفاع أيمن', x: 75, y: 68 },
+    { role: 'LM', label: 'وسط أيسر', x: 15, y: 44 },
+    { role: 'CM', label: 'وسط أيسر', x: 38, y: 46 },
+    { role: 'CM', label: 'وسط أيمن', x: 62, y: 46 },
+    { role: 'RM', label: 'وسط أيمن', x: 85, y: 44 },
+    { role: 'LW', label: 'جناح أيسر', x: 22, y: 20 },
+    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 },
+    { role: 'RW', label: 'جناح أيمن', x: 78, y: 20 }
+  ],
+  '4-1-4-1': [
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 68 },
+    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 68 },
+    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 68 },
+    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 68 },
+    { role: 'DM', label: 'وسط ارتكاز', x: 50, y: 54 },
+    { role: 'LM', label: 'وسط أيسر', x: 16, y: 38 },
+    { role: 'CM', label: 'وسط أيسر', x: 38, y: 36 },
+    { role: 'CM', label: 'وسط أيمن', x: 62, y: 36 },
+    { role: 'RM', label: 'وسط أيمن', x: 84, y: 38 },
+    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 }
+  ],
+  '4-5-1': [
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 68 },
+    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 68 },
+    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 68 },
+    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 68 },
+    { role: 'LM', label: 'وسط أيسر', x: 15, y: 44 },
+    { role: 'CM', label: 'وسط أيسر', x: 35, y: 48 },
+    { role: 'CM', label: 'وسط صريح', x: 50, y: 46 },
+    { role: 'CM', label: 'وسط أيمن', x: 65, y: 48 },
+    { role: 'RM', label: 'وسط أيمن', x: 85, y: 44 },
     { role: 'ST', label: 'مهاجم صريح', x: 50, y: 18 }
   ],
-  '3-4-2-1': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'CB', label: 'دفاع أيسر', x: 25, y: 74 },
-    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 76 },
-    { role: 'CB', label: 'دفاع أيمن', x: 75, y: 74 },
-    { role: 'LM', label: 'وسط أيسر', x: 15, y: 52 },
-    { role: 'CM', label: 'وسط أيسر', x: 38, y: 54 },
-    { role: 'CM', label: 'وسط أيمن', x: 62, y: 54 },
-    { role: 'RM', label: 'وسط أيمن', x: 85, y: 52 },
+  '5-4-1': [
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'LWB', label: 'ظهير أيسر', x: 12, y: 66 },
+    { role: 'CB', label: 'دفاع أيسر', x: 31, y: 70 },
+    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 72 },
+    { role: 'CB', label: 'دفاع أيمن', x: 69, y: 70 },
+    { role: 'RWB', label: 'ظهير أيمن', x: 88, y: 66 },
+    { role: 'LM', label: 'وسط أيسر', x: 15, y: 44 },
+    { role: 'CM', label: 'وسط أيسر', x: 38, y: 46 },
+    { role: 'CM', label: 'وسط أيمن', x: 62, y: 46 },
+    { role: 'RM', label: 'وسط أيمن', x: 85, y: 44 },
+    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 18 }
+  ],
+  '4-1-2-1-2': [
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 68 },
+    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 68 },
+    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 68 },
+    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 68 },
+    { role: 'DM', label: 'ارتكاز دفاعي', x: 50, y: 56 },
+    { role: 'CM', label: 'وسط أيسر', x: 32, y: 42 },
+    { role: 'CM', label: 'وسط أيمن', x: 68, y: 42 },
+    { role: 'CAM', label: 'صانع ألعاب', x: 50, y: 30 },
+    { role: 'ST', label: 'مهاجم أيسر', x: 38, y: 16 },
+    { role: 'ST', label: 'مهاجم أيمن', x: 62, y: 16 }
+  ],
+  '4-3-2-1': [
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 68 },
+    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 68 },
+    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 68 },
+    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 68 },
+    { role: 'CM', label: 'وسط أيسر', x: 28, y: 50 },
+    { role: 'CM', label: 'وسط أوسط', x: 50, y: 52 },
+    { role: 'CM', label: 'وسط أيمن', x: 72, y: 50 },
     { role: 'CAM', label: 'صانع أيسر', x: 35, y: 32 },
     { role: 'CAM', label: 'صانع أيمن', x: 65, y: 32 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 18 }
+    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 }
   ],
-  '5-2-3': [
-    { role: 'GK', label: 'حارس', x: 50, y: 88 },
-    { role: 'LWB', label: 'ظهير أيسر', x: 12, y: 70 },
-    { role: 'CB', label: 'دفاع أيسر', x: 31, y: 76 },
-    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 78 },
-    { role: 'CB', label: 'دفاع أيمن', x: 69, y: 76 },
-    { role: 'RWB', label: 'ظهير أيمن', x: 88, y: 70 },
+  '3-4-2-1': [
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'CB', label: 'دفاع أيسر', x: 25, y: 68 },
+    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 70 },
+    { role: 'CB', label: 'دفاع أيمن', x: 75, y: 68 },
+    { role: 'LM', label: 'وسط أيسر', x: 15, y: 48 },
     { role: 'CM', label: 'وسط أيسر', x: 38, y: 50 },
     { role: 'CM', label: 'وسط أيمن', x: 62, y: 50 },
-    { role: 'LW', label: 'جناح أيسر', x: 22, y: 22 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 18 },
-    { role: 'RW', label: 'جناح أيمن', x: 78, y: 22 }
+    { role: 'RM', label: 'وسط أيمن', x: 85, y: 48 },
+    { role: 'CAM', label: 'صانع أيسر', x: 35, y: 30 },
+    { role: 'CAM', label: 'صانع أيمن', x: 65, y: 30 },
+    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 }
+  ],
+  '5-2-3': [
+    { role: 'GK', label: 'حارس', x: 50, y: 90 },
+    { role: 'LWB', label: 'ظهير أيسر', x: 12, y: 66 },
+    { role: 'CB', label: 'دفاع أيسر', x: 31, y: 70 },
+    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 72 },
+    { role: 'CB', label: 'دفاع أيمن', x: 69, y: 70 },
+    { role: 'RWB', label: 'ظهير أيمن', x: 88, y: 66 },
+    { role: 'CM', label: 'وسط أيسر', x: 38, y: 46 },
+    { role: 'CM', label: 'وسط أيمن', x: 62, y: 46 },
+    { role: 'LW', label: 'جناح أيسر', x: 22, y: 20 },
+    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 },
+    { role: 'RW', label: 'جناح أيمن', x: 78, y: 20 }
   ]
 };
 
-// عناصر الواجهة الرئيسية
+// عناصر الواجهة
 const matchesLoadingEl = document.getElementById('matches-loading');
 const matchesEmptyEl = document.getElementById('matches-empty');
 const matchesListEl = document.getElementById('matches-list');
 const filterStatusEl = document.getElementById('filter-status');
 
-// النموذج الفرعي لإنشاء مباراة
 const btnOpenMatchModal = document.getElementById('btn-open-match-modal');
 const matchModal = document.getElementById('match-modal');
 const matchForm = document.getElementById('match-form');
 const selectHomeTeam = document.getElementById('match-home-team');
 const selectAwayTeam = document.getElementById('match-away-team');
 
-// اللوحة الفعالة وتفاصيل اللقاء
 const matchPanelPlaceholder = document.getElementById('match-panel-placeholder');
 const matchPanelActive = document.getElementById('match-panel-active');
 const activeMatchStatusBadge = document.getElementById('active-match-status-badge');
 const activeHomeName = document.getElementById('active-home-name');
 const activeAwayName = document.getElementById('active-away-name');
 
-// التحديث السريع
 const matchQuickStatsForm = document.getElementById('match-quick-stats-form');
 const quickScoreHome = document.getElementById('quick-score-home');
 const quickScoreAway = document.getElementById('quick-score-away');
 const quickPossHome = document.getElementById('quick-poss-home');
 const quickPossAway = document.getElementById('quick-poss-away');
 
-// الأحداث
 const matchEventForm = document.getElementById('match-event-form');
 const eventTeamSelect = document.getElementById('event-team');
 const eventPlayerSelect = document.getElementById('event-player');
@@ -238,7 +234,6 @@ const interactivePitch = document.getElementById('interactive-pitch');
 const coordinateDot = document.getElementById('coordinate-dot');
 const activeMatchEventsList = document.getElementById('active-match-events-list');
 
-// التشكيلات والتقييمات SofaScore
 const lineupTeamSelect = document.getElementById('lineup-team-select');
 const lineupFormationSelect = document.getElementById('lineup-formation-select');
 const sofascorePitchSlots = document.getElementById('sofascore-pitch-slots');
@@ -251,7 +246,6 @@ const ratingsAwayList = document.getElementById('ratings-away-list');
 const ratingHomeTitle = document.getElementById('rating-home-title');
 const ratingAwayTitle = document.getElementById('rating-away-title');
 
-// المودال التفاعلي لاختيار اللاعبين
 const playerPickerModal = document.getElementById('player-picker-modal');
 const pickerModalTitle = document.getElementById('picker-modal-title');
 const pickerModalSubtitle = document.getElementById('picker-modal-subtitle');
@@ -261,12 +255,11 @@ const btnClosePickerModal = document.getElementById('btn-close-picker-modal');
 const btnCancelPicker = document.getElementById('btn-cancel-picker');
 const btnUnassignSlot = document.getElementById('btn-unassign-slot');
 
-// حالة التشكيلة الجارية التعديل في الواجهة
 let activeLineupState = {
   teamId: null,
   formation: '4-3-3',
-  starters: new Array(11).fill(null), // يحتوي على 11 عنصراً: { playerId, role, x, y }
-  substitutes: []                     // يحتوي على مصفوفة معرّفات اللاعبين البدلاء [playerId, ...]
+  starters: new Array(11).fill(null),
+  substitutes: []
 };
 
 async function initMatchesManagement() {
@@ -289,7 +282,6 @@ async function initMatchesManagement() {
     eventTeamSelect.addEventListener('change', (e) => populatePlayersDropdownForTeam(e.target.value));
   }
 
-  // تغيير الفريق أو الخطة في التشكيلة
   if (lineupTeamSelect) {
     lineupTeamSelect.addEventListener('change', (e) => loadTeamLineupState(parseInt(e.target.value)));
   }
@@ -313,7 +305,6 @@ async function initMatchesManagement() {
   });
 }
 
-// تهيئة تبديل التبويبات الثلاثة
 function initTabsManagement() {
   const tabs = ['tab-events', 'tab-lineups', 'tab-ratings'];
   tabs.forEach(tabId => {
@@ -344,7 +335,6 @@ function initTabsManagement() {
   });
 }
 
-// تهيئة النافذة المنبثقة لاختيار اللاعبين
 function initTacticalPickerModal() {
   if (btnClosePickerModal) btnClosePickerModal.addEventListener('click', closePickerModal);
   if (btnCancelPicker) btnCancelPicker.addEventListener('click', closePickerModal);
@@ -355,7 +345,6 @@ function initTacticalPickerModal() {
   }
 }
 
-// تحميل الفرق
 async function loadTeamsData() {
   try {
     const teams = await fetchAPI('/api/teams');
@@ -375,7 +364,6 @@ async function loadTeamsData() {
   }
 }
 
-// تحميل المباريات
 async function loadMatches() {
   try {
     showEl(matchesLoadingEl);
@@ -406,7 +394,6 @@ async function loadMatches() {
   }
 }
 
-// بناء بطاقات المباريات
 function renderMatchesList(matches) {
   if (!matchesListEl) return;
   matchesListEl.innerHTML = '';
@@ -500,7 +487,6 @@ function renderMatchesList(matches) {
   }
 }
 
-// تفعيل لوحة الإدارة للمباراة المحددة
 async function selectMatchForManagement(matchId) {
   selectedMatchId = matchId;
   
@@ -548,13 +534,11 @@ async function selectMatchForManagement(matchId) {
 
     updateStatusInterface(match.status);
 
-    // جلب التشكيلة الحالية المسجلة للمباراة
     const lineup = await fetchAPI(`/api/matches/${matchId}/lineup`);
     currentMatchLineup = lineup || [];
 
     renderActiveMatchEvents(match.events || []);
 
-    // اختيار الفريق الأول تلقائياً في التشكيلة
     if (match.homeTeamId) {
       lineupTeamSelect.value = match.homeTeamId;
       await loadTeamLineupState(match.homeTeamId);
@@ -569,7 +553,6 @@ async function selectMatchForManagement(matchId) {
   }
 }
 
-// تحميل حالة تشكيلة النادي المختار على الملعب
 async function loadTeamLineupState(teamId) {
   if (!teamId) {
     sofascorePitchSlots.innerHTML = '<p class="text-slate-500 text-xs text-center py-24">اختر فريقاً لعرض ملعبه التكتيكي</p>';
@@ -580,32 +563,29 @@ async function loadTeamLineupState(teamId) {
   activeLineupState.teamId = teamId;
 
   try {
-    // جلب قائمة كافة لاعبي النادي
     const response = await fetchAPI(`/api/teams/${teamId}`);
     currentTeamRoster = response.players || [];
 
-    // جلب اللاعبين المسجلين مسبقاً لهذا الفريق في هذه المباراة
     const savedTeamRecords = currentMatchLineup.filter(lp => lp.teamId === teamId);
 
-    // إعادة ضبط حالة التشكيلة النشطة
     activeLineupState.starters = new Array(11).fill(null);
     activeLineupState.substitutes = [];
 
     if (savedTeamRecords.length > 0) {
-      // تفقد إذا كان هناك لاعبون أساسيون
       const startingRecords = savedTeamRecords.filter(lp => lp.isStarting);
       const subRecords = savedTeamRecords.filter(lp => !lp.isStarting);
 
       activeLineupState.substitutes = subRecords.map(s => s.playerId);
 
-      // ربط اللاعبين الأساسيين بالخطط
       const formationSlots = FORMATIONS_LIBRARY[activeLineupState.formation] || FORMATIONS_LIBRARY['4-3-3'];
       
       formationSlots.forEach((slot, index) => {
         if (startingRecords[index]) {
           activeLineupState.starters[index] = {
             playerId: startingRecords[index].playerId,
-            role: startingRecords[index].position || slot.role
+            role: startingRecords[index].position || slot.role,
+            customX: startingRecords[index].positionX,
+            customY: startingRecords[index].positionY
           };
         }
       });
@@ -619,7 +599,7 @@ async function loadTeamLineupState(teamId) {
   }
 }
 
-// رسم الملعب التكتيكي التفاعلي بأسلوب SofaScore
+// رسم الملعب التكتيكي التفاعلي بأسلوب SofaScore ونظيف دون تداخل
 function renderSofaScorePitch() {
   if (!sofascorePitchSlots) return;
   sofascorePitchSlots.innerHTML = '';
@@ -631,46 +611,100 @@ function renderSofaScorePitch() {
     const assignedStarter = activeLineupState.starters[index];
     const player = assignedStarter ? currentTeamRoster.find(p => p.id === assignedStarter.playerId) : null;
 
+    // استخدام الإحداثيات المخصصة إذا قام Admin بسحب اللاعب، وإلا استخدام الخطة
+    const posX = (assignedStarter && assignedStarter.customX !== undefined && assignedStarter.customX !== null) ? assignedStarter.customX : slotDef.x;
+    const posY = (assignedStarter && assignedStarter.customY !== undefined && assignedStarter.customY !== null) ? assignedStarter.customY : slotDef.y;
+
     const slotNode = document.createElement('div');
-    slotNode.className = 'absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group flex flex-col items-center transition-all duration-300';
-    slotNode.style.left = `${slotDef.x}%`;
-    slotNode.style.top = `${slotDef.y}%`;
+    slotNode.className = 'absolute -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing group flex flex-col items-center select-none z-10 touch-none';
+    slotNode.style.left = `${posX}%`;
+    slotNode.style.top = `${posY}%`;
 
     if (player) {
-      // دائرة اللاعب بالصورة واسمه ورقم قميصه (طراز SofaScore)
+      // إزالة الصندوق الأسود وإبقاء الاسم بخط ناصع مع ظلال أنيقة فقط دون تداخل
       slotNode.innerHTML = `
-        <div class="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-brand-accent bg-slate-900 p-0.5 shadow-lg flex items-center justify-center group-hover:scale-110 transition duration-200">
+        <div class="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-brand-accent bg-slate-900 p-0.5 shadow-xl flex items-center justify-center group-hover:scale-110 transition duration-200 pointer-events-none">
           <img src="${player.photoUrl || '/img/default-player.png'}" class="w-full h-full rounded-full object-cover" onerror="this.src='/img/default-player.png'">
           <span class="absolute -bottom-1 -right-1 bg-brand-accent text-brand-dark text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-slate-900 shadow">
             ${player.jerseyNumber}
           </span>
         </div>
-        <div class="mt-1 bg-slate-950/90 backdrop-blur-sm border border-slate-800 px-2 py-0.5 rounded-full text-center shadow">
-          <p class="text-[10px] font-bold text-white truncate max-w-[70px] leading-tight">${player.name.split(' ').pop()}</p>
-          <span class="text-[8px] font-extrabold text-brand-accent uppercase tracking-tighter">${slotDef.role}</span>
+        <div class="mt-1 text-center font-bold text-[11px] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] max-w-[85px] truncate leading-tight select-none pointer-events-none">
+          ${player.name}
         </div>
       `;
     } else {
-      // مركز فارغ قابل للتعيين
+      // مركز فارغ قابل للتعيين بالسحب أو النقر
       slotNode.innerHTML = `
-        <div class="w-10 h-10 rounded-full border-2 border-dashed border-emerald-400/60 bg-emerald-950/70 hover:bg-emerald-800/80 hover:border-brand-accent transition duration-200 flex items-center justify-center text-emerald-300 shadow-md">
+        <div class="w-10 h-10 rounded-full border-2 border-dashed border-emerald-400/60 bg-emerald-950/70 hover:bg-emerald-800/80 hover:border-brand-accent transition duration-200 flex items-center justify-center text-emerald-300 shadow-md pointer-events-none">
           <i class="fa-solid fa-plus text-xs group-hover:scale-125 transition"></i>
         </div>
-        <div class="mt-1 bg-emerald-950/80 border border-emerald-800/60 px-1.5 py-0.5 rounded-full text-center">
-          <span class="text-[9px] font-bold text-emerald-300 uppercase">${slotDef.role}</span>
+        <div class="mt-1 text-center font-bold text-[9px] text-emerald-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] select-none pointer-events-none uppercase">
+          ${slotDef.role}
         </div>
       `;
     }
 
-    slotNode.addEventListener('click', () => {
-      openPlayerPickerForSlot(index, slotDef);
-    });
+    // تفعيل خاصية السحب والإفلات التفاعلي بالفأرة واللمس (Drag to move player on pitch)
+    let isDragging = false;
+    let startX, startY;
+
+    const onDragStart = (e) => {
+      isDragging = false;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      startX = clientX;
+      startY = clientY;
+
+      const onDragMove = (moveEvt) => {
+        const curX = moveEvt.touches ? moveEvt.touches[0].clientX : moveEvt.clientX;
+        const curY = moveEvt.touches ? moveEvt.touches[0].clientY : moveEvt.clientY;
+        const dist = Math.hypot(curX - startX, curY - startY);
+
+        if (dist > 6) {
+          isDragging = true;
+          const rect = sofascorePitchSlots.getBoundingClientRect();
+          let pctX = Math.round(((curX - rect.left) / rect.width) * 100);
+          let pctY = Math.round(((curY - rect.top) / rect.height) * 100);
+
+          pctX = Math.max(5, Math.min(95, pctX));
+          pctY = Math.max(5, Math.min(95, pctY));
+
+          slotNode.style.left = `${pctX}%`;
+          slotNode.style.top = `${pctY}%`;
+
+          if (!activeLineupState.starters[index]) {
+            activeLineupState.starters[index] = { playerId: null, role: slotDef.role };
+          }
+          activeLineupState.starters[index].customX = pctX;
+          activeLineupState.starters[index].customY = pctY;
+        }
+      };
+
+      const onDragEnd = () => {
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+        document.removeEventListener('touchmove', onDragMove);
+        document.removeEventListener('touchend', onDragEnd);
+
+        if (!isDragging) {
+          openPlayerPickerForSlot(index, slotDef);
+        }
+      };
+
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup', onDragEnd);
+      document.addEventListener('touchmove', onDragMove);
+      document.addEventListener('touchend', onDragEnd);
+    };
+
+    slotNode.addEventListener('mousedown', onDragStart);
+    slotNode.addEventListener('touchstart', onDragStart, { passive: false });
 
     sofascorePitchSlots.appendChild(slotNode);
   });
 }
 
-// عرض شريط مقاعد البدلاء
 function renderSubstitutesBench() {
   if (!lineupSubstitutesContainer) return;
   lineupSubstitutesContainer.innerHTML = '';
@@ -704,12 +738,11 @@ function renderSubstitutesBench() {
   });
 }
 
-// فتح النافذة المنبثقة لاختيار لاعب لمركز أساسي في الملعب
 function openPlayerPickerForSlot(slotIndex, slotDef) {
   activeSlotIndex = slotIndex;
   isSubstituteMode = false;
 
-  if (pickerModalTitle) pickerModalTitle.textContent = `تعيين لاعب لمركز: ${slotDef.label} (${slotDef.role})`;
+  if (pickerModalTitle) pickerModalTitle.textContent = `تعيين لاعب للمركز (${slotDef.label})`;
   if (pickerModalSubtitle) pickerModalSubtitle.textContent = `خطة المباراة: ${activeLineupState.formation}`;
   if (btnUnassignSlot) btnUnassignSlot.classList.remove('hidden');
 
@@ -717,7 +750,6 @@ function openPlayerPickerForSlot(slotIndex, slotDef) {
   openPickerModal();
 }
 
-// فتح النافذة المنبثقة لاختيار لاعب بديل
 function openPlayerPickerForSubstitute() {
   isSubstituteMode = true;
   activeSlotIndex = null;
@@ -730,7 +762,6 @@ function openPlayerPickerForSubstitute() {
   openPickerModal();
 }
 
-// تعبئة قائمة اللاعبين في المودال التفاعلي
 function renderPickerPlayersList(filterText = '') {
   if (!pickerPlayersList) return;
   pickerPlayersList.innerHTML = '';
@@ -783,9 +814,7 @@ function filterPickerPlayersList(text) {
   renderPickerPlayersList(text);
 }
 
-// اختيار لاعب وتعيينه في المركز المختار بالملعب أو البدلاء
 function selectPlayerInPicker(playerId) {
-  // إزالة اللاعب إذا كان معيناً في مركز آخر لعدم التكرار
   activeLineupState.starters = activeLineupState.starters.map(s => (s && s.playerId === playerId) ? null : s);
   activeLineupState.substitutes = activeLineupState.substitutes.filter(id => id !== playerId);
 
@@ -798,7 +827,9 @@ function selectPlayerInPicker(playerId) {
     
     activeLineupState.starters[activeSlotIndex] = {
       playerId: playerId,
-      role: currentSlotDef ? currentSlotDef.role : 'CM'
+      role: currentSlotDef ? currentSlotDef.role : 'CM',
+      customX: currentSlotDef ? currentSlotDef.x : 50,
+      customY: currentSlotDef ? currentSlotDef.y : 50
     };
     renderSofaScorePitch();
   }
@@ -806,7 +837,6 @@ function selectPlayerInPicker(playerId) {
   closePickerModal();
 }
 
-// تفريغ المركز
 function unassignCurrentSlot() {
   if (activeSlotIndex !== null) {
     activeLineupState.starters[activeSlotIndex] = null;
@@ -836,10 +866,9 @@ function closePickerModal() {
   }, 300);
 }
 
-// حفظ التشكيلة بالكامل لقاعدة البيانات
 async function handleSaveLineup() {
   if (!selectedMatchId || !activeMatchData || !activeLineupState.teamId) {
-    alert('الرجاء اختيار النادي وضبط تشكيلته أولاً.');
+    alert('الرجاء اختيار النادي وضبط تشكيله أولاً.');
     return;
   }
 
@@ -849,15 +878,16 @@ async function handleSaveLineup() {
 
   const selectedTeamRecords = [];
 
-  // 1. معالجة الأساسيين
   activeLineupState.starters.forEach((starter, index) => {
     if (starter && starter.playerId) {
       const slotDef = formationSlots[index] || { role: 'CM', x: 50, y: 50 };
       
-      // تحويل الإحداثيات العمودية بالملعب التكتيكي لمتغير x,y متوافق مع المخطط المائل
-      let coords = { x: slotDef.x, y: slotDef.y };
+      const finalX = (starter.customX !== undefined && starter.customX !== null) ? starter.customX : slotDef.x;
+      const finalY = (starter.customY !== undefined && starter.customY !== null) ? starter.customY : slotDef.y;
+
+      let coords = { x: finalX, y: finalY };
       if (!isHome) {
-        coords = { x: 100 - slotDef.x, y: 100 - slotDef.y };
+        coords = { x: 100 - finalX, y: 100 - finalY };
       }
 
       selectedTeamRecords.push({
@@ -872,7 +902,6 @@ async function handleSaveLineup() {
     }
   });
 
-  // 2. معالجة البدلاء
   activeLineupState.substitutes.forEach(subPlayerId => {
     selectedTeamRecords.push({
       teamId: teamId,
@@ -885,7 +914,6 @@ async function handleSaveLineup() {
     });
   });
 
-  // الحفاظ على تشكيلة الفريق الآخر دون مساس
   const otherTeamRecords = currentMatchLineup
     .filter(lp => lp.teamId !== teamId)
     .map(lp => ({
@@ -903,7 +931,7 @@ async function handleSaveLineup() {
   try {
     const result = await fetchAPI(`/api/matches/${selectedMatchId}/lineup`, 'POST', { lineup: fullLineupPayload });
     if (result && result.success) {
-      alert('تم حفظ وتحديث التشكيلة التكتيكية للنادي بنجاح!');
+      alert('تم حفظ وتحديث التشكيلة التكتيكية ومواقع اللاعبين المحددة بنجاح!');
       currentMatchLineup = result.lineup || [];
     }
   } catch (err) {
@@ -912,7 +940,6 @@ async function handleSaveLineup() {
   }
 }
 
-// جلب وتعبئة التقييمات
 async function loadRatingsLists() {
   if (!ratingsHomeList || !ratingsAwayList || !selectedMatchId || !activeMatchData) return;
 
@@ -932,7 +959,6 @@ async function loadRatingsLists() {
     const homePlayers = currentMatchLineup.filter(lp => lp.teamId === activeMatchData.homeTeamId);
     const awayPlayers = currentMatchLineup.filter(lp => lp.teamId === activeMatchData.awayTeamId);
 
-    // بناء واجهة الأرض
     ratingsHomeList.innerHTML = '';
     if (homePlayers.length === 0) {
       ratingsHomeList.innerHTML = '<p class="text-slate-600 text-xs py-2">لا يوجد لاعبين مشاركين بالتشكيلة حالياً.</p>';
@@ -953,7 +979,6 @@ async function loadRatingsLists() {
       });
     }
 
-    // بناء واجهة الضيف
     ratingsAwayList.innerHTML = '';
     if (awayPlayers.length === 0) {
       ratingsAwayList.innerHTML = '<p class="text-slate-600 text-xs py-2">لا يوجد لاعبين مشاركين بالتشكيلة حالياً.</p>';
@@ -979,7 +1004,6 @@ async function loadRatingsLists() {
   }
 }
 
-// حفظ التقييمات
 async function handleSaveRatings() {
   if (!selectedMatchId) return;
 
@@ -1014,7 +1038,6 @@ async function handleSaveRatings() {
   }
 }
 
-// تحديث الواجهة لحالة المباراة
 function updateStatusInterface(status) {
   if (!activeMatchStatusBadge) return;
 
@@ -1041,7 +1064,6 @@ function updateStatusInterface(status) {
   });
 }
 
-// تبديل حالة اللقاء السريع
 async function handleStatusSwitch(newStatus) {
   if (!selectedMatchId) return;
 
@@ -1057,7 +1079,6 @@ async function handleStatusSwitch(newStatus) {
   }
 }
 
-// جلب التشكيلة عند اختيار الفريق لتسجيل الأحداث
 async function populatePlayersDropdownForTeam(teamId) {
   if (!eventPlayerSelect) return;
   eventPlayerSelect.innerHTML = '<option value="">اختر اللاعب</option>';
@@ -1074,7 +1095,6 @@ async function populatePlayersDropdownForTeam(teamId) {
   }
 }
 
-// التقاط النقرات على مخطط الأحداث
 function handlePitchClick(e) {
   if (!interactivePitch) return;
 
@@ -1095,7 +1115,6 @@ function handlePitchClick(e) {
   }
 }
 
-// حفظ بيانات النتيجة العامة
 async function handleQuickStatsSubmit(e) {
   e.preventDefault();
   if (!selectedMatchId) return;
@@ -1120,7 +1139,6 @@ async function handleQuickStatsSubmit(e) {
   }
 }
 
-// إرسال وتسجيل حدث المباراة
 async function handleEventSubmit(e) {
   e.preventDefault();
   if (!selectedMatchId) return;
@@ -1151,7 +1169,6 @@ async function handleEventSubmit(e) {
   }
 }
 
-// تعبئة قائمة الأحداث المسجلة مؤخراً
 function renderActiveMatchEvents(events) {
   if (!activeMatchEventsList) return;
   activeMatchEventsList.innerHTML = '';
@@ -1195,7 +1212,6 @@ function renderActiveMatchEvents(events) {
   });
 }
 
-// النوافذ المنبثقة
 function openMatchModal() {
   if (!matchModal) return;
   matchModal.classList.remove('hidden');
@@ -1216,7 +1232,6 @@ function closeMatchModal() {
   }, 300);
 }
 
-// معالجة جدولة اللقاء
 async function handleMatchCreation(e) {
   e.preventDefault();
 
