@@ -1,6 +1,6 @@
 /**
  * ANADOL League - Matches Routes
- * مسارات التحكم بالمباريات والنتائج (عرض، جدولة، تعديل النتائج، تحديث الحالة السريع، وتثبيت/حذف الأحداث).
+ * مسارات التحكم بالمباريات والنتائج (عرض، جدولة، تعديل النتائج والإحصائيات، تحديث الحالة السريع، وتثبيت/حذف الأحداث).
  */
 
 const express = require('express');
@@ -102,7 +102,7 @@ router.get('/', async (req, res) => {
 
 /**
  * 2. GET /api/matches/:id
- * جلب تفاصيل مباراة محددة مع أحداثها المسجلة (Heatmap & Match Events)
+ * جلب تفاصيل مباراة محددة مع أحداثها المسجلة (Heatmap & Match Events & Full Stats)
  */
 router.get('/:id', async (req, res) => {
     try {
@@ -221,7 +221,7 @@ router.post('/', verifyToken, isEditorOrAdmin, async (req, res) => {
 router.post('/:id/lineup', verifyToken, isEditorOrAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { lineup } = req.body; // ننتظر مصفوفة تحتوي على اللاعبين وم مواقعهم
+        const { lineup } = req.body; // ننتظر مصفوفة تحتوي على اللاعبين ومواقعهم
 
         if (!MatchPlayer) {
             return res.status(503).json({ error: 'نظام تشكيلات المباريات قيد التحديث وغير متوفر حالياً' });
@@ -261,12 +261,20 @@ router.post('/:id/lineup', verifyToken, isEditorOrAdmin, async (req, res) => {
 
 /**
  * 4. PUT /api/matches/:id
- * تعديل شامل لبيانات مباراة، ونتيجة اللقاء، ونسب الاستحواذ (صلاحية Admin / Editor فقط)
+ * تعديل شامل لبيانات مباراة، النتيجة، نسب الاستحواذ، والإحصائيات التفصيلية الكاملة (صلاحية Admin / Editor فقط)
  */
 router.put('/:id', verifyToken, isEditorOrAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { homeScore, awayScore, status, possessionHome, possessionAway } = req.body;
+        const {
+            homeScore, awayScore, status, possessionHome, possessionAway,
+            shotsHome, shotsAway, shotsOnTargetHome, shotsOnTargetAway,
+            foulsHome, foulsAway, offsidesHome, offsidesAway,
+            cornersHome, cornersAway, freeKicksHome, freeKicksAway,
+            passesHome, passesAway, passesCompletedHome, passesCompletedAway,
+            crossesHome, crossesAway, interceptionsHome, interceptionsAway,
+            tacklesHome, tacklesAway, savesHome, savesAway
+        } = req.body;
 
         const match = await Match.findByPk(id);
         if (!match) {
@@ -278,7 +286,38 @@ router.put('/:id', verifyToken, isEditorOrAdmin, async (req, res) => {
             awayScore: awayScore !== undefined ? awayScore : match.awayScore,
             status: status !== undefined ? status : match.status,
             possessionHome: possessionHome !== undefined ? possessionHome : match.possessionHome,
-            possessionAway: possessionAway !== undefined ? possessionAway : match.possessionAway
+            possessionAway: possessionAway !== undefined ? possessionAway : match.possessionAway,
+            
+            // تحديث الإحصائيات الفنية التفصيلية
+            shotsHome: shotsHome !== undefined ? shotsHome : match.shotsHome,
+            shotsAway: shotsAway !== undefined ? shotsAway : match.shotsAway,
+            shotsOnTargetHome: shotsOnTargetHome !== undefined ? shotsOnTargetHome : match.shotsOnTargetHome,
+            shotsOnTargetAway: shotsOnTargetAway !== undefined ? shotsOnTargetAway : match.shotsOnTargetAway,
+
+            foulsHome: foulsHome !== undefined ? foulsHome : match.foulsHome,
+            foulsAway: foulsAway !== undefined ? foulsAway : match.foulsAway,
+            offsidesHome: offsidesHome !== undefined ? offsidesHome : match.offsidesHome,
+            offsidesAway: offsidesAway !== undefined ? offsidesAway : match.offsidesAway,
+
+            cornersHome: cornersHome !== undefined ? cornersHome : match.cornersHome,
+            cornersAway: cornersAway !== undefined ? cornersAway : match.cornersAway,
+            freeKicksHome: freeKicksHome !== undefined ? freeKicksHome : match.freeKicksHome,
+            freeKicksAway: freeKicksAway !== undefined ? freeKicksAway : match.freeKicksAway,
+
+            passesHome: passesHome !== undefined ? passesHome : match.passesHome,
+            passesAway: passesAway !== undefined ? passesAway : match.passesAway,
+            passesCompletedHome: passesCompletedHome !== undefined ? passesCompletedHome : match.passesCompletedHome,
+            passesCompletedAway: passesCompletedAway !== undefined ? passesCompletedAway : match.passesCompletedAway,
+
+            crossesHome: crossesHome !== undefined ? crossesHome : match.crossesHome,
+            crossesAway: crossesAway !== undefined ? crossesAway : match.crossesAway,
+            interceptionsHome: interceptionsHome !== undefined ? interceptionsHome : match.interceptionsHome,
+            interceptionsAway: interceptionsAway !== undefined ? interceptionsAway : match.interceptionsAway,
+
+            tacklesHome: tacklesHome !== undefined ? tacklesHome : match.tacklesHome,
+            tacklesAway: tacklesAway !== undefined ? tacklesAway : match.tacklesAway,
+            savesHome: savesHome !== undefined ? savesHome : match.savesHome,
+            savesAway: savesAway !== undefined ? savesAway : match.savesAway
         });
 
         return res.status(200).json({ success: true, match });
