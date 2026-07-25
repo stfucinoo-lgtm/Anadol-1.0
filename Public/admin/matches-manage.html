@@ -76,7 +76,7 @@
     <!-- Action Top Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
       <div>
-        <p class="text-slate-400 text-sm">جدولة مواعيد المباريات، تبديل حالات اللعب، وتعديل تشكيلات وتقييمات اللاعبين لتقديم إحصائيات متقدمة.</p>
+        <p class="text-slate-400 text-sm">جدولة مواعيد المباريات، تبديل حالات اللعب، إدخال الإحصائيات المتقدمة، وتعديل تشكيلات وتقييمات اللاعبين.</p>
       </div>
       <div>
         <button id="btn-open-match-modal" class="w-full sm:w-auto bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-bold px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 transition duration-200">
@@ -161,7 +161,7 @@
               </div>
             </div>
 
-            <!-- Match Score/Stats Form (Quick Save) -->
+            <!-- Match Score Form (Quick Save) -->
             <form id="match-quick-stats-form" class="space-y-4 bg-slate-900/50 p-4 rounded-lg border border-slate-800/80">
               <div class="flex items-center justify-between text-center gap-2">
                 <!-- Home Team Name & Input -->
@@ -178,34 +178,25 @@
                 </div>
               </div>
 
-              <!-- Possession Inputs -->
-              <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800/60">
-                <div>
-                  <label class="block text-[10px] font-semibold text-slate-400 mb-1">نسبة استحواذ الأرض %</label>
-                  <input type="number" id="quick-poss-home" min="0" max="100" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1 text-xs text-slate-200">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-semibold text-slate-400 mb-1">نسبة استحواذ الضيف %</label>
-                  <input type="number" id="quick-poss-away" min="0" max="100" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1 text-xs text-slate-200">
-                </div>
-              </div>
-
               <div class="flex justify-end pt-1">
                 <button type="submit" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark text-xs font-bold px-4 py-1.5 rounded-lg transition duration-200">
-                  حفظ التحديث السريع
+                  حفظ النتيجة السريعة
                 </button>
               </div>
             </form>
 
             <!-- Navigation Tabs (نظام التبويبات) -->
-            <div class="flex border-b border-slate-800 gap-1 mt-6">
-              <button type="button" id="tab-events" class="tab-btn active border-b-2 border-transparent px-4 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+            <div class="flex border-b border-slate-800 gap-1 mt-6 overflow-x-auto custom-scrollbar pb-1">
+              <button type="button" id="tab-events" class="tab-btn active border-b-2 border-transparent px-3 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white whitespace-nowrap">
                 <i class="fa-solid fa-chart-line"></i> الأحداث
               </button>
-              <button type="button" id="tab-lineups" class="tab-btn border-b-2 border-transparent px-4 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+              <button type="button" id="tab-stats" class="tab-btn border-b-2 border-transparent px-3 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white whitespace-nowrap">
+                <i class="fa-solid fa-chart-simple"></i> الإحصائيات الشاملة
+              </button>
+              <button type="button" id="tab-lineups" class="tab-btn border-b-2 border-transparent px-3 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white whitespace-nowrap">
                 <i class="fa-solid fa-users-gear"></i> التشكيلة (SofaScore)
               </button>
-              <button type="button" id="tab-ratings" class="tab-btn border-b-2 border-transparent px-4 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+              <button type="button" id="tab-ratings" class="tab-btn border-b-2 border-transparent px-3 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white whitespace-nowrap">
                 <i class="fa-solid fa-star-half-stroke"></i> التقييمات
               </button>
             </div>
@@ -290,7 +281,122 @@
               </div>
             </div>
 
-            <!-- ==================== TAB 2: SOFASCORE LINEUPS MANAGEMENT ==================== -->
+            <!-- ==================== TAB 2: FULL MATCH STATISTICS FORM ==================== -->
+            <div id="tab-content-stats" class="tab-content hidden space-y-4">
+              <form id="full-match-stats-form" class="space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-chart-bar text-brand-accent"></i>
+                    إدخال وحفظ إحصائيات المباراة الكاملة
+                  </h3>
+                  <span class="text-[10px] text-slate-400">تظهر هذه البيانات للجمهور في صفحة تفاصيل اللقاء</span>
+                </div>
+
+                <!-- Header Labels for Team Columns -->
+                <div class="grid grid-cols-12 gap-2 bg-slate-900 p-2.5 rounded-lg text-center font-bold text-xs text-slate-300">
+                  <div id="stats-home-title" class="col-span-4 text-brand-accent truncate">صاحب الأرض</div>
+                  <div class="col-span-4 text-slate-400">نوع الإحصائية</div>
+                  <div id="stats-away-title" class="col-span-4 text-slate-300 truncate">الضيف</div>
+                </div>
+
+                <div class="space-y-2 max-h-[420px] overflow-y-auto pr-1 custom-scrollbar text-xs">
+                  
+                  <!-- 1. Possession -->
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-possession-home" min="0" max="100" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-bold text-brand-accent"></div>
+                    <div class="col-span-4 text-center font-bold text-slate-300">الاستحواذ (%)</div>
+                    <div class="col-span-4"><input type="number" id="stat-possession-away" min="0" max="100" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-bold text-white"></div>
+                  </div>
+
+                  <!-- 2. Shots & Shots on Target -->
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-shots-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">إجمالي التسديدات</div>
+                    <div class="col-span-4"><input type="number" id="stat-shots-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-shots-target-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">التسديدات على المرمى</div>
+                    <div class="col-span-4"><input type="number" id="stat-shots-target-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                  <!-- 3. Fouls & Offsides -->
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-fouls-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">الأخطاء (الفاولات)</div>
+                    <div class="col-span-4"><input type="number" id="stat-fouls-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-offsides-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">حالات التسلل</div>
+                    <div class="col-span-4"><input type="number" id="stat-offsides-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                  <!-- 4. Corners & Free Kicks -->
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-corners-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">الضربات الركنية</div>
+                    <div class="col-span-4"><input type="number" id="stat-corners-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-freekicks-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">الضربات الحرة</div>
+                    <div class="col-span-4"><input type="number" id="stat-freekicks-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                  <!-- 5. Passes & Completed Passes -->
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-passes-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">إجمالي التمريرات</div>
+                    <div class="col-span-4"><input type="number" id="stat-passes-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-passes-completed-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">التمريرات الناجحة</div>
+                    <div class="col-span-4"><input type="number" id="stat-passes-completed-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                  <!-- 6. Crosses & Interceptions -->
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-crosses-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">الكرات العرضية</div>
+                    <div class="col-span-4"><input type="number" id="stat-crosses-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-interceptions-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">قطع الكرات (الاستعادة)</div>
+                    <div class="col-span-4"><input type="number" id="stat-interceptions-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                  <!-- 7. Tackles & Saves -->
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-tackles-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">التدخلات الناجحة</div>
+                    <div class="col-span-4"><input type="number" id="stat-tackles-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                  <div class="grid grid-cols-12 gap-2 items-center bg-slate-900/40 p-2 rounded-lg border border-slate-800/60">
+                    <div class="col-span-4"><input type="number" id="stat-saves-home" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                    <div class="col-span-4 text-center font-semibold text-slate-300">تصديات الحارس</div>
+                    <div class="col-span-4"><input type="number" id="stat-saves-away" min="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-center font-semibold text-white"></div>
+                  </div>
+
+                </div>
+
+                <div class="flex justify-end pt-3 border-t border-slate-800">
+                  <button type="submit" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark text-xs font-bold px-6 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ الإحصائيات الشاملة
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- ==================== TAB 3: SOFASCORE LINEUPS MANAGEMENT ==================== -->
             <div id="tab-content-lineups" class="tab-content hidden space-y-5">
               <div class="flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
@@ -373,7 +479,7 @@
               </div>
             </div>
 
-            <!-- ==================== TAB 3: RATINGS MANAGEMENT ==================== -->
+            <!-- ==================== TAB 4: RATINGS MANAGEMENT ==================== -->
             <div id="tab-content-ratings" class="tab-content hidden space-y-4">
               <div class="flex justify-between items-center">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">تقييم اللاعبين المشاركين</h3>
