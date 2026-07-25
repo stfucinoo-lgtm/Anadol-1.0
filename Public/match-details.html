@@ -69,7 +69,7 @@
     <!-- Loading State -->
     <div id="details-loading" class="py-32 text-center text-slate-400">
       <i class="fa-solid fa-circle-notch animate-spin text-3xl text-brand-accent mb-3"></i>
-      <p class="text-sm font-semibold">جاري تحضير إحصائيات والملعب التكتيكي للمباراة...</p>
+      <p class="text-sm font-semibold">جاري تحضير الإحصائيات والملعب التكتيكي للمباراة...</p>
     </div>
 
     <!-- Error State -->
@@ -132,7 +132,7 @@
           </div>
 
           <!-- Possession Bar -->
-          <div class="w-full max-w-xl mt-8 space-y-1.5">
+          <div class="w-full max-w-xl mt-6 space-y-1.5">
             <div class="flex items-center justify-between text-xs font-bold text-slate-400">
               <span id="poss-home-lbl">الاستحواذ: 50%</span>
               <span id="poss-away-lbl">50% :الاستحواذ</span>
@@ -140,6 +140,20 @@
             <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden flex border border-slate-800 p-0.5">
               <div id="poss-home-bar" class="bg-brand-accent h-full rounded-l-full transition-all duration-700" style="width: 50%;"></div>
               <div id="poss-away-bar" class="bg-slate-600 h-full rounded-r-full transition-all duration-700" style="width: 50%;"></div>
+            </div>
+          </div>
+
+          <!-- Timeline Events Stream under Scoreboard (الموضع الجديد لشريط أحداث اللقاء المباشرة) -->
+          <div class="w-full max-w-4xl mt-6 pt-4 border-t border-slate-800/80">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-xs font-extrabold text-slate-300 flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-brand-accent"></i>
+                شريط أحداث اللقاء المباشرة
+              </h4>
+              <span class="text-[10px] text-slate-500 font-mono">الترتيب الزمني اللحظي</span>
+            </div>
+            <div id="match-timeline-feed" class="flex flex-wrap items-center justify-center gap-2 max-h-[140px] overflow-y-auto custom-scrollbar p-1">
+              <p class="text-slate-500 text-xs text-center py-2">لا توجد أحداث مسجلة في شريط المباراة حتى الآن.</p>
             </div>
           </div>
 
@@ -195,11 +209,11 @@
         </div>
       </section>
 
-      <!-- 3. Roster Lists & Chronological Timeline Feed -->
+      <!-- 3. Roster Lists & Full Match Statistics Comparison Bars -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         <!-- Starting Lineups & Substitutes Lists -->
-        <div class="lg:col-span-8 bg-brand-card rounded-2xl border border-slate-800 p-6 shadow-xl space-y-6">
+        <div class="lg:col-span-7 bg-brand-card rounded-2xl border border-slate-800 p-6 shadow-xl space-y-6">
           <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
             <i class="fa-solid fa-users text-brand-accent"></i>
             قائمة تشكيلة الفريقين ومقاعد البدلاء
@@ -240,15 +254,19 @@
           </div>
         </div>
 
-        <!-- Chronological Timeline Feed -->
-        <div class="lg:col-span-4 bg-brand-card rounded-2xl border border-slate-800 p-6 shadow-xl space-y-4">
-          <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-3 flex items-center gap-2">
-            <i class="fa-solid fa-list-check text-brand-accent"></i>
-            شريط أحداث اللقاء المباشرة
-          </h3>
+        <!-- Full Match Statistics Comparison Bars (القسم الجديد المخصص لإحصائيات المباراة الشاملة) -->
+        <div class="lg:col-span-5 bg-brand-card rounded-2xl border border-slate-800 p-6 shadow-xl space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-chart-simple text-brand-accent"></i>
+              إحصائيات المباراة الشاملة
+            </h3>
+            <span class="text-[10px] text-slate-400 font-bold">مقارنة الفريقين</span>
+          </div>
 
-          <div class="space-y-3 max-h-[480px] overflow-y-auto custom-scrollbar pr-1" id="match-timeline-feed">
-            <p class="text-slate-500 text-xs text-center py-8">لا توجد أحداث مسجلة في شريط المباراة.</p>
+          <!-- Dynamic Comparison Bars list -->
+          <div id="match-stats-comparison-list" class="space-y-4">
+            <!-- Will be populated dynamically via match-details.js -->
           </div>
         </div>
 
