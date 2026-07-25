@@ -1,6 +1,6 @@
 /**
- * ANADOL League - Match Details Script (SofaScore Horizontal Display Corrected)
- * يقرأ معرّف المباراة ويعرض النتيجة، الاستحواذ، مسجلي الأهداف، والملعب التكتيكي الأفقي الموجه بشكل صحيح للفريقين (Left vs Right).
+ * ANADOL League - Match Details Script (SofaScore Horizontal Display with Collision Detection)
+ * يقرأ معرّف المباراة ويعرض النتيجة، الاستحواذ، مسجلي الأهداف، والملعب التكتيكي الأفقي مع خوارزمية منع تداخل اللاعبين.
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. تعبئة لوحة النتائج واسم الملعب ومسجلي الأهداف تحت الفرق
     renderScoreboard(match);
 
-    // 3. رسم الملعب التكتيكي الأفقي الموحد والموجه بالاتجاه الصحيح
+    // 3. رسم الملعب التكتيكي الأفقي الموحد والموجه بشكل دقيق مع منع التداخل
     renderHorizontalSofaScorePitch(match, lineup || []);
 
     // 4. عرض القوائم والبدلاء مع التقييمات الرقمية الملونة
@@ -133,6 +133,45 @@ function renderScoreboard(match) {
   document.getElementById('poss-away-bar').style.width = `${possAway}%`;
 }
 
+// خوارزمية منع التداخل التلقائي لضبط المسافات والباذينج بين اللاعبين (Collision Detection & Spacing)
+function resolveTeamCollisions(nodes, minX, maxX) {
+  const minDist = 11.5; // الحد الأدنى للمسافة النسبية المسموحة بين مركزي كل لاعبين
+  const iterations = 15;
+
+  for (let iter = 0; iter < iterations; iter++) {
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        let dx = nodes[j].x - nodes[i].x;
+        let dy = nodes[j].y - nodes[i].y;
+        let dist = Math.hypot(dx, dy);
+
+        if (dist < minDist) {
+          if (dist === 0) {
+            dx = 0.1;
+            dy = 0.1;
+            dist = 0.14;
+          }
+
+          const overlap = (minDist - dist) / 2;
+          const nx = dx / dist;
+          const ny = dy / dist;
+
+          nodes[i].x -= nx * overlap;
+          nodes[i].y -= ny * overlap;
+          nodes[j].x += nx * overlap;
+          nodes[j].y += ny * overlap;
+
+          // ضمان البقاء ضمن نصف الملعب المخصص وقواعد الحواف
+          nodes[i].x = Math.max(minX, Math.min(maxX, nodes[i].x));
+          nodes[i].y = Math.max(8, Math.min(92, nodes[i].y));
+          nodes[j].x = Math.max(minX, Math.min(maxX, nodes[j].x));
+          nodes[j].y = Math.max(8, Math.min(92, nodes[j].y));
+        }
+      }
+    }
+  }
+}
+
 // رسم الملعب الأفقي الموحد والموجه بشكل دقيق بأسلوب SofaScore
 function renderHorizontalSofaScorePitch(match, lineup) {
   const pitchEl = document.getElementById('tactical-pitch');
@@ -166,33 +205,41 @@ function renderHorizontalSofaScorePitch(match, lineup) {
   if (homeRatingEl) homeRatingEl.textContent = homeAvg.toFixed(2);
   if (awayRatingEl) awayRatingEl.textContent = awayAvg.toFixed(2);
 
-  // 1. صاحب الأرض (على اليسار - حارسه أقصى اليسار X=6% وهجومه نحو المنتصف X=44%)
+  // 1. حساب إحداثيات صاحب الأرض (على اليسار - الحارس على خط المرمى أقصى اليسار X=6% والهجوم لليمين X=44%)
+  const homeNodes = [];
   homeStarters.forEach(lp => {
-    const rawX = lp.positionX ?? 50; // العرض العمودي 0-100
-    const rawY = lp.positionY ?? 70; // العمق التكتيكي (الحارس 90 ، المهاجم 16)
+    const rawX = (lp.positionX !== null && lp.positionX !== undefined) ? lp.positionX : 50; // العرض العمودي
+    const rawY = (lp.positionY !== null && lp.positionY !== undefined) ? lp.positionY : 70; // عمق الخطة (الحارس 90 ، المهاجم 16)
 
-    // تحويل العمق الصريح لجهة اليسار
-    const depthVal = (rawY < 50) ? (100 - rawY) : rawY;
-    const finalX = 6 + ((90 - depthVal) * 0.51);
-    const finalY = rawX;
+    const depthFromOwnGoal = (rawY < 50) ? (100 - rawY) : rawY;
+    const initialX = 6 + ((90 - depthFromOwnGoal) * 0.48);
+    const initialY = Math.max(10, Math.min(90, rawX));
 
-    createPitchPlayerNode(pitchEl, lp, finalX, finalY, true);
+    homeNodes.push({ lineupRecord: lp, x: initialX, y: initialY, isHome: true });
   });
 
-  // 2. الضيف (على اليمين - حارسه أقصى اليمين X=94% وهجومه نحو المنتصف X=56%)
+  // تشغيل خوارزمية منع التداخل والتصادم لنصف الملعب الأيسر
+  resolveTeamCollisions(homeNodes, 5, 46);
+
+  // 2. حساب إحداثيات الفريق الضيف (على اليمين - الحارس على خط المرمى أقصى اليمين X=94% والهجوم لليسار X=56%)
+  const awayNodes = [];
   awayStarters.forEach(lp => {
-    const rawX = lp.positionX ?? 50;
-    const rawY = lp.positionY ?? 70;
+    const rawX = (lp.positionX !== null && lp.positionX !== undefined) ? lp.positionX : 50;
+    const rawY = (lp.positionY !== null && lp.positionY !== undefined) ? lp.positionY : 70;
 
-    // توحيد قياس عمق الفريق الأيمن ليصبح الحارس عند 94% والمهاجم عند 56%
-    const depthVal = (rawY < 50) ? (100 - rawY) : rawY;
-    const finalX = 94 - ((90 - depthVal) * 0.51);
-    
-    // ضبط الاتجاه العمودي متناظراً
-    const finalY = (rawX > 50) ? (100 - rawX) : (100 - rawX);
+    const depthFromOwnGoal = (rawY < 50) ? (100 - rawY) : rawY;
+    const initialX = 94 - ((90 - depthFromOwnGoal) * 0.48);
+    const initialY = Math.max(10, Math.min(90, 100 - rawX)); // تناظر عمودي معكوس متوازن
 
-    createPitchPlayerNode(pitchEl, lp, finalX, finalY, false);
+    awayNodes.push({ lineupRecord: lp, x: initialX, y: initialY, isHome: false });
   });
+
+  // تشغيل خوارزمية منع التداخل والتصادم لنصف الملعب الأيمن
+  resolveTeamCollisions(awayNodes, 54, 95);
+
+  // رسم جميع العقد بعد معالجة التباعد بالفيزياء
+  homeNodes.forEach(node => createPitchPlayerNode(pitchEl, node.lineupRecord, node.x, node.y, true));
+  awayNodes.forEach(node => createPitchPlayerNode(pitchEl, node.lineupRecord, node.x, node.y, false));
 }
 
 function createPitchPlayerNode(pitchContainer, lineupRecord, posX, posY, isHome) {
@@ -202,7 +249,7 @@ function createPitchPlayerNode(pitchContainer, lineupRecord, posX, posY, isHome)
   const ratingBadgeClass = getRatingBadgeClass(rating);
 
   const node = document.createElement('div');
-  node.className = 'absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center select-none player-node-bubble transition duration-300 z-10';
+  node.className = 'absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center select-none player-node-bubble transition-all duration-300 z-10';
   node.style.left = `${posX}%`;
   node.style.top = `${posY}%`;
 
