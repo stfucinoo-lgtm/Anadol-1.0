@@ -1,6 +1,6 @@
 /**
- * ANADOL League - Match Details Script (SofaScore Horizontal Pitch with Strict Positioning)
- * يعرض تفاصيل المباراة والملعب التكتيكي بإحداثيات رياضية ثابتة تضمن تواجه الفريقين ومنع التداخل.
+ * ANADOL League - Match Details Script (SofaScore Horizontal Pitch & Full Match Statistics)
+ * يعرض تفاصيل المباراة، الإحصائيات التفصيلية الشاملة المقارنة باللغة العربية، والملعب التكتيكي بإحداثيات رياضية ثابتة.
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const lineup = await fetchAPI(`/api/matches/${matchId}/lineup`).catch(() => []);
 
-    // 2. تعبئة لوحة النتائج واسم الملعب ومسجلي الأهداف تحت الفرق
+    // 2. تعبئة لوحة النتائج واسم الملعب ومسجلي الأهداف وشريط الأحداث المباشر تحت النتيجة
     renderScoreboard(match);
 
     // 3. رسم الملعب التكتيكي بالإحداثيات الرياضية الثابتة ومنع التداخل
@@ -37,7 +37,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 4. عرض القوائم والبدلاء مع التقييمات الرقمية الملونة
     renderRostersList(match, lineup || []);
 
-    // 5. عرض شريط الأحداث المباشرة
+    // 5. عرض الإحصائيات الشاملة والمقارنة باللغة العربية
+    renderFullMatchStats(match);
+
+    // 6. عرض شريط الأحداث المباشرة اللحظية
     renderTimelineFeed(match.events || []);
 
     if (loadingEl) loadingEl.classList.add('hidden');
@@ -133,6 +136,59 @@ function renderScoreboard(match) {
   document.getElementById('poss-away-bar').style.width = `${possAway}%`;
 }
 
+// رسم الإحصائيات الشاملة بأشرطة مقارنة مرئية باللغة العربية
+function renderFullMatchStats(match) {
+  const container = document.getElementById('match-stats-comparison-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const statsList = [
+    { label: 'الاستحواذ (%)', home: match.possessionHome ?? 50, away: match.possessionAway ?? 50, isPercentage: true },
+    { label: 'إجمالي التسديدات', home: match.shotsHome ?? 0, away: match.shotsAway ?? 0 },
+    { label: 'التسديدات على المرمى', home: match.shotsOnTargetHome ?? 0, away: match.shotsOnTargetAway ?? 0 },
+    { label: 'الأخطاء (الفاولات)', home: match.foulsHome ?? 0, away: match.foulsAway ?? 0 },
+    { label: 'حالات التسلل', home: match.offsidesHome ?? 0, away: match.offsidesAway ?? 0 },
+    { label: 'الضربات الركنية', home: match.cornersHome ?? 0, away: match.cornersAway ?? 0 },
+    { label: 'الضربات الحرة', home: match.freeKicksHome ?? 0, away: match.freeKicksAway ?? 0 },
+    { label: 'إجمالي التمريرات', home: match.passesHome ?? 0, away: match.passesAway ?? 0 },
+    { label: 'التمريرات الناجحة', home: match.passesCompletedHome ?? 0, away: match.passesCompletedAway ?? 0 },
+    { label: 'الكرات العرضية', home: match.crossesHome ?? 0, away: match.crossesAway ?? 0 },
+    { label: 'قطع الكرات (الاستعادة)', home: match.interceptionsHome ?? 0, away: match.interceptionsAway ?? 0 },
+    { label: 'التدخلات الناجحة', home: match.tacklesHome ?? 0, away: match.tacklesAway ?? 0 },
+    { label: 'تصديات الحارس', home: match.savesHome ?? 0, away: match.savesAway ?? 0 }
+  ];
+
+  statsList.forEach(stat => {
+    const homeVal = stat.home;
+    const awayVal = stat.away;
+    const total = (homeVal + awayVal) || 1;
+
+    let homePct = stat.isPercentage ? homeVal : Math.round((homeVal / total) * 100);
+    let awayPct = stat.isPercentage ? awayVal : Math.round((awayVal / total) * 100);
+
+    if (!stat.isPercentage && homeVal === 0 && awayVal === 0) {
+      homePct = 50;
+      awayPct = 50;
+    }
+
+    const item = document.createElement('div');
+    item.className = 'space-y-1 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/60';
+    item.innerHTML = `
+      <div class="flex items-center justify-between text-xs font-bold">
+        <span class="${homeVal >= awayVal ? 'text-brand-accent' : 'text-slate-300'} font-mono">${homeVal}${stat.isPercentage ? '%' : ''}</span>
+        <span class="text-slate-300 font-semibold text-[11px]">${stat.label}</span>
+        <span class="${awayVal >= homeVal ? 'text-white font-extrabold' : 'text-slate-400'} font-mono">${awayVal}${stat.isPercentage ? '%' : ''}</span>
+      </div>
+      <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden flex p-0.5 border border-slate-800/80">
+        <div class="bg-brand-accent h-full rounded-l-full transition-all duration-700" style="width: ${homePct}%;"></div>
+        <div class="bg-slate-600 h-full rounded-r-full transition-all duration-700" style="width: ${awayPct}%;"></div>
+      </div>
+    `;
+
+    container.appendChild(item);
+  });
+}
+
 // دالة تحديد رقم الخط التكتيكي (0: حارس، 1: دفاع، 2: وسط، 3: هجوم)
 function getTacticalLineIndex(positionRole, positionY) {
   const role = (positionRole || '').toUpperCase();
@@ -142,7 +198,6 @@ function getTacticalLineIndex(positionRole, positionY) {
   if (role.includes('ST') || role.includes('LW') || role.includes('RW') || role.includes('SS') || role.includes('CF')) return 3;
   if (role.includes('CM') || role.includes('DM') || role.includes('AM') || role.includes('LM') || role.includes('RM') || role.includes('CAM')) return 2;
 
-  // في حال غياب رمز المركز، نعتمد على قيمة Y التكتيكية المحفوظة
   if (positionY !== null && positionY !== undefined) {
     if (positionY >= 82) return 0;
     if (positionY >= 62) return 1;
@@ -153,10 +208,10 @@ function getTacticalLineIndex(positionRole, positionY) {
   return 2;
 }
 
-// خوارزمية منع التداخل العمودي ومنع وضع لاعب فوق الآخر
+// خوارزمية منع التداخل العمودي لمنع وضع لاعب فوق الآخر
 function resolveVerticalLineCollisions(nodes) {
-  const minXDist = 7;   // المسافة الأفقية
-  const minYDist = 13;  // المسافة العمودية الدنيا لمنع تداخل الأسماء والتقييمات
+  const minXDist = 7;
+  const minYDist = 13;
   const iterations = 20;
 
   for (let iter = 0; iter < iterations; iter++) {
@@ -217,8 +272,6 @@ function renderStrictSofaScorePitch(match, lineup) {
   if (homeRatingEl) homeRatingEl.textContent = homeAvg.toFixed(2);
   if (awayRatingEl) awayRatingEl.textContent = awayAvg.toFixed(2);
 
-  // 1. حساب إحداثيات فريق اليسار (Home Team - برشلونة)
-  // الحارس = X: 6% | الدفاع = X: 18% | الوسط = X: 30% | الهجوم = X: 42%
   const homeXMap = { 0: 6, 1: 18, 2: 30, 3: 42 };
   const homeNodes = [];
 
@@ -234,8 +287,6 @@ function renderStrictSofaScorePitch(match, lineup) {
 
   resolveVerticalLineCollisions(homeNodes);
 
-  // 2. حساب إحداثيات فريق اليمين (Away Team - مانشستر)
-  // الحارس = X: 94% | الدفاع = X: 82% | الوسط = X: 70% | الهجوم = X: 58%
   const awayXMap = { 0: 94, 1: 82, 2: 70, 3: 58 };
   const awayNodes = [];
 
@@ -244,7 +295,6 @@ function renderStrictSofaScorePitch(match, lineup) {
     const targetX = awayXMap[lineIndex];
 
     const rawWidth = (lp.positionX !== null && lp.positionX !== undefined) ? lp.positionX : 50;
-    // تناظر عمودي معكوس يمنع الانعكاس الخاطئ
     const initialY = Math.max(12, Math.min(88, 100 - rawWidth));
 
     awayNodes.push({ lineupRecord: lp, x: targetX, y: initialY, isHome: false });
@@ -252,7 +302,6 @@ function renderStrictSofaScorePitch(match, lineup) {
 
   resolveVerticalLineCollisions(awayNodes);
 
-  // رسم جميع العقد على الملعب
   homeNodes.forEach(node => createPitchPlayerNode(pitchEl, node.lineupRecord, node.x, node.y, true));
   awayNodes.forEach(node => createPitchPlayerNode(pitchEl, node.lineupRecord, node.x, node.y, false));
 }
@@ -274,18 +323,15 @@ function createPitchPlayerNode(pitchContainer, lineupRecord, posX, posY, isHome)
     <div class="relative w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 ${borderColor} bg-slate-950 p-0.5 shadow-2xl flex items-center justify-center">
       <img src="${player.photoUrl || '/img/default-player.png'}" class="w-full h-full rounded-full object-cover" onerror="this.src='/img/default-player.png'">
       
-      <!-- شارة التقييم الملونة بأسلوب SofaScore -->
       <span class="absolute -top-2 -right-2 ${ratingBadgeClass} text-[9px] font-black px-1.5 py-0.2 rounded-full border border-slate-900 shadow">
         ${rating.toFixed(1)}
       </span>
 
-      <!-- رقم القميص -->
       <span class="absolute -bottom-1 -left-1 bg-slate-900 text-slate-200 text-[8px] font-extrabold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-slate-800">
         ${player.jerseyNumber}
       </span>
     </div>
 
-    <!-- اسم اللاعب بخط أبيض ناصع وظل أنيق -->
     <div class="mt-1 text-center font-bold text-[10px] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] max-w-[75px] truncate leading-tight pointer-events-none">
       ${player.name}
     </div>
@@ -360,41 +406,37 @@ function renderTimelineFeed(events) {
   feedEl.innerHTML = '';
 
   if (!events || events.length === 0) {
-    feedEl.innerHTML = '<p class="text-slate-500 text-xs text-center py-8">لا توجد أحداث مسجلة في شريط المباراة.</p>';
+    feedEl.innerHTML = '<p class="text-slate-500 text-xs text-center py-2 w-full">لا توجد أحداث مسجلة في شريط المباراة حتى الآن.</p>';
     return;
   }
 
-  const sorted = [...events].sort((a, b) => b.minute - a.minute);
+  const sorted = [...events].sort((a, b) => a.minute - b.minute);
 
   sorted.forEach(evt => {
     let icon = '⚽';
     let title = 'حدث';
     let badgeBg = 'bg-emerald-950 border-emerald-800 text-emerald-300';
 
-    if (evt.type === 'yellow_card') { icon = '🟨'; title = 'بطاقة صفراء'; badgeBg = 'bg-amber-950 border-amber-800 text-amber-300'; }
-    else if (evt.type === 'red_card') { icon = '🟥'; title = 'بطاقة حمراء'; badgeBg = 'bg-red-950 border-red-800 text-red-300'; }
-    else if (evt.type === 'substitution') { icon = '🔄'; title = 'تبديل لاعب'; badgeBg = 'bg-slate-900 border-slate-700 text-slate-300'; }
-    else if (evt.type === 'shot') { icon = '🎯'; title = 'تسديدة خطيرة'; }
-    else if (evt.type === 'tackle') { icon = '⚔️'; title = 'تدخل دفاعي'; }
-    else if (evt.type === 'goal') { icon = '⚽'; title = 'هدف للمباراة'; badgeBg = 'bg-emerald-900 border-emerald-700 text-white font-extrabold'; }
+    if (evt.type === 'yellow_card') { icon = '🟨'; title = 'إنذار أصفر'; badgeBg = 'bg-amber-950 border-amber-800 text-amber-300'; }
+    else if (evt.type === 'red_card') { icon = '🟥'; title = 'طرد أحمر'; badgeBg = 'bg-red-950 border-red-800 text-red-300'; }
+    else if (evt.type === 'substitution') { icon = '🔄'; title = 'تبديل'; badgeBg = 'bg-slate-900 border-slate-700 text-slate-300'; }
+    else if (evt.type === 'shot') { icon = '🎯'; title = 'تسديدة'; }
+    else if (evt.type === 'tackle') { icon = '⚔️'; title = 'تدخل'; }
+    else if (evt.type === 'goal') { icon = '⚽'; title = 'هدف'; badgeBg = 'bg-emerald-900 border-emerald-700 text-white font-extrabold'; }
 
-    const playerName = evt.player ? `${evt.player.name} (#${evt.player.jerseyNumber})` : 'لاعب غير محدد';
+    const playerName = evt.player ? evt.player.name : 'لاعب غير محدد';
 
     const item = document.createElement('div');
-    item.className = 'relative flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80';
+    item.className = 'flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs shadow-md';
     item.innerHTML = `
-      <div class="flex items-center gap-2.5">
-        <span class="w-7 h-7 rounded-lg ${badgeBg} border flex items-center justify-center text-xs shadow">
-          ${icon}
-        </span>
-        <div>
-          <p class="text-xs font-bold text-white leading-tight">${title}</p>
-          <span class="text-[10px] text-slate-400 font-semibold">${playerName}</span>
-        </div>
-      </div>
-      <span class="font-mono text-xs font-black text-brand-accent bg-slate-950 px-2 py-1 rounded border border-slate-800">
-        د ${evt.minute}'
+      <span class="w-6 h-6 rounded-lg ${badgeBg} border flex items-center justify-center text-xs">
+        ${icon}
       </span>
+      <div class="flex items-center gap-1.5">
+        <span class="font-mono text-xs font-black text-brand-accent">د ${evt.minute}'</span>
+        <span class="text-slate-300 font-bold">${title}</span>
+        <span class="text-slate-400 font-medium">(${playerName})</span>
+      </div>
     `;
 
     feedEl.appendChild(item);
