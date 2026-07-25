@@ -86,57 +86,51 @@ app.get('*', (req, res, next) => {
     }
 });
 
-// 5. تهيئة المخطط برمجياً ومزامنة قاعدة البيانات لتفادي أخطاء Sequelize Dialect مع PostgreSQL
+// 5. تهيئة المخطط برمجياً ومزامنة قاعدة البيانات وإضافة أعمِدة الإحصائيات المفقودة تلقائياً
 async function startServer() {
     try {
-        // فحص وإضافة الأعمدة الجديدة يدوياً لتفادي خلل استعلام UNIQUE المكسور في Sequelize { alter: true }
-        await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatarUrl" VARCHAR(255);');
-        
-        // تعديل نوع عمود avatarUrl يدوياً إلى TEXT ليتسع لحجم نصوص صور الـ Base64 المرفوعة دون قيود الحجم
-        await sequelize.query('ALTER TABLE "users" ALTER COLUMN "avatarUrl" TYPE TEXT;');
-        
+        // إضافة أعمدة المستخدمين
+        await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatarUrl" TEXT;');
         await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bio" TEXT;');
         await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;');
-        
-        // توسيع عمود شعار الفرق يدوياً ليتسع لصور الـ Base64 (فحص الجدولين "Teams" و "teams" لضمان التوافق مع التسميات)
-        try {
-            await sequelize.query('ALTER TABLE "Teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;');
-            await sequelize.query('ALTER TABLE "Teams" ALTER COLUMN "crestUrl" TYPE TEXT;');
-            console.log('Database table "Teams" crestUrl expanded successfully.');
-        } catch (e1) {
-            console.log('Notice: Altering table "Teams" was skipped, trying lowercase "teams".');
+
+        // توسيع حقول الصور للفرق واللاعبين
+        const imageQueries = [
+            'ALTER TABLE "Teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;',
+            'ALTER TABLE "teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;',
+            'ALTER TABLE "Players" ALTER COLUMN "photoUrl" TYPE TEXT;',
+            'ALTER TABLE "players" ALTER COLUMN "photoUrl" TYPE TEXT;'
+        ];
+        for (const q of imageQueries) {
+            try { await sequelize.query(q); } catch (e) {}
         }
 
-        try {
-            await sequelize.query('ALTER TABLE "teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;');
-            await sequelize.query('ALTER TABLE "teams" ALTER COLUMN "crestUrl" TYPE TEXT;');
-            console.log('Database table "teams" crestUrl expanded successfully.');
-        } catch (e2) {
-            console.log('Notice: Altering table "teams" was skipped.');
+        // إضافة أعمِدة الإحصائيات التفصيلية المفقودة لجدول المباريات (matches) تلقائياً
+        const matchColumns = [
+            'shotsHome', 'shotsAway', 'shotsOnTargetHome', 'shotsOnTargetAway',
+            'foulsHome', 'foulsAway', 'offsidesHome', 'offsidesAway',
+            'cornersHome', 'cornersAway', 'freeKicksHome', 'freeKicksAway',
+            'passesHome', 'passesAway', 'passesCompletedHome', 'passesCompletedAway',
+            'crossesHome', 'crossesAway', 'interceptionsHome', 'interceptionsAway',
+            'tacklesHome', 'tacklesAway', 'savesHome', 'savesAway'
+        ];
+
+        for (const col of matchColumns) {
+            try {
+                await sequelize.query(`ALTER TABLE "matches" ADD COLUMN IF NOT EXISTS "${col}" INTEGER DEFAULT 0;`);
+            } catch (e1) {
+                try {
+                    await sequelize.query(`ALTER TABLE "Matches" ADD COLUMN IF NOT EXISTS "${col}" INTEGER DEFAULT 0;`);
+                } catch (e2) {}
+            }
         }
 
-        // --- التحديث القاطع والجذري لإصلاح حقل صور اللاعبين في قاعدة البيانات الحية ---
-        try {
-            await sequelize.query('ALTER TABLE "Players" ALTER COLUMN "photoUrl" TYPE TEXT;');
-            console.log('Database table "Players" photoUrl expanded to TEXT successfully.');
-        } catch (e3) {
-            console.log('Notice: Altering table "Players" was skipped, trying lowercase "players".');
-        }
-
-        try {
-            await sequelize.query('ALTER TABLE "players" ALTER COLUMN "photoUrl" TYPE TEXT;');
-            console.log('Database table "players" photoUrl expanded to TEXT successfully.');
-            console.log('Database column photoUrl checked/updated to TEXT successfully.');
-        } catch (e4) {
-            console.log('Notice: Altering table "players" was skipped.');
-        }
-
-        console.log('Database columns checked/updated successfully.');
+        console.log('Database columns and match stats schema updated successfully.');
     } catch (queryErr) {
         console.log('Notice: Manual column addition skipped:', queryErr.message);
     }
 
-    // مزامنة قاعدة البيانات القياسية الآمنة وتشغيل الخادم
+    // مزامنة قاعدة البيانات وتشغيل الخادم
     sequelize.sync()
         .then(() => {
             console.log('PostgreSQL Database synced successfully.');
@@ -146,7 +140,7 @@ async function startServer() {
         });
 }
 
-// تشغيل الخادم فوراً لضمان ربط المنفذ على Render دون تأخير، ثم تشغيل استعلامات قاعدة البيانات
+// تشغيل الخادم
 app.listen(PORT, () => {
     console.log(`ANADOL League server is running on port: ${PORT}`);
     startServer();
