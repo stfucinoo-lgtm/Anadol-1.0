@@ -1,6 +1,6 @@
 /**
  * ANADOL League - Match Model
- * تعريف جدول المباريات وحالاتها في قاعدة البيانات باستخدام Sequelize.
+ * تعريف جدول المباريات وحالاتها والإحصائيات التفصيلية للمباراة في قاعدة البيانات باستخدام Sequelize.
  */
 
 const { DataTypes } = require('sequelize');
@@ -66,6 +66,142 @@ const Match = sequelize.define('Match', {
             min: 0,
             max: 100
         }
+    },
+
+    // ==========================================
+    // إحصائيات المباراة التفصيلية (تفصيل الفريقين)
+    // ==========================================
+    
+    // التسديدات
+    shotsHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    shotsAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    shotsOnTargetHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    shotsOnTargetAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+
+    // الأخطاء والتسلل
+    foulsHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    foulsAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    offsidesHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    offsidesAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+
+    // الضربات الركنية والحرة
+    cornersHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    cornersAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    freeKicksHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    freeKicksAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+
+    // التمريرات والتمريرات الناجحة
+    passesHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    passesAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    passesCompletedHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    passesCompletedAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+
+    // العرضيات وافتكاك الكرة
+    crossesHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    crossesAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    interceptionsHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    interceptionsAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+
+    // التدخلات والتصديات
+    tacklesHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    tacklesAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    savesHome: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
+    },
+    savesAway: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0
     }
 }, {
     tableName: 'matches',
