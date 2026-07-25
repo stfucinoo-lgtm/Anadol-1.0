@@ -26,7 +26,7 @@ let currentTeamRoster = [];
 let activeSlotIndex = null;
 let isSubstituteMode = false;
 
-// مكتبة الإحداثيات والخطط التكتيكية المتقدمة (مع توسيع المسافة بين الدفاع والحارس)
+// مكتبة الإحداثيات والخطط التكتيكية المتقدمة
 const FORMATIONS_LIBRARY = {
   '4-3-3': [
     { role: 'GK', label: 'حارس', x: 50, y: 90 },
@@ -220,8 +220,8 @@ const activeAwayName = document.getElementById('active-away-name');
 const matchQuickStatsForm = document.getElementById('match-quick-stats-form');
 const quickScoreHome = document.getElementById('quick-score-home');
 const quickScoreAway = document.getElementById('quick-score-away');
-const quickPossHome = document.getElementById('quick-poss-home');
-const quickPossAway = document.getElementById('quick-poss-away');
+
+const fullMatchStatsForm = document.getElementById('full-match-stats-form');
 
 const matchEventForm = document.getElementById('match-event-form');
 const eventTeamSelect = document.getElementById('event-team');
@@ -275,6 +275,7 @@ async function initMatchesManagement() {
 
   if (matchForm) matchForm.addEventListener('submit', handleMatchCreation);
   if (matchQuickStatsForm) matchQuickStatsForm.addEventListener('submit', handleQuickStatsSubmit);
+  if (fullMatchStatsForm) fullMatchStatsForm.addEventListener('submit', handleFullStatsSubmit);
   if (matchEventForm) matchEventForm.addEventListener('submit', handleEventSubmit);
   if (interactivePitch) interactivePitch.addEventListener('click', handlePitchClick);
 
@@ -306,7 +307,7 @@ async function initMatchesManagement() {
 }
 
 function initTabsManagement() {
-  const tabs = ['tab-events', 'tab-lineups', 'tab-ratings'];
+  const tabs = ['tab-events', 'tab-stats', 'tab-lineups', 'tab-ratings'];
   tabs.forEach(tabId => {
     const btn = document.getElementById(tabId);
     if (btn) {
@@ -505,8 +506,14 @@ async function selectMatchForManagement(matchId) {
 
     quickScoreHome.value = match.homeScore ?? 0;
     quickScoreAway.value = match.awayScore ?? 0;
-    quickPossHome.value = match.possessionHome ?? 50;
-    quickPossAway.value = match.possessionAway ?? 50;
+
+    // تعبئة حقول التبويب الخاص بالأحصائيات الشاملة
+    const statsHomeTitle = document.getElementById('stats-home-title');
+    const statsAwayTitle = document.getElementById('stats-away-title');
+    if (statsHomeTitle) statsHomeTitle.textContent = homeTeam.name;
+    if (statsAwayTitle) statsAwayTitle.textContent = awayTeam.name;
+
+    populateFullStatsInputs(match);
 
     if (eventTeamSelect) {
       eventTeamSelect.innerHTML = `
@@ -551,6 +558,46 @@ async function selectMatchForManagement(matchId) {
     console.error('فشل في جلب تفاصيل المباراة:', err);
     alert('تعذر تفعيل إدارة هذه المباراة حالياً.');
   }
+}
+
+function populateFullStatsInputs(match) {
+  const setVal = (id, val, defaultVal = 0) => {
+    const el = document.getElementById(id);
+    if (el) el.value = (val !== undefined && val !== null) ? val : defaultVal;
+  };
+
+  setVal('stat-possession-home', match.possessionHome, 50);
+  setVal('stat-possession-away', match.possessionAway, 50);
+
+  setVal('stat-shots-home', match.shotsHome, 0);
+  setVal('stat-shots-away', match.shotsAway, 0);
+  setVal('stat-shots-target-home', match.shotsOnTargetHome, 0);
+  setVal('stat-shots-target-away', match.shotsOnTargetAway, 0);
+
+  setVal('stat-fouls-home', match.foulsHome, 0);
+  setVal('stat-fouls-away', match.foulsAway, 0);
+  setVal('stat-offsides-home', match.offsidesHome, 0);
+  setVal('stat-offsides-away', match.offsidesAway, 0);
+
+  setVal('stat-corners-home', match.cornersHome, 0);
+  setVal('stat-corners-away', match.cornersAway, 0);
+  setVal('stat-freekicks-home', match.freeKicksHome, 0);
+  setVal('stat-freekicks-away', match.freeKicksAway, 0);
+
+  setVal('stat-passes-home', match.passesHome, 0);
+  setVal('stat-passes-away', match.passesAway, 0);
+  setVal('stat-passes-completed-home', match.passesCompletedHome, 0);
+  setVal('stat-passes-completed-away', match.passesCompletedAway, 0);
+
+  setVal('stat-crosses-home', match.crossesHome, 0);
+  setVal('stat-crosses-away', match.crossesAway, 0);
+  setVal('stat-interceptions-home', match.interceptionsHome, 0);
+  setVal('stat-interceptions-away', match.interceptionsAway, 0);
+
+  setVal('stat-tackles-home', match.tacklesHome, 0);
+  setVal('stat-tackles-away', match.tacklesAway, 0);
+  setVal('stat-saves-home', match.savesHome, 0);
+  setVal('stat-saves-away', match.savesAway, 0);
 }
 
 async function loadTeamLineupState(teamId) {
@@ -599,7 +646,7 @@ async function loadTeamLineupState(teamId) {
   }
 }
 
-// رسم الملعب التكتيكي التفاعلي بأسلوب SofaScore ونظيف دون تداخل مع دعم السحب
+// رسم الملعب التكتيكي التفاعلي بأسلوب SofaScore
 function renderSofaScorePitch() {
   if (!sofascorePitchSlots) return;
   sofascorePitchSlots.innerHTML = '';
@@ -1119,20 +1166,79 @@ async function handleQuickStatsSubmit(e) {
   const payload = {
     homeScore: parseInt(quickScoreHome.value),
     awayScore: parseInt(quickScoreAway.value),
-    status: activeMatchData.status,
-    possessionHome: parseInt(quickPossHome.value) || 50,
-    possessionAway: parseInt(quickPossAway.value) || 50
+    status: activeMatchData.status
   };
 
   try {
     const result = await fetchAPI(`/api/matches/${selectedMatchId}`, 'PUT', payload);
     if (result && result.success) {
-      alert('تم تحديث النتيجة ونسب الاستحواذ بنجاح.');
+      alert('تم تحديث نتيجة المباراة بنجاح.');
       await loadMatches();
     }
   } catch (err) {
     console.error('فشل حفظ البيانات السريعة للمباراة:', err);
     alert('فشل تحديث البيانات.');
+  }
+}
+
+async function handleFullStatsSubmit(e) {
+  e.preventDefault();
+  if (!selectedMatchId || !activeMatchData) return;
+
+  const getNum = (id, fallback = 0) => {
+    const el = document.getElementById(id);
+    return el ? (parseInt(el.value) || 0) : fallback;
+  };
+
+  const payload = {
+    homeScore: parseInt(quickScoreHome.value) || 0,
+    awayScore: parseInt(quickScoreAway.value) || 0,
+    status: activeMatchData.status,
+
+    possessionHome: getNum('stat-possession-home', 50),
+    possessionAway: getNum('stat-possession-away', 50),
+
+    shotsHome: getNum('stat-shots-home'),
+    shotsAway: getNum('stat-shots-away'),
+    shotsOnTargetHome: getNum('stat-shots-target-home'),
+    shotsOnTargetAway: getNum('stat-shots-target-away'),
+
+    foulsHome: getNum('stat-fouls-home'),
+    foulsAway: getNum('stat-fouls-away'),
+    offsidesHome: getNum('stat-offsides-home'),
+    offsidesAway: getNum('stat-offsides-away'),
+
+    cornersHome: getNum('stat-corners-home'),
+    cornersAway: getNum('stat-corners-away'),
+    freeKicksHome: getNum('stat-freekicks-home'),
+    freeKicksAway: getNum('stat-freekicks-away'),
+
+    passesHome: getNum('stat-passes-home'),
+    passesAway: getNum('stat-passes-away'),
+    passesCompletedHome: getNum('stat-passes-completed-home'),
+    passesCompletedAway: getNum('stat-passes-completed-away'),
+
+    crossesHome: getNum('stat-crosses-home'),
+    crossesAway: getNum('stat-crosses-away'),
+    interceptionsHome: getNum('stat-interceptions-home'),
+    interceptionsAway: getNum('stat-interceptions-away'),
+
+    tacklesHome: getNum('stat-tackles-home'),
+    tacklesAway: getNum('stat-tackles-away'),
+    savesHome: getNum('stat-saves-home'),
+    savesAway: getNum('stat-saves-away')
+  };
+
+  try {
+    const result = await fetchAPI(`/api/matches/${selectedMatchId}`, 'PUT', payload);
+    if (result && result.success) {
+      alert('تم حفظ الإحصائيات الشاملة بنجاح!');
+      activeMatchData = result.match || { ...activeMatchData, ...payload };
+      await loadMatches();
+    }
+  } catch (err) {
+    console.error('فشل حفظ الإحصائيات الشاملة:', err);
+    alert('حدث خطأ أثناء حفظ الإحصائيات الشاملة.');
   }
 }
 
