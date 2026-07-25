@@ -1,6 +1,6 @@
 /**
- * ANADOL League - Match Details Script (SofaScore Horizontal Display with Collision Detection)
- * يقرأ معرّف المباراة ويعرض النتيجة، الاستحواذ، مسجلي الأهداف، والملعب التكتيكي الأفقي مع خوارزمية منع تداخل اللاعبين.
+ * ANADOL League - Match Details Script (SofaScore Horizontal Pitch with Strict Positioning)
+ * يعرض تفاصيل المباراة والملعب التكتيكي بإحداثيات رياضية ثابتة تضمن تواجه الفريقين ومنع التداخل.
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    // 1. جلب بيانات تفاصيل المباراة والتشكيلة من السيرفر
+    // 1. جلب بيانات المباراة والتشكيلة من السيرفر
     const match = await fetchAPI(`/api/matches/${matchId}`);
     if (!match || !match.id) {
       if (loadingEl) loadingEl.classList.add('hidden');
@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. تعبئة لوحة النتائج واسم الملعب ومسجلي الأهداف تحت الفرق
     renderScoreboard(match);
 
-    // 3. رسم الملعب التكتيكي الأفقي الموحد والموجه بشكل دقيق مع منع التداخل
-    renderHorizontalSofaScorePitch(match, lineup || []);
+    // 3. رسم الملعب التكتيكي بالإحداثيات الرياضية الثابتة ومنع التداخل
+    renderStrictSofaScorePitch(match, lineup || []);
 
     // 4. عرض القوائم والبدلاء مع التقييمات الرقمية الملونة
     renderRostersList(match, lineup || []);
@@ -96,7 +96,7 @@ function renderScoreboard(match) {
     }
   }
 
-  // استخراج وقراءة مسجلي الأهداف تحت أسماء الفرق
+  // استخراج مسجلي الأهداف تحت اسم كل فريق
   const events = match.events || [];
   const goalEvents = events.filter(e => e.type === 'goal' || e.type === 'penalty');
 
@@ -133,47 +133,59 @@ function renderScoreboard(match) {
   document.getElementById('poss-away-bar').style.width = `${possAway}%`;
 }
 
-// خوارزمية منع التداخل التلقائي لضبط المسافات والباذينج بين اللاعبين (Collision Detection & Spacing)
-function resolveTeamCollisions(nodes, minX, maxX) {
-  const minDist = 11.5; // الحد الأدنى للمسافة النسبية المسموحة بين مركزي كل لاعبين
-  const iterations = 15;
+// دالة تحديد رقم الخط التكتيكي (0: حارس، 1: دفاع، 2: وسط، 3: هجوم)
+function getTacticalLineIndex(positionRole, positionY) {
+  const role = (positionRole || '').toUpperCase();
+
+  if (role.includes('GK') || role.includes('GOAL')) return 0;
+  if (role.includes('CB') || role.includes('LB') || role.includes('RB') || role.includes('WB')) return 1;
+  if (role.includes('ST') || role.includes('LW') || role.includes('RW') || role.includes('SS') || role.includes('CF')) return 3;
+  if (role.includes('CM') || role.includes('DM') || role.includes('AM') || role.includes('LM') || role.includes('RM') || role.includes('CAM')) return 2;
+
+  // في حال غياب رمز المركز، نعتمد على قيمة Y التكتيكية المحفوظة
+  if (positionY !== null && positionY !== undefined) {
+    if (positionY >= 82) return 0;
+    if (positionY >= 62) return 1;
+    if (positionY >= 35) return 2;
+    return 3;
+  }
+
+  return 2;
+}
+
+// خوارزمية منع التداخل العمودي ومنع وضع لاعب فوق الآخر
+function resolveVerticalLineCollisions(nodes) {
+  const minXDist = 7;   // المسافة الأفقية
+  const minYDist = 13;  // المسافة العمودية الدنيا لمنع تداخل الأسماء والتقييمات
+  const iterations = 20;
 
   for (let iter = 0; iter < iterations; iter++) {
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
-        let dx = nodes[j].x - nodes[i].x;
-        let dy = nodes[j].y - nodes[i].y;
-        let dist = Math.hypot(dx, dy);
+        const dx = Math.abs(nodes[i].x - nodes[j].x);
+        const dy = Math.abs(nodes[i].y - nodes[j].y);
 
-        if (dist < minDist) {
-          if (dist === 0) {
-            dx = 0.1;
-            dy = 0.1;
-            dist = 0.14;
+        if (dx < minXDist && dy < minYDist) {
+          const overlapY = minYDist - dy;
+
+          if (nodes[i].y <= nodes[j].y) {
+            nodes[i].y -= overlapY / 2;
+            nodes[j].y += overlapY / 2;
+          } else {
+            nodes[i].y += overlapY / 2;
+            nodes[j].y -= overlapY / 2;
           }
 
-          const overlap = (minDist - dist) / 2;
-          const nx = dx / dist;
-          const ny = dy / dist;
-
-          nodes[i].x -= nx * overlap;
-          nodes[i].y -= ny * overlap;
-          nodes[j].x += nx * overlap;
-          nodes[j].y += ny * overlap;
-
-          // ضمان البقاء ضمن نصف الملعب المخصص وقواعد الحواف
-          nodes[i].x = Math.max(minX, Math.min(maxX, nodes[i].x));
-          nodes[i].y = Math.max(8, Math.min(92, nodes[i].y));
-          nodes[j].x = Math.max(minX, Math.min(maxX, nodes[j].x));
-          nodes[j].y = Math.max(8, Math.min(92, nodes[j].y));
+          nodes[i].y = Math.max(10, Math.min(90, nodes[i].y));
+          nodes[j].y = Math.max(10, Math.min(90, nodes[j].y));
         }
       }
     }
   }
 }
 
-// رسم الملعب الأفقي الموحد والموجه بشكل دقيق بأسلوب SofaScore
-function renderHorizontalSofaScorePitch(match, lineup) {
+// رسم الملعب بالمنطق الرياضي الصارم (Left vs Right)
+function renderStrictSofaScorePitch(match, lineup) {
   const pitchEl = document.getElementById('tactical-pitch');
   if (!pitchEl) return;
 
@@ -191,7 +203,7 @@ function renderHorizontalSofaScorePitch(match, lineup) {
   const homeStarters = lineup.filter(lp => lp.teamId === match.homeTeamId && lp.isStarting);
   const awayStarters = lineup.filter(lp => lp.teamId === match.awayTeamId && lp.isStarting);
 
-  // احتساب متوسط تقييم الفريقين
+  // احتساب متوسط التقييمات
   let homeAvg = 6.0, awayAvg = 6.0;
   if (homeStarters.length > 0) {
     homeAvg = homeStarters.reduce((acc, curr) => acc + (curr.rating || 6.0), 0) / homeStarters.length;
@@ -205,39 +217,42 @@ function renderHorizontalSofaScorePitch(match, lineup) {
   if (homeRatingEl) homeRatingEl.textContent = homeAvg.toFixed(2);
   if (awayRatingEl) awayRatingEl.textContent = awayAvg.toFixed(2);
 
-  // 1. حساب إحداثيات صاحب الأرض (على اليسار - الحارس على خط المرمى أقصى اليسار X=6% والهجوم لليمين X=44%)
+  // 1. حساب إحداثيات فريق اليسار (Home Team - برشلونة)
+  // الحارس = X: 6% | الدفاع = X: 18% | الوسط = X: 30% | الهجوم = X: 42%
+  const homeXMap = { 0: 6, 1: 18, 2: 30, 3: 42 };
   const homeNodes = [];
+
   homeStarters.forEach(lp => {
-    const rawX = (lp.positionX !== null && lp.positionX !== undefined) ? lp.positionX : 50; // العرض العمودي
-    const rawY = (lp.positionY !== null && lp.positionY !== undefined) ? lp.positionY : 70; // عمق الخطة (الحارس 90 ، المهاجم 16)
+    const lineIndex = getTacticalLineIndex(lp.position, lp.positionY);
+    const targetX = homeXMap[lineIndex];
 
-    const depthFromOwnGoal = (rawY < 50) ? (100 - rawY) : rawY;
-    const initialX = 6 + ((90 - depthFromOwnGoal) * 0.48);
-    const initialY = Math.max(10, Math.min(90, rawX));
+    const rawWidth = (lp.positionX !== null && lp.positionX !== undefined) ? lp.positionX : 50;
+    const initialY = Math.max(12, Math.min(88, rawWidth));
 
-    homeNodes.push({ lineupRecord: lp, x: initialX, y: initialY, isHome: true });
+    homeNodes.push({ lineupRecord: lp, x: targetX, y: initialY, isHome: true });
   });
 
-  // تشغيل خوارزمية منع التداخل والتصادم لنصف الملعب الأيسر
-  resolveTeamCollisions(homeNodes, 5, 46);
+  resolveVerticalLineCollisions(homeNodes);
 
-  // 2. حساب إحداثيات الفريق الضيف (على اليمين - الحارس على خط المرمى أقصى اليمين X=94% والهجوم لليسار X=56%)
+  // 2. حساب إحداثيات فريق اليمين (Away Team - مانشستر)
+  // الحارس = X: 94% | الدفاع = X: 82% | الوسط = X: 70% | الهجوم = X: 58%
+  const awayXMap = { 0: 94, 1: 82, 2: 70, 3: 58 };
   const awayNodes = [];
+
   awayStarters.forEach(lp => {
-    const rawX = (lp.positionX !== null && lp.positionX !== undefined) ? lp.positionX : 50;
-    const rawY = (lp.positionY !== null && lp.positionY !== undefined) ? lp.positionY : 70;
+    const lineIndex = getTacticalLineIndex(lp.position, lp.positionY);
+    const targetX = awayXMap[lineIndex];
 
-    const depthFromOwnGoal = (rawY < 50) ? (100 - rawY) : rawY;
-    const initialX = 94 - ((90 - depthFromOwnGoal) * 0.48);
-    const initialY = Math.max(10, Math.min(90, 100 - rawX)); // تناظر عمودي معكوس متوازن
+    const rawWidth = (lp.positionX !== null && lp.positionX !== undefined) ? lp.positionX : 50;
+    // تناظر عمودي معكوس يمنع الانعكاس الخاطئ
+    const initialY = Math.max(12, Math.min(88, 100 - rawWidth));
 
-    awayNodes.push({ lineupRecord: lp, x: initialX, y: initialY, isHome: false });
+    awayNodes.push({ lineupRecord: lp, x: targetX, y: initialY, isHome: false });
   });
 
-  // تشغيل خوارزمية منع التداخل والتصادم لنصف الملعب الأيمن
-  resolveTeamCollisions(awayNodes, 54, 95);
+  resolveVerticalLineCollisions(awayNodes);
 
-  // رسم جميع العقد بعد معالجة التباعد بالفيزياء
+  // رسم جميع العقد على الملعب
   homeNodes.forEach(node => createPitchPlayerNode(pitchEl, node.lineupRecord, node.x, node.y, true));
   awayNodes.forEach(node => createPitchPlayerNode(pitchEl, node.lineupRecord, node.x, node.y, false));
 }
@@ -270,7 +285,7 @@ function createPitchPlayerNode(pitchContainer, lineupRecord, posX, posY, isHome)
       </span>
     </div>
 
-    <!-- اسم اللاعب بخط أبيض ناصع مع ظلال أنيقة دون حواف سوداء -->
+    <!-- اسم اللاعب بخط أبيض ناصع وظل أنيق -->
     <div class="mt-1 text-center font-bold text-[10px] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] max-w-[75px] truncate leading-tight pointer-events-none">
       ${player.name}
     </div>
