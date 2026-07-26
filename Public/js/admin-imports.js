@@ -33,13 +33,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // متغيرات تتبع الحالة لعملية الاستيراد النشطة
   let activeImportId = null;
-  let activeMatchId = null;
 
-  // جلب قائمة المباريات لتعبئة القائمة المنسدلة
+  // دالة مساعدة لتنسيق التاريخ بالعربية
+  function formatDate(dateString) {
+    if (!dateString) return '';
+    try {
+      const d = new Date(dateString);
+      return d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch (e) {
+      return dateString.split('T')[0];
+    }
+  }
+
+  // جلب قائمة المباريات لتعبئة القائمة المنسدلة بأسماء الفرق والنتائج والتواريخ
   async function loadActiveMatches() {
     try {
-      // جلب كل المباريات (المكتملة والجارية وغير الملعوبة)
-      const matches = await apiFetch('/api/matches');
+      const response = await apiFetch('/matches');
+      const matches = Array.isArray(response) ? response : (response.matches || []);
+
       matchSelect.innerHTML = '<option value="">-- اختر مباراة من الجدول التالي --</option>';
 
       if (!matches || matches.length === 0) {
@@ -47,34 +58,48 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // فرز وتنسيق الخيارات لعرضها للمسؤول
       matches.forEach(match => {
-        // تحديد ترميز الحالة لتسهيل الاختيار
+        // أسماء الفرق
+        const homeName = match.homeTeam ? match.homeTeam.name : `فريق مستضيف #${match.homeTeamId}`;
+        const awayName = match.awayTeam ? match.awayTeam.name : `فريق ضيف #${match.awayTeamId}`;
+
+        // النتيجة إن وجدت
+        let scoreStr = '';
+        if (match.status === 'finished' || match.homeScore !== null) {
+          scoreStr = ` (${match.homeScore ?? 0} - ${match.awayScore ?? 0})`;
+        }
+
+        // التاريخ
+        const dateStr = formatDate(match.matchDate);
+
+        // الحالة
         let statusText = 'لم تبدأ بعد';
         if (match.status === 'being_played_right_now') statusText = 'تُلعب الآن 🟢';
         if (match.status === 'finished') statusText = 'انتهت 🏁';
 
         const option = document.createElement('option');
         option.value = match.id;
-        option.textContent = `مباراة رقم ${match.id}: [مستضيف] ID ${match.homeTeamId} ضد [ضيف] ID ${match.awayTeamId} (${statusText})`;
+        option.textContent = `${homeName}${scoreStr} ضد ${awayName} | ${dateStr} [${statusText}]`;
         matchSelect.appendChild(option);
       });
     } catch (error) {
       console.error('Error loading matches:', error);
-      matchSelect.innerHTML = '<option value="">فشل تحميل مباريات الدوري</option>';
+      matchSelect.innerHTML = `<option value="">فشل التحميل: ${error.message}</option>`;
     }
   }
 
   // مستمع التغييرات لحقل رفع الصورة لإظهار اسم الملف المختار تجميلياً
-  imageFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      fileSelectedName.textContent = `الملف المختار: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} ميجابايت)`;
-      fileSelectedName.style.display = 'block';
-    } else {
-      fileSelectedName.style.display = 'none';
-    }
-  });
+  if (imageFileInput) {
+    imageFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        fileSelectedName.textContent = `الملف المختار: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} ميجابايت)`;
+        fileSelectedName.style.display = 'block';
+      } else {
+        fileSelectedName.style.display = 'none';
+      }
+    });
+  }
 
   // حدث رفع الصورة ومعالجتها بالذكاء الاصطناعي
   uploadStatsForm.addEventListener('submit', async (e) => {
@@ -87,7 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // إعداد واجهة التحميل وتعطيل المدخلات
     submitUploadBtn.disabled = true;
     aiLoader.style.display = 'block';
     reviewSection.style.display = 'none';
@@ -96,13 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
       gsap.fromTo('#aiLoader', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 });
     }
 
-    // بناء كائن FormData الخاص بنقل البيانات المتعددة الأشكال (multipart/form-data)
     const formData = new FormData();
     formData.append('matchId', matchId);
     formData.append('image', file);
 
     try {
-      // إرسال الطلب للخادم عبر استخدام fetch الأصلي بدلاً من apiFetch لدعم الـ FormData مباشرة وسهولة معالجة ترويسة التحميل
       const response = await fetch('/api/imports', {
         method: 'POST',
         headers: {
@@ -117,18 +139,13 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(result.error || 'فشل في استخراج البيانات من الصورة.');
       }
 
-      // تخزين معرف العملية الحالي
       activeImportId = result.importId;
-      activeMatchId = matchId;
-
-      // تهيئة وعرض قسم المراجعة
       setupReviewForm(result.extractedData, result.status);
 
     } catch (error) {
       console.error('Error processing upload:', error);
       alert(`عذراً، حدث خطأ أثناء المعالجة: ${error.message}`);
     } finally {
-      // إيقاف مؤشر التحميل واستعادة الزر
       submitUploadBtn.disabled = false;
       aiLoader.style.display = 'none';
     }
@@ -139,23 +156,19 @@ document.addEventListener('DOMContentLoaded', () => {
     reviewSection.style.display = 'block';
     importStatusBadge.textContent = status === 'pending_review' ? 'بانتظار المراجعة' : status;
 
-    // تعبئة البيانات الوصفية والإحصائيات الكلية
     homeScoreInput.value = data.homeScore || 0;
     awayScoreInput.value = data.awayScore || 0;
     possessionHomeInput.value = data.possessionHome || 50;
     possessionAwayInput.value = data.possessionAway || 50;
 
-    // تفريغ قائمة الأحداث السابقة
     eventsListContainer.innerHTML = '';
 
-    // معالجة قائمة الأحداث الراجعة وتجسيدها
     if (data.events && Array.isArray(data.events)) {
       data.events.forEach(event => {
         addEventRowToDOM(event);
       });
     }
 
-    // حركة ظهور سلسة لواجهة التعديل والمراجعة
     if (window.gsap) {
       gsap.fromTo('#reviewSection', { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.5, ease: 'power2.out' });
     }
@@ -166,7 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const row = document.createElement('div');
     row.className = 'event-review-row';
 
-    // هيكلة مدخلات السطر
     row.innerHTML = `
       <div class="event-field-group">
         <label>الفريق:</label>
@@ -213,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
       </button>
     `;
 
-    // ربط ميزة الحذف الفوري للسطر المختار
     row.querySelector('.btn-delete-event-row').addEventListener('click', () => {
       if (window.gsap) {
         gsap.to(row, {
@@ -229,13 +240,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     eventsListContainer.appendChild(row);
 
-    // حركة تجميلية خفيفة لدخول السطر الجديد
     if (window.gsap) {
       gsap.from(row, { opacity: 0, x: 20, duration: 0.3 });
     }
   }
 
-  // مستمع حدث زر إضافة حدث جديد فارغ
   addNewEventBtn.addEventListener('click', () => {
     addEventRowToDOM({
       team: 'home',
@@ -247,7 +256,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // دالة مساعدة لتجميع وقراءة البيانات المدخلة في صفحة المراجعة وصياغتها بهيكل الكائن
   function collectCorrectedData() {
     const eventRows = eventsListContainer.querySelectorAll('.event-review-row');
     const events = [];
@@ -272,19 +280,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // حدث زر حفظ المسودة كملف تعديل مؤقت
   saveDraftBtn.addEventListener('click', async () => {
     if (!activeImportId) return;
 
     try {
       const correctedData = collectCorrectedData();
-
-      const result = await apiFetch(`/api/imports/${activeImportId}`, {
+      const result = await apiFetch(`/imports/${activeImportId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({ correctedData })
       });
 
@@ -296,25 +298,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // حدث رفض المسودة بالكامل دون ترحيل
   rejectImportBtn.addEventListener('click', async () => {
     if (!activeImportId) return;
 
-    if (!confirm('هل أنت متأكد من رغبتك في إلغاء ورفض سجل الاستيراد هذا بشكل نهائي؟ لن تُجرى أي تعديلات على بيانات المباراة الحالية.')) {
+    if (!confirm('هل أنت متأكد من رغبتك في إلغاء ورفض سجل الاستيراد هذا بشكل نهائي؟')) {
       return;
     }
 
     try {
-      const result = await apiFetch(`/api/imports/${activeImportId}/reject`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const result = await apiFetch(`/imports/${activeImportId}/reject`, {
+        method: 'POST'
       });
 
       if (result.success) {
         alert(result.message || 'تم رفض السجل وإغلاقه بنجاح.');
-        // مسح وتصفير الواجهات
         uploadStatsForm.reset();
         fileSelectedName.style.display = 'none';
         reviewSection.style.display = 'none';
@@ -326,45 +323,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // حدث الاعتماد والترحيل النهائي للبيانات وتحديث المباراة رسمياً في جدول الدوري
   reviewStatsForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!activeImportId) return;
 
-    if (!confirm('أنت الآن بصدد اعتماد ونشر هذه الإحصائيات والأحداث رسمياً للجمهور والبدء في حساب الفروقات وتعديل نقاط الترتيب. هل تود الاستمرار؟')) {
+    if (!confirm('أنت الآن بصدد اعتماد ونشر هذه الإحصائيات والأحداث رسمياً للجمهور. هل تود الاستمرار؟')) {
       return;
     }
 
     try {
-      // 1. إجراء حفظ أخير للمدخلات والتحديثات المدونة من قِبل المسؤول أولاً لضمان استلام الخادم للبيانات المصححة
       const correctedData = collectCorrectedData();
-      await apiFetch(`/api/imports/${activeImportId}`, {
+      await apiFetch(`/imports/${activeImportId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({ correctedData })
       });
 
-      // 2. إرسال أمر الاعتماد والبدء في توزيع البيانات وتغيير حالة المباراة تلقائياً لـ finished
-      const result = await apiFetch(`/api/imports/${activeImportId}/approve`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const result = await apiFetch(`/imports/${activeImportId}/approve`, {
+        method: 'POST'
       });
 
       if (result.success) {
         alert(`تهانينا، تم اعتماد بيانات الإحصائيات وتطبيقها بنجاح.\nتمت معالجة وإنشاء عدد (${result.eventsCreated}) من الأحداث والتسديدات والبطاقات التلقائية بنجاح.`);
         
-        // إعادة تهيئة وتنظيف لوحة العمل والبيانات
         uploadStatsForm.reset();
         fileSelectedName.style.display = 'none';
         reviewSection.style.display = 'none';
         activeImportId = null;
         
-        // إعادة تحميل القائمة لتحديث الحالات
         loadActiveMatches();
       }
     } catch (error) {
@@ -372,7 +357,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // حدث تسجيل خروج المسؤول
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       localStorage.removeItem('anadol_token');
@@ -381,6 +365,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // البدء الفوري في تحميل المباريات النشطة
   loadActiveMatches();
 });
