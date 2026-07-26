@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تصفح المقال - دوري الأناضول</title>
-    <!-- Tailwind CSS لتوفير أساس عالي الاستجابة وتصميم عصري سريع -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- خطوط Google لمظهر رياضي حديث وعريض -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <script>
@@ -29,55 +28,35 @@
         }
       }
     </script>
-    <!-- استدعاء التنسيقات المخصصة للمشروع -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- مكتبة FontAwesome للأيقونات الرياضية -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* أنماط إضافية لتنسيق محتوى المقالة والخرائط التوضيحية */
         .post-container {
-            max-width: 800px;
+            max-width: 850px;
             margin: 0 auto;
         }
         .post-featured-image {
             width: 100%;
-            height: 400px;
+            max-height: 480px;
             object-fit: cover;
-            border-radius: var(--border-radius-md);
+            border-radius: 12px;
             margin-bottom: 2rem;
-            border: 1px solid var(--border-color);
+            border: 1px solid #24242b;
         }
         .post-body {
             font-size: 1.15rem;
-            line-height: 1.8;
+            line-height: 1.9;
             color: #e2e8f0;
+            white-space: pre-line;
         }
         .post-body p {
             margin-bottom: 1.5rem;
         }
-        .post-body blockquote {
-            border-right: 4px solid var(--accent-color);
-            padding: 1rem 1.5rem;
-            background-color: var(--secondary-dark);
-            font-style: italic;
-            margin: 2rem 0;
-            border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
-            color: var(--text-main);
-        }
-        .post-meta-details {
-            display: flex;
-            gap: 20px;
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
-        }
     </style>
 </head>
-<body>
+<body class="bg-brand-dark text-slate-100 font-cairo min-h-screen flex flex-col">
 
-    <!-- 1. شريط التنقل الحديث (Navbar) المستوحى من الملف الشخصي -->
+    <!-- 1. Navbar -->
     <nav class="border-b border-brand-border bg-brand-dark/90 backdrop-blur-md sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
@@ -97,259 +76,191 @@
       </div>
     </nav>
 
-    <!-- 2. قسم المقال المنفرد (Blog Post Section) -->
-    <main class="section-padding">
-        <div class="container post-container">
+    <!-- 2. قسم المقال المنفرد -->
+    <main class="py-12 flex-1">
+        <div class="container mx-auto px-4 post-container">
             
             <!-- زر الرجوع للمدونة -->
-            <a href="blog.html" style="color: var(--accent-color); display: inline-flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; font-weight: 600;">
+            <a href="blog.html" class="text-brand-accent hover:underline inline-flex items-center gap-2 mb-6 font-semibold">
                 <i class="fa-solid fa-arrow-right"></i> العودة لقائمة المقالات
             </a>
 
-            <!-- عنوان المقال -->
-            <h1 class="profile-title" id="postTitle" style="font-size: 2.5rem; margin-bottom: 1rem; line-height: 1.3;">عنوان المقال التحليلي</h1>
-            
-            <!-- البيانات الوصفية للمقال -->
-            <div class="post-meta-details" id="postMeta">
-                <span><i class="fa-solid fa-user"></i> <span id="postAuthor">المحرر الرياضي</span></span>
-                <span><i class="fa-solid fa-calendar-days"></i> <span id="postDate">-- يناير 2026</span></span>
+            <!-- تفاصيل المقال السليمة -->
+            <div id="postLoader" class="text-center py-12 text-zinc-400">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-brand-accent mb-3"></i>
+                <p>جاري تحميل نص المقال والتحليلات...</p>
             </div>
 
-            <!-- الصورة البارزة للمقال -->
-            <img src="" alt="صورة المقال" class="post-featured-image" id="postImage">
-
-            <!-- متن المقال الكامل -->
-            <article class="post-body" id="postBody">
-                <!-- يتم تعبئة النص ديناميكياً -->
-            </article>
-
-            <!-- 3. قسم التعليقات (Comments Section) -->
-            <section class="comments-section">
-                <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 2rem;">
-                    <i class="fa-regular fa-comments" style="color: var(--accent-color);"></i> التعليقات والمناقشات (<span id="commentCount">0</span>)
-                </h3>
-
-                <!-- نموذج كتابة تعليق جديد (Comment Form) -->
-                <form class="comment-form" id="commentForm">
-                    <div class="form-group">
-                        <label for="authorName" class="form-label">الاسم الكريم</label>
-                        <input type="text" id="authorName" class="form-control" placeholder="اسم المستخدم الخاص بك..." required style="background-color: var(--secondary-dark);">
-                    </div>
-                    <div class="form-group">
-                        <label for="commentContent" class="form-label">التعليق</label>
-                        <textarea id="commentContent" rows="4" class="form-control" placeholder="شاركنا رأيك الفني أو توقعاتك لنتيجة اللقاء..." required style="background-color: var(--secondary-dark); resize: none;"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> إرسال التعليق</button>
-                </form>
-
-                <!-- قائمة التعليقات المكتوبة (Comment List) -->
-                <div class="comment-list" id="commentsList">
-                    <!-- تعليقات افتراضية يتم شحنها برمجياً أو عبر الإضافة التفاعلية -->
+            <div id="postContentArea" class="hidden">
+                <!-- عنوان المقال -->
+                <h1 class="text-3xl md:text-4xl font-black mb-4 leading-tight text-white" id="postTitle">...</h1>
+                
+                <!-- البيانات الوصفية للمقال -->
+                <div class="flex items-center gap-6 text-zinc-400 text-sm mb-6 border-b border-brand-border pb-4" id="postMeta">
+                    <span><i class="fa-solid fa-user text-brand-accent"></i> <span id="postAuthor">المحرر الرياضي</span></span>
+                    <span><i class="fa-solid fa-calendar-days text-brand-accent"></i> <span id="postDate">--</span></span>
                 </div>
-            </section>
+
+                <!-- الصورة البارزة للمقال -->
+                <img src="" alt="صورة المقال" class="post-featured-image" id="postImage">
+
+                <!-- متن المقال الكامل -->
+                <article class="post-body bg-brand-card p-6 md:p-8 rounded-xl border border-brand-border mb-12" id="postBody">
+                    <!-- محتوى المقال يوضع هنا -->
+                </article>
+
+                <!-- 3. قسم التعليقات (Comments Section) -->
+                <section class="comments-section bg-brand-card/50 p-6 md:p-8 rounded-xl border border-brand-border">
+                    <h3 class="text-2xl font-bold mb-6 text-white flex items-center gap-3">
+                        <i class="fa-regular fa-comments text-brand-accent"></i> التعليقات والمناقشات (<span id="commentCount">0</span>)
+                    </h3>
+
+                    <!-- نموذج كتابة تعليق جديد -->
+                    <div id="commentFormWrapper">
+                        <form id="commentForm" class="space-y-4 mb-8">
+                            <div>
+                                <label for="commentContent" class="block text-sm font-semibold mb-2 text-zinc-300">أضف تعليقك الرياضي:</label>
+                                <textarea id="commentContent" rows="3" class="w-full bg-brand-dark border border-brand-border rounded-lg p-3 text-white outline-none focus:border-brand-accent transition-colors" placeholder="شارِكنا رأيك الفني في المباراة والتحليل..." required></textarea>
+                            </div>
+                            <button type="submit" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-bold py-2.5 px-6 rounded-lg transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane"></i> إرسال التعليق
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- قائمة التعليقات -->
+                    <div id="commentsList" class="space-y-4">
+                        <p class="text-zinc-500 italic text-sm">لا توجد تعليقات بعد. كن أول المعلقين!</p>
+                    </div>
+                </section>
+            </div>
 
         </div>
     </main>
 
-    <!-- 4. الفوتر (Footer) -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col-about">
-                    <a href="index.html" class="navbar-brand">
-                        <i class="fa-solid fa-futbol"></i> دوري <span>الأناضول</span>
-                    </a>
-                    <p>منصة ويب متكاملة تقدم أرشفة متطورة لدوري كرة القدم للهواة، لتمكين الفرق واللاعبين من قراءة أرقامهم الفنية والميدانية بشكل إحترافي مبسط.</p>
-                </div>
-                <div class="footer-col">
-                    <h4>روابط سريعة</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html">الرئيسية</a></li>
-                        <li><a href="standings.html">جدول الترتيب</a></li>
-                        <li><a href="teams.html">قائمة الفرق</a></li>
-                        <li><a href="blog.html">مدونة التحليلات</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>تواصل معنا</h4>
-                    <ul class="footer-links">
-                        <li><i class="fa-solid fa-envelope"></i> info@anadolleague.com</li>
-                        <li><i class="fa-solid fa-location-dot"></i> ملعب الأناضول الرئيسي</li>
-                        <li><i class="fa-solid fa-phone"></i> +90 (555) 000-0000</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 دوري الأناضول. جميع الحقوق محفوظة.</p>
-                <p>مبني بشغف بواسطة اللجنة المنظمة لدوري الأناضول</p>
-            </div>
+    <!-- 4. الفوتر -->
+    <footer class="footer bg-brand-card border-t border-brand-border py-8 text-zinc-400 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p>&copy; 2026 دوري الأناضول. جميع الحقوق محفوظة.</p>
         </div>
     </footer>
 
-    <!-- استدعاء مكتبة GSAP والـ ScrollTrigger من الـ CDN -->
+    <!-- GSAP Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <!-- استدعاء ملف الحركات المشترك للمشروع -->
     <script src="js/animations.js"></script>
-
-    <!-- استدعاء ملفات الجلسات والتوثيق التفاعلي للواجهات الأمامية لتشغيل النافبار وتحديث حالته -->
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     
     <script>
-        // قاعدة بيانات تجريبية للمقالات المتوفرة لمرحلة MVP لتمثيل معطيات العقد
-        const blogDatabase = {
-            "1": {
-                title: "القراءة الفنية لديربي الجولة الخامسة: معركة خط الوسط",
-                author: "المحرر الرياضي",
-                date: "15 يناير 2026",
-                image: "https://images.unsplash.com/photo-1518063319789-7217e6706b04?auto=format&fit=crop&q=80&w=1200",
-                body: `
-                    <p>شهدت الجولة الخامسة من دوري الأناضول مواجهة من العيار الثقيل، حيث التقى الخصمان اللدودان في مباراة حاسمة صبغت بالصبغة التكتيكية الصارمة من كلا الجانبين. تركز الصراع الفعلي طوال التسعين دقيقة في خط الوسط، والذي كان مفتاح الفوز والسيطرة التامة على اللقاء.</p>
-                    
-                    <blockquote>"إن اللعب المنظم والقدرة على كسب الكرات الثانية في الدائرة المركزية كان الفارق الحقيقي الذي منح المتصدر نقاط اللقاء الثلاث."</blockquote>
-                    
-                    <p>من الناحية التكتيكية، نجح فريق نجم الأناضول في تطبيق استراتيجية الضغط العالي الموجه، مما عطل عملية بناء الهجمات المعتادة لشباب القلعة. الخرائط الحرارية المعتمدة للمباراة تؤكد أن لاعب الوسط المرتكز قضى أكثر من 65% من وقت حركته في تدمير هجمات الخصم قبل وصولها للثلث الدفاعي الأخير.</p>
-                    
-                    <p>بهذا الفوز، يعزز المتصدر موقعه في ريادة جدول الترتيب، واضعاً بقية الأندية أمام تحدٍ فني جدي لابتكار حلول قادرة على فك التكتل الدفاعي والضغط الحديدي المطبق في المباريات الكبيرة.</p>
-                `,
-                comments: [
-                    { author: "أبو بكر", content: "تحليل فني رائع ودقيق جداً. خط وسط نجم الأناضول كان متماسكاً بشكل رهيب ومستحق الصدارة تماماً.", date: "15 يناير 2026" }
-                ]
-            },
-            "2": {
-                title: "كيف طوّر فريق النجوم منظومته الدفاعية هذا الموسم؟",
-                author: "مراسل الدوري",
-                date: "14 يناير 2026",
-                image: "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&q=80&w=1200",
-                body: `
-                    <p>لم يكن أكثر المتفائلين يتوقع القفزة الدفاعية الهائلة التي حققها فريق النجوم هذا الموسم. فبعد أن كان خط دفاع الفريق يعاني من ثغرات واضحة استقبل على إثرها عدداً كبيراً من الأهداف الموسم الماضي، عاد الفريق هذا العام بمنظومة حديدية حصد بها المركز الثاني برصيد مميز من الشباك النظيفة (Clean Sheets).</p>
-                    
-                    <blockquote>"الالتزام الفردي، والتقارب الدقيق بين خطوط اللعب جعل من الصعب جداً على المنافسين التغلغل في العمق الدفاعي للنجوم."</blockquote>
-                    
-                    <p>التحول التكتيكي يرجع بالأساس إلى تغيير أسلوب التمركز الدفاعي، والاعتماد على قلبي دفاع يتسمان بالسرعة العالية في التغطية العكسية، مدعومين بظهيري جنب يلتزمان بالواجبات الدفاعية أولاً قبل الاندفاع التام للمساندة الهجومية.</p>
-                `,
-                comments: []
-            }
-        };
-
-        // دالة قراءة المعرف وبناء صفحة المقال
         document.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
-            let postId = params.get('id') || "1";
+            const postId = params.get('id');
 
-            if (!blogDatabase[postId]) {
-                postId = "1";
+            const postLoader = document.getElementById('postLoader');
+            const postContentArea = document.getElementById('postContentArea');
+
+            if (!postId) {
+                window.location.href = 'blog.html';
+                return;
             }
 
-            const postData = blogDatabase[postId];
+            // 1. جلب بيانات المقال الحقيقي من الباك إند
+            try {
+                const response = await fetch(`/api/blog/${postId}`);
+                if (!response.ok) throw new Error('المقال غير موجود');
 
-            // تعبئة البيانات
-            document.getElementById('postTitle').textContent = postData.title;
-            document.getElementById('postAuthor').textContent = postData.author;
-            document.getElementById('postDate').textContent = postData.date;
-            document.getElementById('postImage').src = postData.image;
-            document.getElementById('postImage').alt = postData.title;
-            document.getElementById('postBody').innerHTML = postData.body;
+                const post = await response.json();
 
-            // بناء قائمة التعليقات الأولية
-            const commentsList = document.getElementById('commentsList');
-            const commentCountSpan = document.getElementById('commentCount');
-            const commentForm = document.getElementById('commentForm');
-            
-            function renderComments() {
-                commentsList.innerHTML = '';
-                commentCountSpan.textContent = postData.comments.length;
-
-                if (postData.comments.length === 0) {
-                    commentsList.innerHTML = `<p id="noCommentsText" style="color: var(--text-muted); font-style: italic;">لا توجد تعليقات بعد على هذا المقال. كن أول المعلقين ومشاركي الرأي الفني!</p>`;
-                    return;
-                }
-
-                postData.comments.forEach(comment => {
-                    const item = document.createElement('div');
-                    item.className = 'comment-item comment-node';
-                    item.innerHTML = `
-                        <div class="comment-header">
-                            <span class="comment-author"><i class="fa-solid fa-circle-user"></i> ${comment.author}</span>
-                            <span class="comment-date">${comment.date}</span>
-                        </div>
-                        <p class="comment-body">${comment.content}</p>
-                    `;
-                    commentsList.appendChild(item);
+                // تعبئة العنوان والبيانات
+                document.getElementById('postTitle').textContent = post.title;
+                document.getElementById('postDate').textContent = new Date(post.publishedAt || post.createdAt || Date.now()).toLocaleDateString('ar-EG', {
+                    year: 'numeric', month: 'long', day: 'numeric'
                 });
+                
+                document.getElementById('postImage').src = post.featuredImageUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1200';
+                document.getElementById('postImage').alt = post.title;
+                document.getElementById('postBody').textContent = post.body;
+
+                postLoader.classList.add('hidden');
+                postContentArea.classList.remove('hidden');
+
+                // 2. جلب التعليقات الحقيقية للمقال
+                loadComments(postId);
+
+            } catch (error) {
+                console.error('Error loading post:', error);
+                postLoader.innerHTML = `
+                    <div class="py-12 text-center text-red-400">
+                        <i class="fa-solid fa-triangle-exclamation text-4xl mb-3"></i>
+                        <p class="text-lg font-bold">عذراً، لم نتمكن من العثور على المقال المطلوب.</p>
+                        <a href="blog.html" class="inline-block mt-4 text-brand-accent underline">العودة لقائمة المقالات</a>
+                    </div>`;
             }
 
-            renderComments();
+            // دالة جلب وعرض التعليقات
+            async function loadComments(id) {
+                const commentsList = document.getElementById('commentsList');
+                const commentCount = document.getElementById('commentCount');
 
-            // فحص حالة تسجيل الدخول وتخصيص صلاحية كتابة التعليق
-            let currentUser = null;
-            if (window.AnadolAuth && window.AnadolAuth.isLoggedIn()) {
                 try {
-                    const profileResponse = await window.AnadolAuth.fetchProfile();
-                    if (profileResponse && profileResponse.success) {
-                        currentUser = profileResponse.user;
+                    const res = await fetch(`/api/blog/${id}/comments`);
+                    if (!res.ok) return;
+
+                    const comments = await res.json();
+                    commentCount.textContent = comments.length;
+
+                    if (comments.length === 0) {
+                        commentsList.innerHTML = `<p class="text-zinc-500 italic text-sm">لا توجد تعليقات بعد على هذا المقال. كن أول المعلقين!</p>`;
+                        return;
                     }
+
+                    commentsList.innerHTML = comments.map(c => `
+                        <div class="bg-brand-dark p-4 rounded-lg border border-brand-border">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-brand-accent text-sm"><i class="fa-solid fa-circle-user"></i> ${c.username || 'زائر'}</span>
+                                <span class="text-xs text-zinc-500">${new Date(c.createdAt).toLocaleDateString('ar-EG')}</span>
+                            </div>
+                            <p class="text-zinc-300 text-sm leading-relaxed">${c.content}</p>
+                        </div>
+                    `).join('');
+
                 } catch (e) {
-                    console.error("Failed to load user session:", e);
+                    console.warn('Comments error:', e);
                 }
             }
 
-            if (currentUser) {
-                // إذا كان مسجلاً، نقوم بتعبئة اسمه ونعطل حقل تعديل الاسم لضمان الموثوقية
-                const authorInput = document.getElementById('authorName');
-                authorInput.value = currentUser.username;
-                authorInput.disabled = true;
-                authorInput.style.cursor = 'not-allowed';
-                authorInput.style.opacity = '0.7';
-
-                // معالجة نموذج إرسال التعليق (Simulated Form Submit)
-                commentForm.addEventListener('submit', (e) => {
+            // 3. إرسال تعليق جديد
+            const commentForm = document.getElementById('commentForm');
+            if (commentForm) {
+                commentForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-
                     const contentInput = document.getElementById('commentContent');
+                    const content = contentInput.value.trim();
 
-                    const newComment = {
-                        author: currentUser.username,
-                        content: contentInput.value.trim(),
-                        date: "اليوم (تحديث فوري)"
-                    };
+                    if (!content) return;
 
-                    // حفظ في قاعدة البيانات المحلية المؤقتة بالمتصفح
-                    postData.comments.push(newComment);
-                    
-                    // إعادة رسم التعليقات
-                    renderComments();
+                    const token = localStorage.getItem('anadol_token');
 
-                    // تفريغ المدخلات
-                    contentInput.value = '';
+                    try {
+                        const response = await fetch(`/api/blog/${postId}/comments`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': token ? `Bearer ${token}` : ''
+                            },
+                            body: JSON.stringify({ content })
+                        });
 
-                    // تشغيل حركة دخول لطيفة لأحدث تعليق
-                    const lastCommentNode = commentsList.lastElementChild;
-                    if (lastCommentNode && typeof AnadolAnims !== 'undefined') {
-                        AnadolAnims.fadeIn(lastCommentNode, { y: 15, duration: 0.5 });
+                        if (response.ok) {
+                            contentInput.value = '';
+                            loadComments(postId);
+                        } else {
+                            alert('يرجى تسجيل الدخول أولاً لإرسال التعليق');
+                        }
+                    } catch (err) {
+                        alert('حدث خطأ أثناء إرسال التعليق');
                     }
                 });
-            } else {
-                // للزوار غير مسجلي الحساب: نخفي الفورم ونظهر رسالة تنبيه تفاعلية مع رابط تسجيل الدخول
-                commentForm.innerHTML = `
-                    <div style="background-color: var(--secondary-dark); border: 1px solid var(--border-color); padding: 2rem; border-radius: var(--border-radius-md); text-align: center;">
-                        <i class="fa-solid fa-lock" style="font-size: 2.5rem; color: var(--accent-color); margin-bottom: 1rem;"></i>
-                        <h3 style="color: var(--text-main); font-weight: 700; margin-bottom: 0.5rem;">عذراً، يجب تسجيل الدخول أولاً للتعليق</h3>
-                        <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">هذه الميزة مخصصة حصرياً لأعضاء دوري الأناضول لضمان جودة ونقاء النقاش الرياضي.</p>
-                        <a href="admin/login.html" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول لحسابك
-                        </a>
-                    </div>
-                `;
-            }
-
-            // تفعيل حركات GSAP لظهور مكونات المقالة
-            if (typeof gsap !== 'undefined') {
-                AnadolAnims.fadeIn('#postTitle', { y: -25, duration: 0.7 });
-                AnadolAnims.fadeIn('#postMeta', { y: 10, duration: 0.6, delay: 0.1 });
-                AnadolAnims.fadeIn('#postImage', { opacity: 0, scale: 0.98, duration: 0.8, delay: 0.2 });
-                AnadolAnims.fadeIn('#postBody', { y: 20, duration: 0.8, delay: 0.3 });
             }
         });
     </script>
