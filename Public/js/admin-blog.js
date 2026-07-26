@@ -1,293 +1,246 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const token = localStorage.getItem('anadol_token');
-  const user = JSON.parse(localStorage.getItem('anadol_user') || '{}');
+    // 1. التحقق من صلاحية الجلسة والدور (Admin أو Editor)
+    const user = Auth.getUser();
+    if (!Auth.isLoggedIn() || (user.role !== 'admin' && user.role !== 'editor')) {
+        window.location.href = '/admin/login.html';
+        return;
+    }
 
-  // مسموح لكل من الـ admin والـ editor بالدخول للتحرير
-  if (!token || (user.role !== 'admin' && user.role !== 'editor')) {
-    window.location.href = '/admin/login.html';
-    return;
-  }
+    document.getElementById('adminUsername').textContent = user.username;
 
-  // تحديث شارة الدور في الواجهة
-  const userRoleEl = document.getElementById('user-role');
-  if (userRoleEl) {
-    userRoleEl.textContent = user.role === 'admin' ? 'مشرف رئيسي' : 'محرر محتوى';
-  }
+    // عناصر الواجهة
+    const blogPostsTableBody = document.getElementById('blogPostsTableBody');
+    const openCreateModalBtn = document.getElementById('openCreateModalBtn');
+    const blogModal = document.getElementById('blogModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const blogForm = document.getElementById('blogForm');
+    const modalTitle = document.getElementById('modalTitle');
 
-  initBlogManagement(user.role);
+    // عناصر رفع ومعاينة الصورة
+    const postImageFile = document.getElementById('postImageFile');
+    const uploadPrompt = document.getElementById('uploadPrompt');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const removeImageBtn = document.getElementById('removeImageBtn');
+    const postImageUrl = document.getElementById('postImageUrl');
+    const postImageUrlManual = document.getElementById('postImageUrlManual');
+
+    // توليد Slug تلقائي من العنوان عند الكتابة
+    const postTitleInput = document.getElementById('postTitle');
+    const postSlugInput = document.getElementById('postSlug');
+    postTitleInput.addEventListener('input', () => {
+        if (!document.getElementById('postId').value) { // فقط أثناء الإنشاء
+            const slug = postTitleInput.value
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9أ-ي\s-]/g, '')
+                .replace(/\s+/g, '-');
+            postSlugInput.value = slug;
+        }
+    });
+
+    // 2. معالجة اختيار ملف صورة
+    postImageFile.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // معاينة محلية سريعة قبل الرفع
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            imagePreview.src = event.target.result;
+            uploadPrompt.classList.add('hidden');
+            imagePreviewContainer.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+
+        // رفع الصورة تلقائياً لـ Backend
+        try {
+            uploadPrompt.innerHTML = `<i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: #38bdf8;"></i><p style="margin:0; color:#94a3b8;">جاري رفع الصورة...</p>`;
+            uploadPrompt.classList.remove('hidden');
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const token = Auth.getToken();
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.url) {
+                postImageUrl.value = data.url;
+                postImageUrlManual.value = data.url;
+                uploadPrompt.classList.add('hidden');
+            } else {
+                alert(data.message || 'فشل رفع الصورة');
+                resetImageSelection();
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('حدث خطأ أثناء رفع الصورة');
+            resetImageSelection();
+        }
+    });
+
+    // معالجة إدخال رابط يدوي
+    postImageUrlManual.addEventListener('input', () => {
+        const url = postImageUrlManual.value.trim();
+        postImageUrl.value = url;
+        if (url) {
+            imagePreview.src = url;
+            uploadPrompt.classList.add('hidden');
+            imagePreviewContainer.classList.remove('hidden');
+        } else {
+            resetImageSelection();
+        }
+    });
+
+    // حذف/إلغاء اختيار الصورة
+    removeImageBtn.addEventListener('click', resetImageSelection);
+
+    function resetImageSelection() {
+        postImageFile.value = '';
+        postImageUrl.value = '';
+        postImageUrlManual.value = '';
+        imagePreview.src = '';
+        imagePreviewContainer.classList.add('hidden');
+        uploadPrompt.innerHTML = `
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; color: #38bdf8; margin-bottom: 8px;"></i>
+            <p style="margin: 0; color: #94a3b8; font-size: 0.9rem;">اضغط هنا لاختيار صورة من جهازك (JPG, PNG, WEBP)</p>
+        `;
+        uploadPrompt.classList.remove('hidden');
+    }
+
+    // 3. جلب وعرض المقالات
+    async function loadBlogPosts() {
+        try {
+            blogPostsTableBody.innerHTML = `<tr><td colspan="6" class="text-center">جاري تحميل المقالات...</td></tr>`;
+            const posts = await API.get('/api/blog');
+
+            if (!posts || posts.length === 0) {
+                blogPostsTableBody.innerHTML = `<tr><td colspan="6" class="text-center">لا توجد مقالات حالياً.</td></tr>`;
+                return;
+            }
+
+            blogPostsTableBody.innerHTML = posts.map((post, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>
+                        <img src="${post.featuredImageUrl}" alt="${post.title}" style="width: 50px; height: 35px; object-fit: cover; border-radius: 4px;">
+                    </td>
+                    <td><strong>${post.title}</strong></td>
+                    <td><code>${post.slug}</code></td>
+                    <td>${new Date(post.publishedAt || post.createdAt).toLocaleDateString('ar-EG')}</td>
+                    <td>
+                        <button class="btn-sm btn-edit" onclick="editPost(${post.id})">
+                            <i class="fa-solid fa-pen"></i> تعديل
+                        </button>
+                        ${user.role === 'admin' ? `
+                            <button class="btn-sm btn-delete" onclick="deletePost(${post.id})">
+                                <i class="fa-solid fa-trash"></i> حذف
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading blog posts:', error);
+            blogPostsTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">حدث خطأ أثناء تحميل المقالات.</td></tr>`;
+        }
+    }
+
+    // 4. فتح واغلاق Modal
+    openCreateModalBtn.addEventListener('click', () => {
+        modalTitle.textContent = 'إنشاء مقال جديد';
+        blogForm.reset();
+        document.getElementById('postId').value = '';
+        resetImageSelection();
+        blogModal.classList.remove('hidden');
+    });
+
+    closeModalBtn.addEventListener('click', () => blogModal.classList.add('hidden'));
+    cancelModalBtn.addEventListener('click', () => blogModal.classList.add('hidden'));
+
+    // 5. تعديل مقال (متاح للجميع كـ function عامة)
+    window.editPost = async (id) => {
+        try {
+            const post = await API.get(`/api/blog/${id}`);
+            modalTitle.textContent = 'تعديل المقال';
+            document.getElementById('postId').value = post.id;
+            document.getElementById('postTitle').value = post.title;
+            document.getElementById('postSlug').value = post.slug;
+            document.getElementById('postExcerpt').value = post.excerpt;
+            document.getElementById('postBody').value = post.body;
+
+            // ضبط الصورة
+            postImageUrl.value = post.featuredImageUrl;
+            postImageUrlManual.value = post.featuredImageUrl;
+            if (post.featuredImageUrl) {
+                imagePreview.src = post.featuredImageUrl;
+                uploadPrompt.classList.add('hidden');
+                imagePreviewContainer.classList.remove('hidden');
+            } else {
+                resetImageSelection();
+            }
+
+            blogModal.classList.remove('hidden');
+        } catch (error) {
+            alert('تعذر جلب بيانات المقال');
+        }
+    };
+
+    // 6. حذف مقال (Admin فقط)
+    window.deletePost = async (id) => {
+        if (!confirm('هل أنت تأكد من رغبتك في حذف هذا المقال نهائياً؟')) return;
+        try {
+            await API.delete(`/api/blog/${id}`);
+            alert('تم حذف المقال بنجاح');
+            loadBlogPosts();
+        } catch (error) {
+            alert(error.message || 'حدث خطأ أثناء حذف المقال');
+        }
+    };
+
+    // 7. حفظ المقال (إنشاء أو تعديل)
+    blogForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const id = document.getElementById('postId').value;
+        const payload = {
+            title: document.getElementById('postTitle').value.trim(),
+            slug: document.getElementById('postSlug').value.trim(),
+            featuredImageUrl: postImageUrl.value.trim(),
+            excerpt: document.getElementById('postExcerpt').value.trim(),
+            body: document.getElementById('postBody').value.trim()
+        };
+
+        if (!payload.featuredImageUrl) {
+            alert('يرجى اختيار صورة للمقال أو إدخال رابط صورة صحيح');
+            return;
+        }
+
+        try {
+            if (id) {
+                await API.put(`/api/blog/${id}`, payload);
+                alert('تم تعديل المقال بنجاح');
+            } else {
+                await API.post('/api/blog', payload);
+                alert('تم إنشاء المقال بنجاح');
+            }
+
+            blogModal.classList.add('hidden');
+            loadBlogPosts();
+        } catch (error) {
+            alert(error.message || 'حدث خطأ أثناء حفظ المقال');
+        }
+    });
+
+    // تحميل البيانات لأول مرة
+    loadBlogPosts();
 });
-
-let allPosts = [];
-const blogLoadingEl = document.getElementById('blog-loading');
-const blogEmptyEl = document.getElementById('blog-empty');
-const blogContainerEl = document.getElementById('blog-container');
-const blogTableBody = document.getElementById('blog-table-body');
-const blogCountEl = document.getElementById('blog-count');
-const blogSearchEl = document.getElementById('blog-search');
-
-// عناصر نافذة التعديل والإنشاء
-const btnOpenBlogModal = document.getElementById('btn-open-blog-modal');
-const blogModal = document.getElementById('blog-modal');
-const blogForm = document.getElementById('blog-form');
-const blogIdInput = document.getElementById('blog-id-input');
-const blogModalTitle = document.getElementById('blog-modal-title');
-const blogTitleInput = document.getElementById('blog-title');
-const blogSlugInput = document.getElementById('blog-slug');
-
-function initBlogManagement(userRole) {
-  loadBlogPosts(userRole);
-
-  if (blogSearchEl) {
-    blogSearchEl.addEventListener('input', () => filterBlogPosts(userRole));
-  }
-
-  if (btnOpenBlogModal) {
-    btnOpenBlogModal.addEventListener('click', () => openBlogModal());
-  }
-
-  document.querySelectorAll('.btn-close-modal').forEach(btn => {
-    btn.addEventListener('click', closeBlogModal);
-  });
-
-  if (blogForm) {
-    blogForm.addEventListener('submit', handleBlogSubmit);
-  }
-
-  // ميزة التوليد التلقائي للرابط الفرعي (Slug) أثناء كتابة العنوان
-  if (blogTitleInput && blogSlugInput) {
-    blogTitleInput.addEventListener('input', (e) => {
-      // فقط نولد السبيكة تلقائياً في حال كانت العملية إضافة وليس تعديل مقال موجود
-      if (!blogIdInput.value) {
-        blogSlugInput.value = generateSlug(e.target.value);
-      }
-    });
-  }
-}
-
-// دالة توليد السلج (Slug) تلقائياً بشكل صديق لمحركات البحث
-function generateSlug(text) {
-  return text
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, '-')           // استبدال المسافات بشرطات
-    .replace(/[^\u0621-\u064A\w\-]+/g, '') // إزالة كافة الحروف والرموز ما عدا الحروف العربية والإنجليزية والشرطات
-    .replace(/\-\-+/g, '-')         // استبدال الشرطات المتكررة بشرطة واحدة
-    .replace(/^-+/, '')             // تنظيف الأطراف من الشرطات في البداية
-    .replace(/-+$/, '');            // تنظيف الأطراف من الشرطات في النهاية
-}
-
-// جلب المقالات من السيرفر
-async function loadBlogPosts(userRole) {
-  try {
-    showEl(blogLoadingEl);
-    hideEl(blogContainerEl);
-    hideEl(blogEmptyEl);
-
-    const posts = await fetchAPI('/api/blog');
-    allPosts = posts || [];
-    if (blogCountEl) {
-      blogCountEl.textContent = allPosts.length;
-    }
-
-    if (allPosts.length === 0) {
-      hideEl(blogLoadingEl);
-      showEl(blogEmptyEl);
-      return;
-    }
-
-    renderBlogTable(allPosts, userRole);
-    hideEl(blogLoadingEl);
-    showEl(blogContainerEl);
-  } catch (err) {
-    console.error('حدث خطأ أثناء جلب منشورات المدونة:', err);
-    alert('تعذر تحميل المقالات من الخادم حالياً.');
-  }
-}
-
-// عرض المقالات في جدول التحكم
-function renderBlogTable(posts, userRole) {
-  if (!blogTableBody) return;
-  blogTableBody.innerHTML = '';
-
-  posts.forEach(post => {
-    const publishedDate = new Date(post.publishedAt || post.createdAt).toLocaleDateString('ar-EG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-
-    const tr = document.createElement('tr');
-    tr.className = 'border-b border-slate-800/50 hover:bg-slate-900/40 transition duration-150 blog-row';
-
-    // تمييز أزرار الحذف: تكون غير نشطة أو مخفية لغير الـ admin
-    const deleteButtonHtml = userRole === 'admin' 
-      ? `<button class="btn-delete-post text-slate-400 hover:text-brand-danger p-1.5 transition" title="حذف المقال نهائياً" data-id="${post.id}">
-          <i class="fa-solid fa-trash-can text-sm"></i>
-         </button>`
-      : `<button class="text-slate-700 cursor-not-allowed p-1.5" title="لا تملك صلاحية حذف المقالات" disabled>
-          <i class="fa-solid fa-trash-can text-sm"></i>
-         </button>`;
-
-    tr.innerHTML = `
-      <td class="py-4 px-4">
-        <img src="${post.featuredImageUrl || '/img/default-blog.png'}" alt="" class="w-16 h-10 object-cover rounded border border-slate-800">
-      </td>
-      <td class="py-4 px-4 font-bold text-white max-w-xs truncate">${post.title}</td>
-      <td class="py-4 px-4 text-xs font-mono text-slate-400 max-w-[150px] truncate" dir="ltr">${post.slug}</td>
-      <td class="py-4 px-4 text-xs text-slate-400">${publishedDate}</td>
-      <td class="py-4 px-4 text-left">
-        <div class="flex items-center justify-end gap-2">
-          <button class="btn-edit-post text-slate-400 hover:text-brand-accent p-1.5 transition" title="تعديل المقال" data-id="${post.id}">
-            <i class="fa-solid fa-pen-to-square text-sm"></i>
-          </button>
-          ${deleteButtonHtml}
-        </div>
-      </td>
-    `;
-
-    blogTableBody.appendChild(tr);
-  });
-
-  // ربط أحداث الأزرار ديناميكياً
-  document.querySelectorAll('.btn-edit-post').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const id = e.currentTarget.getAttribute('data-id');
-      editBlogPost(id);
-    });
-  });
-
-  document.querySelectorAll('.btn-delete-post').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const id = e.currentTarget.getAttribute('data-id');
-      deleteBlogPost(id, userRole);
-    });
-  });
-
-  if (window.gsap) {
-    gsap.from('.blog-row', { opacity: 0, y: 10, duration: 0.3, stagger: 0.05, ease: 'power2.out' });
-  }
-}
-
-// تصفية وعمل تصفح بالبحث اللحظي
-function filterBlogPosts(userRole) {
-  const query = blogSearchEl.value.trim().toLowerCase();
-  if (!query) {
-    renderBlogTable(allPosts, userRole);
-    return;
-  }
-
-  const filtered = allPosts.filter(p => p.title.toLowerCase().includes(query) || p.slug.toLowerCase().includes(query));
-  renderBlogTable(filtered, userRole);
-}
-
-// نافذة تعديل وإنشاء المقالات
-async function openBlogModal(post = null) {
-  if (!blogModal) return;
-
-  if (post) {
-    blogModalTitle.textContent = 'تعديل مقال المدونة';
-    if (blogIdInput) blogIdInput.value = post.id;
-    if (blogTitleInput) blogTitleInput.value = post.title;
-    if (blogSlugInput) blogSlugInput.value = post.slug;
-    document.getElementById('blog-image').value = post.featuredImageUrl || '';
-    document.getElementById('blog-excerpt').value = post.excerpt || '';
-    document.getElementById('blog-body').value = post.body || '';
-  } else {
-    blogModalTitle.textContent = 'إنشاء مقال جديد';
-    if (blogForm) blogForm.reset();
-    if (blogIdInput) blogIdInput.value = '';
-  }
-
-  blogModal.classList.remove('hidden');
-  setTimeout(() => {
-    blogModal.classList.add('opacity-100');
-    const transformEl = blogModal.querySelector('.transform');
-    if (transformEl) transformEl.classList.remove('scale-95');
-  }, 10);
-}
-
-function closeBlogModal() {
-  if (!blogModal) return;
-  blogModal.classList.remove('opacity-100');
-  const transformEl = blogModal.querySelector('.transform');
-  if (transformEl) transformEl.classList.add('scale-95');
-  setTimeout(() => {
-    blogModal.classList.add('hidden');
-  }, 300);
-}
-
-// إرسال النموذج لحفظ أو تعديل المقال
-async function handleBlogSubmit(e) {
-  e.preventDefault();
-
-  const id = blogIdInput ? blogIdInput.value : '';
-  const payload = {
-    title: document.getElementById('blog-title').value,
-    slug: document.getElementById('blog-slug').value,
-    featuredImageUrl: document.getElementById('blog-image').value,
-    excerpt: document.getElementById('blog-excerpt').value,
-    body: document.getElementById('blog-body').value
-  };
-
-  try {
-    let result;
-    if (id) {
-      result = await fetchAPI(`/api/blog/${id}`, 'PUT', payload);
-    } else {
-      result = await fetchAPI('/api/blog', 'POST', payload);
-    }
-
-    if (result && result.success) {
-      closeBlogModal();
-      // استعادة الدور لإعادة عرض قائمة المقالات بشكل صحيح
-      const user = JSON.parse(localStorage.getItem('anadol_user') || '{}');
-      await loadBlogPosts(user.role);
-    }
-  } catch (err) {
-    console.error('فشل في حفظ المقال:', err);
-    alert('حدث خطأ أثناء حفظ المقال، يرجى مراجعة الحقول والروابط.');
-  }
-}
-
-// جلب المقال الكامل لتعديله
-async function editBlogPost(id) {
-  try {
-    // يجب استدعاء المقال الفردي لجلب حقل body المحتوى الكامل
-    const post = await fetchAPI(`/api/blog/${id}`);
-    if (post) {
-      openBlogModal(post);
-    }
-  } catch (err) {
-    console.error('خطأ في جلب تفاصيل المقال للتعديل:', err);
-    alert('تعذر تحميل بيانات المقال من الخادم.');
-  }
-}
-
-// حذف مقال (صلاحية المشرف فقط)
-async function deleteBlogPost(id, userRole) {
-  if (userRole !== 'admin') {
-    alert('أنت لا تملك الصلاحية الأمنية لإجراء الحذف.');
-    return;
-  }
-
-  if (confirm('هل أنت متأكد من رغبتك في حذف هذا المقال الفني نهائياً من المدونة؟ لا يمكن التراجع عن هذا الإجراء.')) {
-    try {
-      const response = await fetchAPI(`/api/blog/${id}`, 'DELETE');
-      if (response && response.success) {
-        await loadBlogPosts(userRole);
-      }
-    } catch (err) {
-      console.error('حدث خطأ أثناء محاولة حذف المقال:', err);
-      alert('فشل السيرفر في حذف المقال المطلوب.');
-    }
-  }
-}
-
-// دوال التحكم بالعرض المساعد
-function showEl(el) {
-  if (el) el.classList.remove('hidden');
-}
-
-function hideEl(el) {
-  if (el) el.classList.add('hidden');
-}
