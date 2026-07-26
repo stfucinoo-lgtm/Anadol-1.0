@@ -4,12 +4,500 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>استيراد الإحصائيات بالذكاء الاصطناعي - ANADOL League</title>
-  <!-- ملف التنسيق العام والداشبورد للمشروع -->
-  <link rel="stylesheet" href="/css/style.css">
+  
+  <!-- خط Cairo الرياضي العصري -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
   <!-- مكتبة الأيقونات FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- مكتبة GSAP للتأثيرات البصرية والحركية -->
+  
+  <!-- مكتبة GSAP للتأثيرات الحركية -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --card-bg: rgba(22, 30, 46, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.3);
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --input-bg: rgba(15, 23, 42, 0.8);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 20% 20%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+        radial-gradient(at 80% 80%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar styling */
+    .admin-nav {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .brand i {
+      color: var(--accent);
+      font-size: 1.5rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-link.active {
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* Main Container */
+    .admin-main {
+      max-width: 1300px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      width: 100%;
+      flex: 1;
+    }
+
+    .page-header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .page-title {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .text-accent {
+      color: var(--accent);
+    }
+
+    .page-subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Layout Grid */
+    .import-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 2rem;
+      align-items: start;
+    }
+
+    /* Cards Styling */
+    .admin-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-title-sm {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #fff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 0.75rem;
+    }
+
+    /* Forms & Inputs */
+    .standard-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    select, input[type="number"], input[type="text"] {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+
+    /* File Upload Dropzone */
+    .file-upload-wrapper {
+      position: relative;
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 2rem 1rem;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.4);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .file-upload-wrapper:hover {
+      border-color: var(--accent);
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    .file-upload-wrapper input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      pointer-events: none;
+    }
+
+    .upload-placeholder i {
+      font-size: 2.5rem;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-placeholder span {
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .upload-placeholder small {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .file-info-text {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(16, 185, 129, 0.1);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+    }
+
+    /* Buttons */
+    .btn-primary, .btn-success, .btn-secondary, .btn-danger {
+      padding: 0.85rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #4338ca);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--accent), #059669);
+      color: #fff;
+      box-shadow: 0 4px 15px var(--accent-glow);
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid var(--card-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    /* AI Loader */
+    .ai-loader-container {
+      margin-top: 1.5rem;
+      text-align: center;
+      padding: 1.5rem;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+    }
+
+    .loader-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s infinite linear;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loader-text {
+      font-weight: 700;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    .loader-sub {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+    }
+
+    /* Form Grid / Review Section */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-divider {
+      border: none;
+      height: 1px;
+      background: var(--card-border);
+      margin: 0.5rem 0;
+    }
+
+    .badge {
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .card-header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .events-review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .events-review-header h3 {
+      font-size: 1rem;
+      color: #fff;
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      width: auto;
+    }
+
+    /* Event Review Row */
+    .event-review-row {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.85rem;
+      margin-bottom: 0.75rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) auto;
+      gap: 0.5rem;
+      align-items: end;
+    }
+
+    .event-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .event-field-group label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .event-field-group input, .event-field-group select {
+      padding: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      height: 35px;
+    }
+
+    .btn-danger-outline:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .form-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.5fr;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .import-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body class="admin-body">
 
@@ -17,7 +505,7 @@
   <nav class="admin-nav">
     <div class="nav-container">
       <div class="brand">
-        <i class="fa-solid fa-brain text-accent"></i>
+        <i class="fa-solid fa-brain"></i>
         <span>لوحة تحكم الأناضول (الذكاء الاصطناعي)</span>
       </div>
       <div class="nav-links">
@@ -30,18 +518,18 @@
   </nav>
 
   <!-- المحتوى الرئيسي للمنصة -->
-  <main class="admin-main container">
-    <header class="page-header animate-fade-in">
+  <main class="admin-main">
+    <header class="page-header">
       <h1 class="page-title">
-        <i class="fa-solid fa-wand-magic-sparkles text-accent animate-pulse-slow"></i> استخراج إحصائيات المباريات عبر AI
+        <i class="fa-solid fa-wand-magic-sparkles text-accent"></i> استخراج إحصائيات المباريات عبر AI
       </h1>
       <p class="page-subtitle">ارفع صورة تقرير أو ورقة الإحصائيات الخاصة بالمباراة ليقوم نموذج Gemini بتحليلها وصياغتها آلياً.</p>
     </header>
 
     <div class="import-grid">
       <!-- الجزء الأيمن: نموذج الرفع واختيار المباراة -->
-      <section class="admin-card animate-fade-in" style="animation-delay: 0.1s;">
-        <h2 class="section-title-sm"><i class="fa-solid fa-cloud-arrow-up"></i> رفع مستند المباراة</h2>
+      <section class="admin-card">
+        <h2 class="section-title-sm"><i class="fa-solid fa-cloud-arrow-up text-accent"></i> رفع مستند المباراة</h2>
         <form id="uploadStatsForm" class="standard-form">
           <div class="form-group">
             <label for="matchSelect">اختر المباراة المستهدفة:</label>
@@ -51,39 +539,41 @@
           </div>
           
           <div class="form-group">
-            <label for="imageFile">صورة الإحصائيات أو التقرير:</label>
+            <label>صورة الإحصائيات أو التقرير:</label>
             <div class="file-upload-wrapper">
               <input type="file" id="imageFile" accept="image/jpeg, image/png, image/webp" required>
               <div class="upload-placeholder">
-                <i class="fa-solid fa-images fa-2x text-muted"></i>
+                <i class="fa-solid fa-cloud-arrow-up"></i>
                 <span>اسحب الصورة هنا أو اضغط للتصفح</span>
-                <small class="text-muted">الحد الأقصى للملف: 5 ميجابايت (PNG, JPG, WEBP)</small>
+                <small>الحد الأقصى للملف: 5 ميجابايت (PNG, JPG, WEBP)</small>
               </div>
             </div>
-            <div id="fileSelectedName" class="file-info-text text-success" style="display: none;"></div>
+            <div id="fileSelectedName" class="file-info-text" style="display: none;"></div>
           </div>
 
-          <button type="submit" class="btn-primary w-full" id="submitUploadBtn">
-            <i class="fa-solid fa-gear fa-spin-hover"></i> استخراج البيانات بالذكاء الاصطناعي
+          <button type="submit" class="btn-primary" id="submitUploadBtn">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> استخراج البيانات بالذكاء الاصطناعي
           </button>
         </form>
 
         <!-- مؤشر التحميل أثناء عمل الذكاء الاصطناعي -->
         <div id="aiLoader" class="ai-loader-container" style="display: none;">
           <div class="loader-spinner"></div>
-          <p class="loader-text">يقوم الذكاء الاصطناعي (Gemini) حالياً بقراءة تفاصيل الصورة وتحليل الهجمات والأحداث...</p>
+          <p class="loader-text">يقوم الذكاء الاصطناعي (Gemini) حالياً بقراءة تفاصيل الصورة وتحليل الأحداث...</p>
           <span class="loader-sub">قد تستغرق هذه العملية ما بين 5 إلى 15 ثانية</span>
         </div>
       </section>
 
-      <!-- الجزء الأيسر: مراجعة البيانات المستخرجة وتصحيحها (مخفي افتراضياً ويظهر عند انتهاء الرفع) -->
-      <section id="reviewSection" class="admin-card animate-fade-in" style="display: none;">
+      <!-- الجزء الأيسر: مراجعة البيانات المستخرجة وتصحيحها -->
+      <section id="reviewSection" class="admin-card" style="display: none;">
         <div class="card-header-actions">
-          <h2 class="section-title-sm"><i class="fa-solid fa-edit"></i> مراجعة وتعديل مسودة الإحصائيات</h2>
+          <h2 class="section-title-sm" style="margin-bottom:0; border:none; padding:0;">
+            <i class="fa-solid fa-pen-to-square text-accent"></i> مراجعة وتعديل المسودة
+          </h2>
           <span class="badge badge-warning" id="importStatusBadge">معلق المراجعة</span>
         </div>
 
-        <form id="reviewStatsForm" class="standard-form">
+        <form id="reviewStatsForm" class="standard-form" style="margin-top: 1rem;">
           <!-- البيانات العامة والنتيجة -->
           <div class="form-row">
             <div class="form-group">
@@ -98,11 +588,11 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="possessionHome">استحواذ المستضيف (Home %):</label>
+              <label for="possessionHome">استحواذ المستضيف (%):</label>
               <input type="number" id="possessionHome" min="0" max="100" required>
             </div>
             <div class="form-group">
-              <label for="possessionAway">استحواذ الضيف (Away %):</label>
+              <label for="possessionAway">استحواذ الضيف (%):</label>
               <input type="number" id="possessionAway" min="0" max="100" required>
             </div>
           </div>
@@ -111,13 +601,13 @@
 
           <!-- أحداث المباراة التفاعلية -->
           <div class="events-review-header">
-            <h3><i class="fa-solid fa-list-check"></i> قائمة أحداث المباراة المستخرجة</h3>
+            <h3><i class="fa-solid fa-list-check text-accent"></i> أحداث المباراة المستخرجة</h3>
             <button type="button" class="btn-secondary btn-sm" id="addNewEventBtn">
-              <i class="fa-solid fa-plus"></i> إضافة حدث يدوياً
+              <i class="fa-solid fa-plus"></i> إضافة حدث
             </button>
           </div>
 
-          <div id="eventsListContainer" class="events-list-grid">
+          <div id="eventsListContainer">
             <!-- سيتم إنشاء صف لكل حدث ديناميكياً -->
           </div>
 
@@ -126,13 +616,13 @@
           <!-- أزرار الإجراءات والاعتماد النهائي -->
           <div class="form-actions">
             <button type="button" id="saveDraftBtn" class="btn-secondary">
-              <i class="fa-solid fa-floppy-disk"></i> حفظ المسودة مؤقتاً
+              <i class="fa-solid fa-floppy-disk"></i> حفظ المسودة
             </button>
             <button type="button" id="rejectImportBtn" class="btn-danger">
-              <i class="fa-solid fa-ban"></i> رفض وإلغاء الملف
+              <i class="fa-solid fa-ban"></i> إلغاء
             </button>
             <button type="submit" id="approveImportBtn" class="btn-success">
-              <i class="fa-solid fa-circle-check"></i> اعتماد ونشر البيانات رسمياً
+              <i class="fa-solid fa-circle-check"></i> اعتماد ونشر
             </button>
           </div>
         </form>
@@ -144,7 +634,6 @@
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/animations.js"></script>
-  <!-- ملف التحكم المخصص لصفحة الاستيراد -->
   <script src="/js/admin-imports.js"></script>
 </body>
 </html>
