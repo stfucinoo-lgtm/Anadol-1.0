@@ -61,6 +61,7 @@ function safeMountRoute(routePath, moduleName) {
 }
 
 // تسجيل المسارات المستقبلية (سيتم تحميلها تلقائياً بمجرد إنشاء ملفاتها في المراحل القادمة)
+safeMountRoute('/api/upload', './routes/upload');
 safeMountRoute('/api/auth', './routes/auth');
 safeMountRoute('/api/analytics', './routes/analytics');
 safeMountRoute('/api/blog', './routes/blog');
