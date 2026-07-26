@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تحليلات دوري الأناضول - المدونة</title>
-    <!-- Tailwind CSS لتوفير أساس عالي الاستجابة وتصميم عصري سريع -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- خطوط Google لمظهر رياضي حديث وعريض -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <script>
@@ -29,12 +29,9 @@
         }
       }
     </script>
-    <!-- استدعاء التنسيقات المخصصة للمشروع -->
     <link rel="stylesheet" href="css/style.css">
-    <!-- مكتبة FontAwesome للأيقونات الرياضية -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* أنماط تبويبات التصفية الخاصة بالمدونة */
         .filter-tabs {
             display: flex;
             justify-content: center;
@@ -43,26 +40,26 @@
             flex-wrap: wrap;
         }
         .filter-btn {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
+            background-color: var(--card-bg, #16161a);
+            border: 1px solid var(--border-color, #24242b);
+            color: #94a3b8;
             padding: 0.5rem 1.5rem;
             border-radius: 50px;
             cursor: pointer;
             font-weight: 600;
-            transition: all var(--transition-fast);
+            transition: all 0.2s ease;
         }
         .filter-btn:hover,
         .filter-btn.active {
-            background-color: var(--accent-color);
-            color: var(--primary-dark);
-            border-color: var(--accent-color);
+            background-color: #00ff87;
+            color: #0c0c0e;
+            border-color: #00ff87;
         }
     </style>
 </head>
-<body>
+<body class="bg-brand-dark text-slate-100 font-cairo min-h-screen flex flex-col">
 
-    <!-- 1. شريط التنقل الحديث (Navbar) المستوحى من الملف الشخصي -->
+    <!-- 1. Navbar -->
     <nav class="border-b border-brand-border bg-brand-dark/90 backdrop-blur-md sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
@@ -76,23 +73,23 @@
             </div>
           </div>
           <div id="navbar-auth-container">
-            <!-- يتم ملؤه تلقائياً بواسطة AnadolAuth -->
+            <!-- ملؤه عبر AnadolAuth -->
           </div>
         </div>
       </div>
     </nav>
 
-    <!-- 2. هيدر الصفحة والوصف (Header Section) -->
-    <header class="page-header">
-        <div class="container">
-            <h1 class="page-header-title" id="pageTitle">تحليلات دوري الأناضول</h1>
-            <p class="page-header-desc">مساحة مخصصة لقراءة أحدث ملخصات المباريات، التحليلات التكتيكية الشاملة، والتقارير الإحصائية الفنية المدعومة بالأرقام والخرائط الحرارية.</p>
+    <!-- 2. Header Section -->
+    <header class="page-header py-12 text-center bg-brand-card/50 border-b border-brand-border">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl md:text-5xl font-black mb-4 text-white" id="pageTitle">تحليلات دوري الأناضول</h1>
+            <p class="text-zinc-400 max-w-2xl mx-auto text-base md:text-lg">مساحة مخصصة لقراءة أحدث ملخصات المباريات، التحليلات التكتيكية الشاملة، والتقارير الإحصائية الفنية المدعومة بالأرقام.</p>
         </div>
     </header>
 
-    <!-- 3. قسم قائمة المقالات والتصفية (Blog List & Filtering Section) -->
-    <section class="section-padding">
-        <div class="container">
+    <!-- 3. Blog List Section -->
+    <section class="py-12 flex-1">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <!-- أزرار تصفية المقالات -->
             <div class="filter-tabs" id="filterTabs">
@@ -102,164 +99,104 @@
                 <button class="filter-btn" data-filter="news">تقارير وأخبار</button>
             </div>
 
-            <!-- شبكة عرض المقالات -->
-            <div class="grid-3" id="blogGrid">
-                
-                <!-- مقال 1 -->
-                <article class="card blog-card blog-item" data-category="tactics">
-                    <div class="blog-card-image">
-                        <img src="https://images.unsplash.com/photo-1518063319789-7217e6706b04?auto=format&fit=crop&q=80&w=600" alt="تحليل تكتيكي">
-                    </div>
-                    <div class="blog-card-content">
-                        <div class="blog-card-meta">
-                            <span><i class="fa-solid fa-user"></i> المحرر الرياضي</span>
-                            <span><i class="fa-solid fa-calendar-days"></i> 15 يناير 2026</span>
-                        </div>
-                        <h3 class="blog-card-title"><a href="blog-post.html?id=1">القراءة الفنية لديربي الجولة الخامسة: معركة خط الوسط</a></h3>
-                        <p class="blog-card-excerpt">استعراض تحليلي بالخرائط الحرارية لطريقة سيطرة خط وسط المتصدر على مجريات المباراة وصناعة الكرات الحاسمة من العمق التكتيكي.</p>
-                        <a href="blog-post.html?id=1" class="btn btn-secondary btn-sm" style="width: 100%; margin-top: auto;">اقرأ المقال بالكامل</a>
-                    </div>
-                </article>
-
-                <!-- مقال 2 -->
-                <article class="card blog-card blog-item" data-category="stats">
-                    <div class="blog-card-image">
-                        <img src="https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&q=80&w=600" alt="تدريبات الفريق">
-                    </div>
-                    <div class="blog-card-content">
-                        <div class="blog-card-meta">
-                            <span><i class="fa-solid fa-user"></i> مراسل الدوري</span>
-                            <span><i class="fa-solid fa-calendar-days"></i> 14 يناير 2026</span>
-                        </div>
-                        <h3 class="blog-card-title"><a href="blog-post.html?id=2">كيف طوّر فريق النجوم منظومته الدفاعية هذا الموسم؟</a></h3>
-                        <p class="blog-card-excerpt">نظرة عميقة على إحصائيات الشباك النظيفة (Clean Sheets) للمدافعين وأدائهم البدني الرائع الذي منحهم المركز الثاني بالجدول.</p>
-                        <a href="blog-post.html?id=2" class="btn btn-secondary btn-sm" style="width: 100%; margin-top: auto;">اقرأ المقال بالكامل</a>
-                    </div>
-                </article>
-
-                <!-- مقال 3 -->
-                <article class="card blog-card blog-item" data-category="news">
-                    <div class="blog-card-image">
-                        <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=600" alt="ملعب المباراة">
-                    </div>
-                    <div class="blog-card-content">
-                        <div class="blog-card-meta">
-                            <span><i class="fa-solid fa-user"></i> اللجنة المنظمة</span>
-                            <span><i class="fa-solid fa-calendar-days"></i> 12 يناير 2026</span>
-                        </div>
-                        <h3 class="blog-card-title"><a href="blog-post.html?id=3">حصاد مرحلة الذهاب: أرقام، مفاجآت، ومستويات واعدة</a></h3>
-                        <p class="blog-card-excerpt">تحليل شامل لعدد الأهداف المسجلة، توزيع البطاقات الملونة، وترتيب صانعي اللعب والهدافين قبل استئناف مرحلة الإياب.</p>
-                        <a href="blog-post.html?id=3" class="btn btn-secondary btn-sm" style="width: 100%; margin-top: auto;">اقرأ المقال بالكامل</a>
-                    </div>
-                </article>
-
+            <!-- شبكة عرض المقالات الديناميكية -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="blogGrid">
+                <div class="col-span-full text-center py-12 text-zinc-400">
+                    <i class="fa-solid fa-circle-notch fa-spin text-3xl text-brand-accent mb-3"></i>
+                    <p>جاري جلب أحدث المقالات والتحليلات...</p>
+                </div>
             </div>
             
-            <!-- تنبيه عند عدم وجود مقالات مخصصة للتصفية -->
-            <div id="noPosts" style="display: none; text-align: center; padding: 4rem 0;">
-                <i class="fa-regular fa-folder-open" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
-                <h3 style="color: var(--text-main);">عذراً، لم نجد أي مقال في هذا التصنيف حالياً</h3>
-                <p style="color: var(--text-muted);">يرجى العودة لتبويب "الكل" لقراءة بقية التقارير</p>
+            <!-- تنبيه عند عدم وجود مقالات -->
+            <div id="noPosts" class="hidden text-center py-16">
+                <i class="fa-regular fa-folder-open text-5xl text-zinc-600 mb-4"></i>
+                <h3 class="text-xl font-bold text-white mb-2">لا توجد مقالات مضافة حالياً</h3>
+                <p class="text-zinc-400">سيتم نشر التحليلات والمقالات الجديدة فور إعدادها من المحررين.</p>
             </div>
             
         </div>
     </section>
 
-    <!-- 4. الفوتر (Footer) -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col-about">
-                    <a href="index.html" class="navbar-brand">
-                        <i class="fa-solid fa-futbol"></i> دوري <span>الأناضول</span>
-                    </a>
-                    <p>منصة ويب متكاملة تقدم أرشفة متطورة لدوري كرة القدم للهواة، لتمكين الفرق واللاعبين من قراءة أرقامهم الفنية والميدانية بشكل إحترافي مبسط.</p>
-                </div>
-                <div class="footer-col">
-                    <h4>روابط سريعة</h4>
-                    <ul class="footer-links">
-                        <li><a href="index.html">الرئيسية</a></li>
-                        <li><a href="standings.html">جدول الترتيب</a></li>
-                        <li><a href="teams.html">قائمة الفرق</a></li>
-                        <li><a href="blog.html">مدونة التحليلات</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>تواصل معنا</h4>
-                    <ul class="footer-links">
-                        <li><i class="fa-solid fa-envelope"></i> info@anadolleague.com</li>
-                        <li><i class="fa-solid fa-location-dot"></i> ملعب الأناضول الرئيسي</li>
-                        <li><i class="fa-solid fa-phone"></i> +90 (555) 000-0000</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 دوري الأناضول. جميع الحقوق محفوظة.</p>
-                <p>مبني بشغف بواسطة اللجنة المنظمة لدوري الأناضول</p>
-            </div>
+    <!-- 4. Footer -->
+    <footer class="footer bg-brand-card border-t border-brand-border py-8 text-zinc-400 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p>&copy; 2026 دوري الأناضول. جميع الحقوق محفوظة.</p>
         </div>
     </footer>
 
-    <!-- استدعاء مكتبة GSAP والـ ScrollTrigger من الـ CDN -->
+    <!-- GSAP Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <!-- استدعاء ملف الحركات المشترك للمشروع -->
     <script src="js/animations.js"></script>
-
-    <!-- استدعاء ملفات الجلسات والتوثيق التفاعلي للواجهات الأمامية لتشغيل النافبار وتحديث حالته -->
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     
     <script>
-        // آلية تصفية التبويبات الفورية (Client-side Category Filter)
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        const blogItems = document.querySelectorAll('.blog-item');
-        const noPosts = document.getElementById('noPosts');
+        document.addEventListener('DOMContentLoaded', async () => {
+            const blogGrid = document.getElementById('blogGrid');
+            const noPosts = document.getElementById('noPosts');
 
-        filterButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // إزالة الحالة الفعالة من الجميع وتثبيتها للزر المحدد
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
+            // 1. جلب المقالات الحقيقية من API
+            try {
+                const response = await fetch('/api/blog');
+                const posts = await response.json();
 
-                const filterValue = button.getAttribute('data-filter');
-                let matchesFound = false;
-
-                blogItems.forEach(item => {
-                    const category = item.getAttribute('data-category');
-                    if (filterValue === 'all' || category === filterValue) {
-                        item.style.display = 'flex';
-                        matchesFound = true;
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-
-                if (matchesFound) {
-                    noPosts.style.display = 'none';
-                    // تشغيل حركة خفيفة للعناصر الظاهرة لتأكيد التفاعل البصري
-                    AnadolAnims.staggerIn('.blog-item[style*="display: flex"]', { y: 15, duration: 0.4 });
-                } else {
-                    noPosts.style.display = 'block';
+                if (!Array.isArray(posts) || posts.length === 0) {
+                    blogGrid.innerHTML = '';
+                    noPosts.classList.remove('hidden');
+                    return;
                 }
+
+                noPosts.classList.add('hidden');
+                
+                // 2. بناء كروت المقالات المرفوعة حقيقياً
+                blogGrid.innerHTML = posts.map(post => {
+                    const postDate = new Date(post.publishedAt || post.createdAt || Date.now()).toLocaleDateString('ar-EG', {
+                        year: 'numeric', month: 'long', day: 'numeric'
+                    });
+
+                    const imageUrl = post.featuredImageUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800';
+
+                    return `
+                        <article class="bg-brand-card border border-brand-border rounded-xl overflow-hidden flex flex-col hover:border-brand-accent/50 transition-all duration-300 hover:-translate-y-1 shadow-lg">
+                            <div class="h-48 overflow-hidden bg-black/40">
+                                <img src="${imageUrl}" alt="${post.title}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="p-6 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center gap-4 text-xs text-zinc-400 mb-3">
+                                        <span><i class="fa-solid fa-user text-brand-accent"></i> المحرر الرياضي</span>
+                                        <span><i class="fa-solid fa-calendar-days text-brand-accent"></i> ${postDate}</span>
+                                    </div>
+                                    <h3 class="text-xl font-bold text-white mb-3 leading-snug hover:text-brand-accent transition-colors">
+                                        <a href="blog-post.html?id=${post.id}">${post.title}</a>
+                                    </h3>
+                                    <p class="text-zinc-400 text-sm line-clamp-3 mb-6 leading-relaxed">
+                                        ${post.excerpt || 'اقرأ التقرير الكامل للاطلاع على أدق التفاصيل والإحصائيات التكتيكية...'}
+                                    </p>
+                                </div>
+                                <a href="blog-post.html?id=${post.id}" class="mt-auto inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-brand-border hover:bg-brand-accent hover:text-brand-dark text-white font-bold rounded-lg transition-all duration-200 text-sm no-underline">
+                                    <span>اقرأ المقال بالكامل</span>
+                                    <i class="fa-solid fa-arrow-left text-xs"></i>
+                                </a>
+                            </div>
+                        </article>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Error fetching blog posts:', error);
+                blogGrid.innerHTML = '';
+                noPosts.classList.remove('hidden');
+            }
+
+            // تصفية التبويبات
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                });
             });
-        });
-
-        // تشغيل حركات GSAP عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-                gsap.registerPlugin(ScrollTrigger);
-            }
-
-            // حركة هيدر المدونة
-            AnadolAnims.fadeIn('#pageTitle', { y: -20, duration: 0.6 });
-            AnadolAnims.fadeIn('.page-header-desc', { y: 15, duration: 0.6, delay: 0.1 });
-            AnadolAnims.fadeIn('#filterTabs', { scale: 0.95, duration: 0.5, delay: 0.2 });
-
-            // ظهور بطاقات المقالات تدريجياً وبشكل متتابع عند التحميل
-            if (document.querySelector('.blog-item')) {
-                AnadolAnims.staggerIn('.blog-item', { y: 30, duration: 0.6, delay: 0.3 });
-            }
         });
     </script>
 </body>
