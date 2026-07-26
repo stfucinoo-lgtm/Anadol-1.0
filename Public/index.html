@@ -31,11 +31,24 @@
     </script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* تحسينات بصرية لقسم الهيرو لضمان الوضوح التام */
+        .hero-banner {
+            position: relative;
+            background: linear-gradient(180deg, rgba(12, 12, 14, 0.4) 0%, rgba(12, 12, 14, 0.85) 100%), 
+                        url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1600') center/cover no-repeat;
+            padding: 5rem 1rem;
+        }
+        .hero-title-text {
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+        }
+    </style>
 </head>
 <body class="bg-brand-dark text-slate-100 font-cairo min-h-screen flex flex-col">
 
     <!-- 1. Navbar -->
-    <nav class="border-b border-brand-border bg-brand-dark/90 backdrop-blur-md sticky top-0 z-50">
+    <nav class="border-b border-brand-border bg-brand-dark/95 backdrop-blur-md sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center gap-8">
@@ -59,40 +72,56 @@
       </div>
     </nav>
 
-    <!-- 2. Hero Section -->
-    <header class="hero relative py-20 bg-cover bg-center border-b border-brand-border" style="background-image: linear-gradient(rgba(12,12,14,0.85), rgba(12,12,14,0.95)), url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1200');">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <span class="hero-tag inline-block bg-brand-accent/10 text-brand-accent px-4 py-1.5 rounded-full text-sm font-bold mb-4 border border-brand-accent/20" id="heroTag">إثارة وحماس كرة القدم للهواة</span>
-            <h1 class="hero-title text-4xl md:text-6xl font-black text-white mb-6 leading-tight" id="heroTitle">مرحباً بكم في دوري الأناضول الرسمي</h1>
-            <p class="hero-desc text-zinc-300 max-w-2xl mx-auto text-base md:text-lg mb-8 leading-relaxed" id="heroDesc">تابع أرشيف المباريات أولاً بأول، وتصفح الترتيب الحي، واستمتع بالتحليلات التكتيكية والخرائط الحرارية المتطورة للاعبي الدوري.</p>
-            <div class="hero-actions flex flex-wrap justify-center gap-4" id="heroActions">
-                <a href="standings.html" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-bold py-3 px-6 rounded-lg transition-all flex items-center gap-2 no-underline shadow-lg shadow-brand-accent/20"><i class="fa-solid fa-trophy"></i> عرض جدول الترتيب</a>
-                <a href="teams.html" class="bg-brand-border hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center gap-2 no-underline"><i class="fa-solid fa-users"></i> استكشف الفرق</a>
+    <!-- 2. Hero Section (مشرق، واضح، وأزرار ممتازة) -->
+    <header class="hero-banner border-b border-brand-border">
+        <div class="max-w-5xl mx-auto text-center relative z-10">
+            <span class="inline-block bg-brand-accent text-brand-dark font-black px-4 py-1.5 rounded-full text-xs md:text-sm mb-6 shadow-lg shadow-brand-accent/20">
+                <i class="fa-solid fa-bolt ml-1"></i> إثارة وحماس كرة القدم للهواة
+            </span>
+            
+            <h1 class="hero-title-text text-4xl sm:text-5xl md:text-6xl font-black text-white mb-6 leading-tight">
+                مرحباً بكم في دوري الأناضول الرسمي
+            </h1>
+            
+            <p class="text-zinc-200 max-w-2xl mx-auto text-base md:text-xl mb-10 leading-relaxed font-medium bg-black/30 p-4 rounded-xl backdrop-blur-sm border border-white/10">
+                تابع أرشيف المباريات أولاً بأول، وتصفح الترتيب الحي، واستمتع بالتحليلات التكتيكية والخرائط الحرارية المتطورة للاعبي الدوري.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-5 relative z-20">
+                <a href="standings.html" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-black py-3.5 px-8 rounded-xl transition-all duration-200 transform hover:-translate-y-1 flex items-center gap-3 no-underline shadow-xl shadow-brand-accent/30 text-base">
+                    <i class="fa-solid fa-trophy text-lg"></i>
+                    <span>عرض جدول الترتيب</span>
+                </a>
+                
+                <a href="teams.html" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 px-8 rounded-xl transition-all duration-200 transform hover:-translate-y-1 flex items-center gap-3 no-underline border border-slate-600 text-base">
+                    <i class="fa-solid fa-users text-lg text-brand-accent"></i>
+                    <span>استكشف الفرق</span>
+                </a>
             </div>
         </div>
     </header>
 
     <!-- 3. Features Section -->
-    <section class="py-16 bg-brand-dark" id="featuresSection">
+    <section class="py-16 bg-brand-dark">
         <div class="max-w-7xl mx-auto px-4">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-black text-white">أركان منصتنا الرقمية</h2>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="featuresGrid">
-                <div class="bg-brand-card p-8 rounded-xl border border-brand-border text-center hover:border-brand-accent/40 transition-colors">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-brand-card p-8 rounded-xl border border-brand-border text-center hover:border-brand-accent/40 transition-colors shadow-lg">
                     <div class="text-4xl text-brand-accent mb-4"><i class="fa-solid fa-chart-line"></i></div>
                     <h3 class="text-xl font-bold text-white mb-2">ترتيب حي وتحديثات فورية</h3>
                     <p class="text-zinc-400 text-sm leading-relaxed">حساب آلي فوري لترتيب دوري الهواة بناءً على النتائج المعتمدة رسمياً عقب نهاية كل مباراة.</p>
                 </div>
 
-                <div class="bg-brand-card p-8 rounded-xl border border-brand-border text-center hover:border-brand-accent/40 transition-colors">
+                <div class="bg-brand-card p-8 rounded-xl border border-brand-border text-center hover:border-brand-accent/40 transition-colors shadow-lg">
                     <div class="text-4xl text-brand-accent mb-4"><i class="fa-solid fa-fire"></i></div>
                     <h3 class="text-xl font-bold text-white mb-2">تحليلات إحصائية وخرائط حرارية</h3>
                     <p class="text-zinc-400 text-sm leading-relaxed">تتبع دقيق لإحداثيات حركة اللاعبين وأحداث المباريات ورسمها على الخرائط الحرارية والبيانية.</p>
                 </div>
 
-                <div class="bg-brand-card p-8 rounded-xl border border-brand-border text-center hover:border-brand-accent/40 transition-colors">
+                <div class="bg-brand-card p-8 rounded-xl border border-brand-border text-center hover:border-brand-accent/40 transition-colors shadow-lg">
                     <div class="text-4xl text-brand-accent mb-4"><i class="fa-solid fa-newspaper"></i></div>
                     <h3 class="text-xl font-bold text-white mb-2">محتوى تحريري وتغطية صحفية</h3>
                     <p class="text-zinc-400 text-sm leading-relaxed">مدونة تفاعلية تتيح لك قراءة تحليلات تكتيكية شاملة للمباريات ومشاركتنا رأيك في التعليقات.</p>
@@ -101,8 +130,8 @@
         </div>
     </section>
 
-    <!-- 4. Section: Latest Real Blog Posts -->
-    <section class="py-16 bg-brand-card/50 border-t border-brand-border" id="blogSection">
+    <!-- 4. Latest Real Blog Posts -->
+    <section class="py-16 bg-brand-card/50 border-t border-brand-border">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex flex-col sm:flex-row justify-between items-center mb-10 gap-4">
                 <div>
@@ -115,11 +144,11 @@
                 </a>
             </div>
 
-            <!-- شبكة عرض المقالات الديناميكية من الباك إند -->
+            <!-- شبكة عرض المقالات الديناميكية -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="blogGrid">
                 <div class="col-span-full text-center py-12 text-zinc-400">
                     <i class="fa-solid fa-circle-notch fa-spin text-3xl text-brand-accent mb-3"></i>
-                    <p>جاري جلب أحدث المقالات من الأرشيف...</p>
+                    <p>جاري جلب أحدث المقالات...</p>
                 </div>
             </div>
         </div>
@@ -130,7 +159,7 @@
         <div class="max-w-4xl mx-auto px-4 text-center">
             <h2 class="text-3xl font-black text-white mb-4">استكشف تشكيلات الأندية واللاعبين</h2>
             <p class="text-zinc-400 text-base mb-8 leading-relaxed">يقدم دوري الأناضول أرشيفاً تفصيلياً لكل نادٍ مشارك، متضمناً أرقام قمصان اللاعبين ومراكزهم التكتيكية في الملعب وإحصائياتهم الفردية طوال الموسم.</p>
-            <a href="teams.html" class="inline-flex items-center gap-2 bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-bold py-3 px-8 rounded-lg transition-all no-underline shadow-lg shadow-brand-accent/20">
+            <a href="teams.html" class="inline-flex items-center gap-2 bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-black py-3.5 px-8 rounded-xl transition-all no-underline shadow-lg shadow-brand-accent/20 text-base">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <span>ابحث عن فريقك المفضل</span>
             </a>
@@ -144,15 +173,13 @@
         </div>
     </footer>
 
-    <!-- GSAP Animations -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="js/animations.js"></script>
+    <!-- Scripts -->
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // جلب وعرض المقالات الحقيقية على الرئيسية
+            // جلب المقالات الحقيقية فقط
             const blogGrid = document.getElementById('blogGrid');
             try {
                 const response = await fetch('/api/blog');
@@ -165,7 +192,6 @@
                             <p>لا توجد مقالات مضافة حالياً. سيتم إدراج التحليلات الجديدة هنا فور نشرها.</p>
                         </div>`;
                 } else {
-                    // عرض أحدث 3 مقالات فقط على الرئيسية
                     const latestPosts = posts.slice(0, 3);
                     blogGrid.innerHTML = latestPosts.map(post => {
                         const postDate = new Date(post.publishedAt || post.createdAt || Date.now()).toLocaleDateString('ar-EG', {
