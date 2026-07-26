@@ -5,48 +5,109 @@ const User = require('../models/User');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 
 /**
+ * GET /api/comments
+ * جلب جميع التعليقات في المنصة للوحة الإدارة مع إمكانية التصفية الاختيارية
+ */
+router.get('/comments', async (req, res) => {
+  try {
+    const { blogPostId } = req.query;
+    const whereCondition = {};
+    if (blogPostId && blogPostId !== 'all') {
+      whereCondition.blogPostId = parseInt(blogPostId);
+    }
+
+    let comments = [];
+    try {
+      comments = await Comment.findAll({
+        where: whereCondition,
+        include: [{ model: User, attributes: ['username'], required: false }],
+        order: [['createdAt', 'DESC']]
+      });
+    } catch (e) {
+      // تفادي انهيار السيرفر في حال عدم تسجيل العلاقة بين النماذج
+      comments = await Comment.findAll({
+        where: whereCondition,
+        order: [['createdAt', 'DESC']]
+      });
+    }
+
+    const formattedComments = await Promise.all(comments.map(async (comment) => {
+      const plainComment = comment.get({ plain: true });
+      let username = plainComment.User ? plainComment.User.username : null;
+      if (!username && plainComment.userId) {
+        try {
+          const u = await User.findByPk(plainComment.userId, { attributes: ['username'] });
+          if (u) username = u.username;
+        } catch (err) {}
+      }
+      return {
+        id: plainComment.id,
+        blogPostId: plainComment.blogPostId,
+        userId: plainComment.userId,
+        username: username || 'عضو سابق',
+        content: plainComment.content,
+        createdAt: plainComment.createdAt
+      };
+    }));
+
+    return res.status(200).json(formattedComments);
+  } catch (error) {
+    console.error('Error loading all comments:', error);
+    return res.status(500).json({ error: 'حدث خطأ أثناء تحميل التعليقات.' });
+  }
+});
+
+/**
  * GET /api/blog/:id/comments
  * جلب جميع التعليقات الخاصة بمقال معين
- * مدمج معها اسم المستخدم تلقائياً لتجنب كثرة الاستدعاءات بالواجهة الأمامية
  */
 router.get('/blog/:id/comments', async (req, res) => {
   try {
     const blogPostId = parseInt(req.params.id);
 
-    const comments = await Comment.findAll({
-      where: { blogPostId },
-      include: [
-        {
-          model: User,
-          attributes: ['username']
-        }
-      ],
-      order: [['createdAt', 'ASC']] // عرض التعليقات من الأقدم إلى الأحدث
-    });
+    let comments = [];
+    try {
+      comments = await Comment.findAll({
+        where: { blogPostId },
+        include: [{ model: User, attributes: ['username'], required: false }],
+        order: [['createdAt', 'ASC']]
+      });
+    } catch (e) {
+      comments = await Comment.findAll({
+        where: { blogPostId },
+        order: [['createdAt', 'ASC']]
+      });
+    }
 
-    // تنسيق شكل البيانات ليتطابق مع العقد المشترك (القسم 7) بوضع الـ username في الكائن الرئيسي مباشرة
-    const formattedComments = comments.map(comment => {
+    const formattedComments = await Promise.all(comments.map(async (comment) => {
       const plainComment = comment.get({ plain: true });
+      let username = plainComment.User ? plainComment.User.username : null;
+      if (!username && plainComment.userId) {
+        try {
+          const u = await User.findByPk(plainComment.userId, { attributes: ['username'] });
+          if (u) username = u.username;
+        } catch (err) {}
+      }
       return {
         id: plainComment.id,
         blogPostId: plainComment.blogPostId,
         userId: plainComment.userId,
-        username: plainComment.User ? plainComment.User.username : 'عضو سابق',
+        username: username || 'زائر مجهول',
         content: plainComment.content,
         createdAt: plainComment.createdAt
       };
-    });
+    }));
 
     return res.status(200).json(formattedComments);
   } catch (error) {
-    console.error('Error loading comments:', error);
+    console.error('Error loading comments for post:', error);
     return res.status(500).json({ error: 'حدث خطأ أثناء تحميل التعليقات.' });
   }
 });
 
 /**
  * POST /api/blog/:id/comments
- * كتابة تعليق جديد على مقال تحريري (يتطلب تسجيل الدخول - متاح لجميع الأدوار)
+ * كتابة تعليق جديد على مقال تحريري (يتطلب تسجيل الدخول)
  */
 router.post('/blog/:id/comments', authenticateToken, async (req, res) => {
   try {
@@ -57,14 +118,12 @@ router.post('/blog/:id/comments', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'نص التعليق لا يمكن أن يكون فارغاً.' });
     }
 
-    // إنشاء التعليق وربطه بالمستخدم المسجل وصاحب التوكن الحالي
     const newComment = await Comment.create({
       blogPostId,
       userId: req.user.id,
       content: content.trim()
     });
 
-    // إعادة كائن التعليق مع إرفاق اسم المستخدم الحالي لتسهيل الإضافة اللحظية بالواجهة
     const commentWithUser = {
       id: newComment.id,
       blogPostId: newComment.blogPostId,
