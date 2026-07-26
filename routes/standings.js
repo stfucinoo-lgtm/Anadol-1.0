@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
             standingsMap[team.id] = {
                 teamId: team.id,
                 teamName: team.name,
-                crestUrl: team.crestUrl,
+                crestUrl: team.crestUrl, // حقل مساعد لتسهيل العرض المباشر في الواجهة
                 played: 0,
                 won: 0,
                 drawn: 0,
@@ -41,13 +41,14 @@ router.get('/', async (req, res) => {
             };
         });
 
-        // 4. معالجة وتوزيع نتائج المباريات وتراكم النقاط مع التأكد من الأرقام الصحيحة
+        // 4. معالجة وتوزيع نتائج المباريات وتراكم النقاط
         finishedMatches.forEach(match => {
             const homeId = match.homeTeamId;
             const awayId = match.awayTeamId;
-            const homeScore = parseInt(match.homeScore, 10) || 0;
-            const awayScore = parseInt(match.awayScore, 10) || 0;
+            const homeScore = match.homeScore;
+            const awayScore = match.awayScore;
 
+            // التحقق الدفاعي من بقاء الأندية مسجلة في قاعدة البيانات لتلافي تعطل المعالجة
             if (standingsMap[homeId] && standingsMap[awayId]) {
                 const homeRow = standingsMap[homeId];
                 const awayRow = standingsMap[awayId];
@@ -61,17 +62,21 @@ router.get('/', async (req, res) => {
                 awayRow.goalsFor += awayScore;
                 awayRow.goalsAgainst += homeScore;
 
+                // احتساب الفوز والتعادل والخسارة مع توزيع نقاط الحسم
                 if (homeScore > awayScore) {
                     homeRow.won++;
                     homeRow.points += 3;
+
                     awayRow.lost++;
                 } else if (homeScore < awayScore) {
                     awayRow.won++;
                     awayRow.points += 3;
+
                     homeRow.lost++;
                 } else {
                     homeRow.drawn++;
                     homeRow.points += 1;
+
                     awayRow.drawn++;
                     awayRow.points += 1;
                 }
@@ -84,7 +89,10 @@ router.get('/', async (req, res) => {
             row.goalDifference = row.goalsFor - row.goalsAgainst;
         });
 
-        // 6. الفرز الرياضي الصارم للترتيب
+        // 6. الفرز الرياضي الصارم للترتيب:
+        // أ. النقاط (الأكثر هو الأعلى)
+        // ب. فارق الأهداف (الأعلى هو الأعلى)
+        // ج. الأهداف المسجلة (الهجوم الأقوى هو الأعلى في حال التساوي التام)
         standingsList.sort((a, b) => {
             if (b.points !== a.points) {
                 return b.points - a.points;
@@ -95,7 +103,7 @@ router.get('/', async (req, res) => {
             return b.goalsFor - a.goalsFor;
         });
 
-        // 7. إسناد المراكز الترتيبية
+        // 7. إسناد المراكز الترتيبية (Positions) بناءً على نتائج الفرز
         standingsList.forEach((row, index) => {
             row.position = index + 1;
         });
