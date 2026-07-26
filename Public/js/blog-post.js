@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // استخلاص معرّف المقال من الـ Query Parameter الرابط المباشر
   const urlParams = new URLSearchParams(window.location.search);
   const postId = urlParams.get('id');
 
@@ -8,14 +9,19 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  // مراجع البيانات والواجهات المتوقعة بالصفحة (DOM Elements)
   const postHeaderSection = document.getElementById('postHeaderSection');
   const postBodySection = document.getElementById('postBodySection');
   const commentsList = document.getElementById('commentsList');
   const commentFormContainer = document.getElementById('commentFormContainer');
+  const addCommentForm = document.getElementById('addCommentForm');
+  const commentContentInput = document.getElementById('commentContent');
 
+  // بيانات المستخدم والتوكن للتحقق من الصلاحيات والتعليقات
   const token = localStorage.getItem('anadol_token');
   const user = JSON.parse(localStorage.getItem('anadol_user') || '{}');
 
+  // 1. جلب وعرض تفاصيل المقال الكامل
   async function loadPostDetails() {
     try {
       const post = await apiFetch(`/api/blog/${postId}`);
@@ -23,12 +29,14 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error('المقال المطلوب غير موجود أو تم حذفه.');
       }
 
+      // تنسيق وعرض التاريخ
       const publishDate = new Date(post.publishedAt || post.createdAt).toLocaleDateString('ar-EG', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       });
 
+      // أ) تعبئة الهيدر البارز وصورة المقال
       if (postHeaderSection) {
         postHeaderSection.innerHTML = `
           <div class="post-hero-banner" style="background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.85)), url('${post.featuredImageUrl || '../images/blog-default.jpg'}')">
@@ -44,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }
 
+      // ب) تعبئة متن المقال التفصيلي
       if (postBodySection) {
         postBodySection.innerHTML = `
           <div class="post-rich-text">
@@ -52,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }
 
+      // تطبيق حركة ظهور ناعمة باستخدام GSAP
       if (window.gsap) {
         gsap.from('.post-hero-banner .hero-content-wrapper > *', {
           opacity: 0,
@@ -83,13 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // 2. جلب وعرض قائمة التعليقات المرتبطة بالمقال
   async function loadComments() {
     try {
       if (!commentsList) return;
       commentsList.innerHTML = '<p class="text-muted text-center"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل التعليقات...</p>';
 
-      // مسار متوافق ومطابق بـ 100% مع /api/comments/blog/:id
-      const comments = await apiFetch(`/api/comments/blog/${postId}`);
+      const comments = await apiFetch(`/api/blog/${postId}/comments`);
       
       if (!comments || comments.length === 0) {
         commentsList.innerHTML = '<p class="text-center text-muted pad-md">لا توجد تعليقات على هذا التحليل بعد، شاركنا برأيك وكن الأول!</p>';
@@ -102,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const commentDiv = document.createElement('div');
         commentDiv.className = 'comment-card';
 
+        // تنسيق وقت التعليق
         const commentTime = new Date(comment.createdAt).toLocaleString('ar-EG', {
           month: 'short',
           day: 'numeric',
@@ -109,10 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
           minute: '2-digit'
         });
 
-        const avatarHTML = comment.avatarUrl 
-          ? `<img src="${comment.avatarUrl}" class="commenter-avatar" alt="${comment.username}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">`
-          : `<i class="fa-solid fa-circle-user commenter-avatar"></i>`;
-
+        // ميزة الإشراف والحذف: يظهر زر الحذف فقط للـ Admin أو Editor
         const isModerator = user && (user.role === 'admin' || user.role === 'editor');
         const deleteButtonHTML = isModerator 
           ? `<button class="btn-delete-comment-moderator" data-id="${comment.id}" title="حذف التعليق المخالف (إشراف)">
@@ -123,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         commentDiv.innerHTML = `
           <div class="comment-header">
             <div class="commenter-info">
-              ${avatarHTML}
+              <i class="fa-solid fa-circle-user commenter-avatar"></i>
               <div>
                 <strong class="commenter-name">${comment.username || 'مشجع مجهول'}</strong>
                 <span class="comment-date">${commentTime}</span>
@@ -137,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         commentsList.appendChild(commentDiv);
       });
 
+      // إضافة أحداث زر حذف التعليق المخالف للمشرفين
       document.querySelectorAll('.btn-delete-comment-moderator').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           const commentId = e.currentTarget.getAttribute('data-id');
@@ -154,13 +163,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // دالة حذف التعليق من قِبل المشرفين
   async function deleteComment(commentId) {
     try {
       const result = await apiFetch(`/api/comments/${commentId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
-      if (result && result.success) {
+      if (result.success) {
+        // إعادة التحميل بعد الحذف مباشرة
         loadComments();
       }
     } catch (error) {
@@ -168,10 +182,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // 3. تهيئة واجهة كتابة التعليقات بناءً على حالة تسجيل الدخول للزائر
   function setupCommentFormArea() {
     if (!commentFormContainer) return;
 
     if (token && user.username) {
+      // الزائر مسجل دخول، تفعيل صندوق الكتابة
       commentFormContainer.innerHTML = `
         <div class="comment-composer">
           <h4>أضف تعليقك على هذا التحليل:</h4>
@@ -184,11 +200,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
 
+      // إعادة ربط مستمع الحدث للنموذج المنشأ حديثاً ديناميكياً
       const freshForm = document.getElementById('addCommentForm');
-      if (freshForm) {
-        freshForm.addEventListener('submit', handleCommentSubmission);
-      }
+      freshForm.addEventListener('submit', handleCommentSubmission);
     } else {
+      // الزائر مجهول، طلب تسجيل الدخول أولاً
       commentFormContainer.innerHTML = `
         <div class="alert alert-info text-center pad-md">
           <i class="fa-solid fa-lock"></i> 
@@ -198,38 +214,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // 4. معالجة إرسال وحفظ التعليق الجديد
   async function handleCommentSubmission(e) {
     e.preventDefault();
-    const commentInput = document.getElementById('commentContent');
-    const contentText = commentInput ? commentInput.value.trim() : '';
+    const contentText = document.getElementById('commentContent').value.trim();
 
     if (!contentText) {
       alert('الرجاء كتابة نص التعليق أولاً.');
       return;
     }
 
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-
     try {
-      if (submitBtn) submitBtn.disabled = true;
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
 
-      // إرسال مباشر إلى /api/comments/blog/:id
-      const result = await apiFetch(`/api/comments/blog/${postId}`, {
+      const result = await apiFetch(`/api/blog/${postId}/comments`, {
         method: 'POST',
-        body: { content: contentText }
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: contentText })
       });
 
-      if (result && result.success) {
-        if (commentInput) commentInput.value = '';
-        await loadComments();
+      if (result.success) {
+        document.getElementById('commentContent').value = '';
+        // إعادة تحميل قائمة التعليقات لإبراز الجديد فوراً
+        loadComments();
       }
     } catch (error) {
       alert(`عذراً، تعذر نشر تعليقك حالياً: ${error.message}`);
     } finally {
+      const submitBtn = e.target.querySelector('button[type="submit"]');
       if (submitBtn) submitBtn.disabled = false;
     }
   }
 
+  // التشغيل والبدء المباشر للعملية عند التحميل
   loadPostDetails();
   loadComments();
   setupCommentFormArea();
