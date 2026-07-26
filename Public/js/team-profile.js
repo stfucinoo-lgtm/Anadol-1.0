@@ -1,6 +1,6 @@
 /**
  * ANADOL League - Team Profile Script
- * يجلب تفاصيل الفريق المختار (معلومات، إحصائيات، لاعبين، مباريات) ويعرضها بشكل ديناميكي مع تأثيرات بصرية وحسابية.
+ * يجلب تفاصيل الفريق المختار (معلومات، إحصائيات، لاعبين، مباريات) ويعرضها بشكل ديناميكي مع إمكانية النقر للتوجيه.
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // مراجع عناصر الصفحة المتطابقة تماماً مع الـ IDs الخاصة بـ team-profile.html
+  // مراجع عناصر واجهة المستخدم
   const teamNameEl = document.getElementById('teamName');
   const teamCrestEl = document.getElementById('teamCrest');
   const teamDetailsEl = document.getElementById('teamDetails');
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function loadTeamProfile() {
     try {
-      // 1. جلب قائمة كل الفرق لبناء خارطة ربط سريعة لشعارات وأسماء المنافسين في جدول المباريات
+      // 1. جلب قائمة كل الفرق لبناء خارطة ربط سريعة للشعارات والأسماء
       const allTeams = await api.get('/teams');
       const teamsMap = {};
       allTeams.forEach(t => {
@@ -55,10 +55,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       // 2. جلب بيانات ملف الفريق المختار
       const data = await api.get(`/teams/${teamId}`);
 
-      // 3. تحديث الهيدر والمعلومات الأساسية للفريق
+      // 3. تحديث الهيدر والمعلومات الأساسية
       if (teamNameEl) teamNameEl.textContent = data.name;
       if (teamCrestEl) {
-        teamCrestEl.src = data.crestUrl || '/img/default-crest.png';
+        teamCrestEl.src = data.crestUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=200';
         teamCrestEl.alt = data.name;
       }
       if (teamDetailsEl) {
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         profileHeaderEl.style.borderLeft = `5px solid ${primaryColor}`;
       }
 
-      // 4. جلب الترتيب الحالي للفريق ديناميكياً من جدول الترتيب العام المحدث
+      // 4. جلب الترتيب الحالي للفريق
       try {
         const standings = await api.get('/standings');
         const teamStanding = standings.find(row => row.teamId === parseInt(teamId, 10));
@@ -84,13 +84,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (statRankEl) statRankEl.textContent = 'مركز --';
       }
 
-      // 5. تحديث وعرض الإحصائيات مع تأثير الحركة التصاعدية
+      // 5. تحديث الإحصائيات مع حركة العد
       const stats = data.stats || { goalsFor: 0, goalsAgainst: 0, cleanSheets: 0 };
       if (statGoalsForEl) animateCountUp(statGoalsForEl, stats.goalsFor);
       if (statGoalsAgainstEl) animateCountUp(statGoalsAgainstEl, stats.goalsAgainst);
       if (statCleanSheetsEl) animateCountUp(statCleanSheetsEl, stats.cleanSheets);
 
-      // 6. عرض قائمة اللاعبين (التشكيلة الرسمية) مع إتاحة النقر لعرض ملف اللاعب الفردي
+      // 6. عرض قائمة اللاعبين والتوجيه لملفاتهم الفردية عند النقر
       if (playersGrid) {
         playersGrid.innerHTML = '';
         if (!data.players || data.players.length === 0) {
@@ -102,11 +102,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
           data.players.forEach(player => {
             const playerCard = document.createElement('div');
-            // جعل الكرت قابلاً للنقر وتغيير المظهر عند التحويم
             playerCard.className = 'card player-card player-item opacity-0 transform translate-y-4 cursor-pointer hover:border-brand-accent transition duration-300 shadow-md relative group';
-            playerCard.title = `انقر لعرض الملف الفني المتقدم والإحصائيات الخاصة بـ ${player.name}`;
+            playerCard.title = `انقر لعرض الملف الفني المتقدم للإحصائيات الخاصة بـ ${player.name}`;
 
-            // عند النقر يتم التوجيه مباشرة لصفحة اللاعب
             playerCard.addEventListener('click', () => {
               window.location.href = `player-profile.html?id=${player.id}`;
             });
@@ -129,7 +127,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             playersGrid.appendChild(playerCard);
           });
 
-          // تشغيل الحركة التدريجية للاعبين
           if (typeof gsap !== 'undefined') {
             gsap.to('.player-item', {
               opacity: 1,
@@ -144,7 +141,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
 
-      // 7. عرض جدول المباريات والنتائج
+      // 7. عرض جدول المباريات وتفعيل التوجيه التفاعلي لـ match-details.html عند النقر
       if (matchesContainer) {
         matchesContainer.innerHTML = '';
         if (!data.schedule || data.schedule.length === 0) {
@@ -176,10 +173,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const awayTeam = teamsMap[match.awayTeamId] || { name: 'فريق ضيف', crestUrl: '' };
 
             const matchStrip = document.createElement('div');
-            matchStrip.className = 'match-strip match-item opacity-0 transform translate-y-4 shadow-md relative group';
-            
+            // كلاسات لجعل الكارت قابلاً للنقر مظهرياً وفاعلياً
+            matchStrip.className = 'match-strip match-item opacity-0 transform translate-y-4 cursor-pointer hover:border-brand-accent transition duration-300 shadow-md relative group';
+            matchStrip.title = 'اضغط لعرض الملعب التكتيكي وإحصائيات هذه المباراة بالكامل';
+
+            // تفعيل التوجيه لصفحة تفاصيل المباراة عند الضغط
+            matchStrip.addEventListener('click', () => {
+              window.location.href = `match-details.html?id=${match.id}`;
+            });
+
             matchStrip.innerHTML = `
-              <!-- فريق الذهاب -->
+              <!-- فريق الذهاب (الأول) -->
               <div class="match-strip-team home">
                 <span class="match-strip-name">${homeTeam.name}</span>
                 <img src="${homeTeam.crestUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=100'}" alt="" class="match-strip-crest" onerror="this.src='https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=100'">
@@ -190,9 +194,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <span class="match-strip-score">${(isFinished || isBeingPlayed) ? `${match.homeScore} - ${match.awayScore}` : 'VS'}</span>
                 <span class="match-status-badge ${statusBadgeClass}">${statusText}</span>
                 <small style="color: var(--text-muted); margin-top: 5px;">${formattedDate}</small>
+                <span class="text-[10px] text-brand-accent mt-1 opacity-80 group-hover:opacity-100 transition font-bold">عرض الملعب والتحليل ↗</span>
               </div>
 
-              <!-- فريق الإياب -->
+              <!-- فريق الإياب (الثاني) -->
               <div class="match-strip-team away">
                 <img src="${awayTeam.crestUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=100'}" alt="" class="match-strip-crest" onerror="this.src='https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=100'">
                 <span class="match-strip-name">${awayTeam.name}</span>
