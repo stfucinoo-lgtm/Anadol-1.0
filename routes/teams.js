@@ -11,9 +11,13 @@ const Player = require('../models/Player');
 const Match = require('../models/Match');
 const { verifyToken, isAdmin } = require('../middleware/auth');
 
-// تعريف علاقات التبعية برمجياً وبشكل مباشر لربط جدول الفرق واللاعبين بالاسم المستعار الصحيح
-Team.hasMany(Player, { foreignKey: 'teamId', as: 'players', onDelete: 'CASCADE' });
-Player.belongsTo(Team, { foreignKey: 'teamId', as: 'team' });
+// حماية العلاقات البرمجية لمنع تكرار الإسناد في Sequelize
+if (!Team.associations || !Team.associations.players) {
+    Team.hasMany(Player, { foreignKey: 'teamId', as: 'players', onDelete: 'CASCADE' });
+}
+if (!Player.associations || !Player.associations.team) {
+    Player.belongsTo(Team, { foreignKey: 'teamId', as: 'team' });
+}
 
 /**
  * 1. GET /api/teams
@@ -22,8 +26,9 @@ Player.belongsTo(Team, { foreignKey: 'teamId', as: 'team' });
 router.get('/', async (req, res) => {
     try {
         const teams = await Team.findAll({ order: [['name', 'ASC']] });
-        return res.status(200).json(teams);
+        return res.status(200).json(Array.isArray(teams) ? teams : []);
     } catch (error) {
+        console.error('Error fetching teams:', error);
         return res.status(500).json({ error: 'حدث خطأ أثناء جلب قائمة الفرق: ' + error.message });
     }
 });
@@ -59,8 +64,8 @@ router.get('/:id', async (req, res) => {
             if (m.status === 'finished') {
                 played++;
                 const isHome = m.homeTeamId === parseInt(id, 10);
-                const teamScore = isHome ? m.homeScore : m.awayScore;
-                const oppScore = isHome ? m.awayScore : m.homeScore;
+                const teamScore = isHome ? (parseInt(m.homeScore, 10) || 0) : (parseInt(m.awayScore, 10) || 0);
+                const oppScore = isHome ? (parseInt(m.awayScore, 10) || 0) : (parseInt(m.homeScore, 10) || 0);
 
                 goalsFor += teamScore;
                 goalsAgainst += oppScore;
@@ -93,7 +98,6 @@ router.get('/:id', async (req, res) => {
 
 /**
  * 3. POST /api/teams
- * إضافة فريق جديد (صلاحية Admin فقط)
  */
 router.post('/', verifyToken, isAdmin, async (req, res) => {
     try {
@@ -114,7 +118,6 @@ router.post('/', verifyToken, isAdmin, async (req, res) => {
 
 /**
  * 4. PUT /api/teams/:id
- * تحديث بيانات فريق موجود (صلاحية Admin فقط)
  */
 router.put('/:id', verifyToken, isAdmin, async (req, res) => {
     try {
@@ -134,7 +137,6 @@ router.put('/:id', verifyToken, isAdmin, async (req, res) => {
 
 /**
  * 5. DELETE /api/teams/:id
- * حذف فريق بشكل كامل من النظام (صلاحية Admin فقط)
  */
 router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
     try {
@@ -154,7 +156,6 @@ router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
 
 /**
  * 6. POST /api/teams/:id/players
- * إضافة لاعب جديد إلى تشكيلة فريق محدد (صلاحية Admin فقط)
  */
 router.post('/:id/players', verifyToken, isAdmin, async (req, res) => {
     try {
@@ -186,7 +187,6 @@ router.post('/:id/players', verifyToken, isAdmin, async (req, res) => {
 
 /**
  * 7. PUT /api/players/:id
- * تعديل بيانات لاعب محدد (صلاحية Admin فقط)
  */
 router.put('/players/:id', verifyToken, isAdmin, async (req, res) => {
     try {
@@ -206,7 +206,6 @@ router.put('/players/:id', verifyToken, isAdmin, async (req, res) => {
 
 /**
  * 8. DELETE /api/players/:id
- * حذف لاعب بشكل كامل من النظام (صلاحية Admin فقط)
  */
 router.delete('/players/:id', verifyToken, isAdmin, async (req, res) => {
     try {
