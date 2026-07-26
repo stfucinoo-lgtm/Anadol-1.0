@@ -36,9 +36,6 @@ async function initCommentsManagement() {
       loadSelectedComments();
     });
   }
-
-  // تحميل كافة التعليقات تلقائياً فور فتح اللوحة
-  await loadSelectedComments();
 }
 
 // جلب المقالات لتعبئة القائمة المنسدلة للتصفية
@@ -48,35 +45,49 @@ async function loadBlogPostsFilter() {
     allBlogPosts = posts || [];
 
     if (filterBlogSelect) {
-      filterBlogSelect.innerHTML = '<option value="all">عرض كافة التعليقات (جميع المقالات)...</option>';
+      filterBlogSelect.innerHTML = '<option value="all">اختر مقالاً لعرض تعليقاته...</option>';
       allBlogPosts.forEach(post => {
         filterBlogSelect.innerHTML += `<option value="${post.id}">${post.title}</option>`;
       });
     }
+
+    // افتراضياً، نعرض شاشة فارغة تدعو لاختيار مقال أولاً
+    hideEl(commentsLoadingEl);
+    showEl(commentsEmptyEl);
+    if (commentsEmptyEl) {
+      commentsEmptyEl.querySelector('p').textContent = 'الرجاء تصفية العرض باختيار مقال محدد لعرض تعليقاته المضافة والتحكم بها.';
+    }
   } catch (err) {
     console.error('خطأ أثناء جلب مقالات المدونة لفلترة التعليقات:', err);
+    alert('تعذر تحميل الفلاتر من الخادم.');
   }
 }
 
-// تحميل التعليقات (سواءً لكافة المقالات أو لمقال محدد)
+// تحميل التعليقات التابعة للمقال المحدد
 async function loadSelectedComments() {
+  if (selectedBlogId === 'all') {
+    hideEl(commentsLoadingEl);
+    hideEl(commentsContainerEl);
+    showEl(commentsEmptyEl);
+    if (commentsEmptyEl) {
+      commentsEmptyEl.querySelector('p').textContent = 'الرجاء تصفية العرض باختيار مقال محدد لعرض تعليقاته المضافة والتحكم بها.';
+    }
+    return;
+  }
+
   try {
     showEl(commentsLoadingEl);
     hideEl(commentsContainerEl);
     hideEl(commentsEmptyEl);
 
-    let comments = [];
-    if (selectedBlogId === 'all') {
-      comments = await fetchAPI('/api/comments');
-    } else {
-      comments = await fetchAPI(`/api/blog/${selectedBlogId}/comments`);
-    }
+    // استدعاء التعليقات الخاصة بمقال محدد
+    const comments = await fetchAPI(`/api/blog/${selectedBlogId}/comments`);
     
     if (!comments || comments.length === 0) {
       hideEl(commentsLoadingEl);
       showEl(commentsEmptyEl);
       if (commentsEmptyEl) {
-        commentsEmptyEl.querySelector('p').textContent = 'لا توجد تعليقات مسجلة أو مضافة حالياً.';
+        commentsEmptyEl.querySelector('p').textContent = 'لا توجد تعليقات مسجلة أو مضافة تحت هذا المقال.';
       }
       return;
     }
@@ -97,9 +108,9 @@ function renderCommentsTable(comments) {
   if (!commentsTableBody) return;
   commentsTableBody.innerHTML = '';
 
-  comments.forEach(comment => {
-    const activePost = allBlogPosts.find(p => p.id == comment.blogPostId) || { title: 'تحليل عام' };
+  const activePost = allBlogPosts.find(p => p.id == selectedBlogId) || { title: 'مقال غير معروف' };
 
+  comments.forEach(comment => {
     const writtenDate = new Date(comment.createdAt).toLocaleString('ar-EG', {
       dateStyle: 'medium',
       timeStyle: 'short'
@@ -149,6 +160,7 @@ async function deleteComment(id) {
     try {
       const response = await fetchAPI(`/api/comments/${id}`, 'DELETE');
       if (response && response.success) {
+        // إعادة تحميل التعليقات للمقال الحالي
         await loadSelectedComments();
       }
     } catch (err) {
