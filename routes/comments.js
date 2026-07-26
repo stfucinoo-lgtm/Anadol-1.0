@@ -6,7 +6,6 @@ const { authenticateToken, requireRole } = require('../middleware/auth');
 
 /**
  * GET /api/comments
- * جلب جميع التعليقات في المنصة للوحة الإدارة مع إمكانية التصفية الاختيارية
  */
 router.get('/comments', async (req, res) => {
   try {
@@ -20,11 +19,10 @@ router.get('/comments', async (req, res) => {
     try {
       comments = await Comment.findAll({
         where: whereCondition,
-        include: [{ model: User, attributes: ['username'], required: false }],
+        include: [{ model: User, attributes: ['username', 'avatarUrl'], required: false }],
         order: [['createdAt', 'DESC']]
       });
     } catch (e) {
-      // تفادي انهيار السيرفر في حال عدم تسجيل العلاقة بين النماذج
       comments = await Comment.findAll({
         where: whereCondition,
         order: [['createdAt', 'DESC']]
@@ -34,17 +32,24 @@ router.get('/comments', async (req, res) => {
     const formattedComments = await Promise.all(comments.map(async (comment) => {
       const plainComment = comment.get({ plain: true });
       let username = plainComment.User ? plainComment.User.username : null;
-      if (!username && plainComment.userId) {
+      let avatarUrl = plainComment.User ? plainComment.User.avatarUrl : null;
+
+      if ((!username || !avatarUrl) && plainComment.userId) {
         try {
-          const u = await User.findByPk(plainComment.userId, { attributes: ['username'] });
-          if (u) username = u.username;
+          const u = await User.findByPk(plainComment.userId, { attributes: ['username', 'avatarUrl'] });
+          if (u) {
+            if (!username) username = u.username;
+            if (!avatarUrl) avatarUrl = u.avatarUrl;
+          }
         } catch (err) {}
       }
+
       return {
         id: plainComment.id,
         blogPostId: plainComment.blogPostId,
         userId: plainComment.userId,
         username: username || 'عضو سابق',
+        avatarUrl: avatarUrl || null,
         content: plainComment.content,
         createdAt: plainComment.createdAt
       };
@@ -59,7 +64,6 @@ router.get('/comments', async (req, res) => {
 
 /**
  * GET /api/blog/:id/comments
- * جلب جميع التعليقات الخاصة بمقال معين
  */
 router.get('/blog/:id/comments', async (req, res) => {
   try {
@@ -69,7 +73,7 @@ router.get('/blog/:id/comments', async (req, res) => {
     try {
       comments = await Comment.findAll({
         where: { blogPostId },
-        include: [{ model: User, attributes: ['username'], required: false }],
+        include: [{ model: User, attributes: ['username', 'avatarUrl'], required: false }],
         order: [['createdAt', 'ASC']]
       });
     } catch (e) {
@@ -82,17 +86,24 @@ router.get('/blog/:id/comments', async (req, res) => {
     const formattedComments = await Promise.all(comments.map(async (comment) => {
       const plainComment = comment.get({ plain: true });
       let username = plainComment.User ? plainComment.User.username : null;
-      if (!username && plainComment.userId) {
+      let avatarUrl = plainComment.User ? plainComment.User.avatarUrl : null;
+
+      if ((!username || !avatarUrl) && plainComment.userId) {
         try {
-          const u = await User.findByPk(plainComment.userId, { attributes: ['username'] });
-          if (u) username = u.username;
+          const u = await User.findByPk(plainComment.userId, { attributes: ['username', 'avatarUrl'] });
+          if (u) {
+            if (!username) username = u.username;
+            if (!avatarUrl) avatarUrl = u.avatarUrl;
+          }
         } catch (err) {}
       }
+
       return {
         id: plainComment.id,
         blogPostId: plainComment.blogPostId,
         userId: plainComment.userId,
-        username: username || 'زائر مجهول',
+        username: username || 'مشجع مجهول',
+        avatarUrl: avatarUrl || null,
         content: plainComment.content,
         createdAt: plainComment.createdAt
       };
@@ -107,7 +118,6 @@ router.get('/blog/:id/comments', async (req, res) => {
 
 /**
  * POST /api/blog/:id/comments
- * كتابة تعليق جديد على مقال تحريري (يتطلب تسجيل الدخول)
  */
 router.post('/blog/:id/comments', authenticateToken, async (req, res) => {
   try {
@@ -129,6 +139,7 @@ router.post('/blog/:id/comments', authenticateToken, async (req, res) => {
       blogPostId: newComment.blogPostId,
       userId: newComment.userId,
       username: req.user.username,
+      avatarUrl: req.user.avatarUrl || null,
       content: newComment.content,
       createdAt: newComment.createdAt
     };
@@ -142,7 +153,6 @@ router.post('/blog/:id/comments', authenticateToken, async (req, res) => {
 
 /**
  * DELETE /api/comments/:id
- * حذف تعليق مخالف من النظام (صلاحية المشرفين admin و editor فقط)
  */
 router.delete('/comments/:id', authenticateToken, requireRole(['admin', 'editor']), async (req, res) => {
   try {
