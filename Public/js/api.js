@@ -8,9 +8,9 @@ const API_BASE_URL = '/api';
 async function apiFetch(endpoint, options = {}) {
   // تنظيف وإزالة تكرار /api لو كُتبت بالخطأ في أي ملف JS
   let cleanEndpoint = endpoint || '';
-  if (cleanEndpoint.startsWith('/api')) {
+  if (cleanEndpoint.startsWith('/api/')) {
     cleanEndpoint = cleanEndpoint.substring(4);
-  } else if (cleanEndpoint.startsWith('api')) {
+  } else if (cleanEndpoint.startsWith('api/')) {
     cleanEndpoint = cleanEndpoint.substring(3);
   }
 
