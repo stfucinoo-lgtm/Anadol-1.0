@@ -57,7 +57,7 @@
         <a href="/admin/dashboard.html" class="text-brand-accent hover:text-white transition">
           <i class="fa-solid fa-arrow-right text-xl"></i>
         </a>
-        <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white">إدارة المباريات والأحداث</h1>
+        <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white">إدارة المباريات والأحداث والإحصائيات الفردية</h1>
       </div>
       <div class="flex items-center gap-4">
         <span id="role-badge" class="hidden sm:inline-flex items-center gap-1 bg-slate-800 px-3 py-1 rounded-md text-xs text-slate-300 border border-slate-700">
@@ -86,7 +86,7 @@
       </div>
     </div>
 
-    <!-- Layout Grid: Matches list (Right) & Live Panel/Logger (Left) -->
+    <!-- Layout Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
       
       <!-- Matches List Section -->
@@ -123,7 +123,6 @@
 
           <!-- Matches Container -->
           <div id="matches-list" class="hidden space-y-4 max-h-[650px] overflow-y-auto pr-1 custom-scrollbar">
-            <!-- Dynamic match cards added by admin-matches.js -->
           </div>
         </div>
       </section>
@@ -146,7 +145,6 @@
             <div class="border-b border-slate-800 pb-4">
               <div class="flex items-center justify-between mb-4">
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">التحكم في المباراة الحالية</span>
-                <!-- Status Badge -->
                 <span id="active-match-status-badge" class="px-2.5 py-1 rounded text-[10px] font-bold uppercase"></span>
               </div>
 
@@ -164,14 +162,11 @@
             <!-- Match Score Form (Quick Save) -->
             <form id="match-quick-stats-form" class="space-y-4 bg-slate-900/50 p-4 rounded-lg border border-slate-800/80">
               <div class="flex items-center justify-between text-center gap-2">
-                <!-- Home Team Name & Input -->
                 <div class="flex-1">
                   <p id="active-home-name" class="font-bold text-xs text-slate-300 truncate mb-1">صاحب الأرض</p>
                   <input type="number" id="quick-score-home" min="0" required class="w-16 text-center bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg py-1.5 text-base font-extrabold text-white">
                 </div>
-                <!-- Divider -->
                 <div class="text-slate-600 font-bold px-2 self-end pb-2">ضد</div>
-                <!-- Away Team Name & Input -->
                 <div class="flex-1">
                   <p id="active-away-name" class="font-bold text-xs text-slate-300 truncate mb-1">الضيف</p>
                   <input type="number" id="quick-score-away" min="0" required class="w-16 text-center bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg py-1.5 text-base font-extrabold text-white">
@@ -191,17 +186,17 @@
                 <i class="fa-solid fa-chart-line"></i> الأحداث
               </button>
               <button type="button" id="tab-stats" class="tab-btn border-b-2 border-transparent px-3 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white whitespace-nowrap">
-                <i class="fa-solid fa-chart-simple"></i> الإحصائيات الشاملة
+                <i class="fa-solid fa-chart-simple"></i> الإحصائيات الجماعية
               </button>
               <button type="button" id="tab-lineups" class="tab-btn border-b-2 border-transparent px-3 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white whitespace-nowrap">
                 <i class="fa-solid fa-users-gear"></i> التشكيلة (SofaScore)
               </button>
               <button type="button" id="tab-ratings" class="tab-btn border-b-2 border-transparent px-3 py-2 text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white whitespace-nowrap">
-                <i class="fa-solid fa-star-half-stroke"></i> التقييمات
+                <i class="fa-solid fa-user-pen"></i> إحصائيات اللاعبين الفردية
               </button>
             </div>
 
-            <!-- ==================== TAB 1: EVENTS LOGGER ==================== -->
+            <!-- TAB 1: EVENTS LOGGER -->
             <div id="tab-content-events" class="tab-content space-y-4">
               <div class="space-y-4">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
@@ -209,13 +204,11 @@
                   <span class="text-[10px] text-slate-500 font-normal">انقر على الملعب لتحديد الإحداثيات</span>
                 </h3>
 
-                <!-- Event Form -->
                 <form id="match-event-form" class="space-y-4">
                   <div class="grid grid-cols-2 gap-3">
                     <div>
                       <label class="block text-[10px] font-semibold text-slate-300 mb-1">الفريق المعني *</label>
-                      <select id="event-team" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none transition">
-                      </select>
+                      <select id="event-team" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none transition"></select>
                     </div>
                     <div>
                       <label class="block text-[10px] font-semibold text-slate-300 mb-1">اللاعب المعني *</label>
@@ -256,7 +249,6 @@
                     </div>
                   </div>
 
-                  <!-- Interactive Pitch Field Coordinates Picker -->
                   <div class="relative w-full aspect-[3/2] bg-emerald-800 rounded-lg border border-emerald-950 overflow-hidden cursor-crosshair shadow-md pitch-grid" id="interactive-pitch">
                     <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-emerald-500/40"></div>
                     <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-emerald-500/40"></div>
@@ -273,15 +265,13 @@
                 </form>
               </div>
 
-              <!-- Historical Match Events Feed -->
               <div class="pt-4 border-t border-slate-800">
                 <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">شريط الأحداث المسجلة للمباراة</h4>
-                <div id="active-match-events-list" class="space-y-2 max-h-[160px] overflow-y-auto pr-1 text-xs">
-                </div>
+                <div id="active-match-events-list" class="space-y-2 max-h-[160px] overflow-y-auto pr-1 text-xs"></div>
               </div>
             </div>
 
-            <!-- ==================== TAB 2: FULL MATCH STATISTICS FORM ==================== -->
+            <!-- TAB 2: FULL MATCH STATISTICS FORM (مستعادة بالكامل بدون حذف أي حقل) -->
             <div id="tab-content-stats" class="tab-content hidden space-y-4">
               <form id="full-match-stats-form" class="space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -292,7 +282,6 @@
                   <span class="text-[10px] text-slate-400">تظهر هذه البيانات للجمهور في صفحة تفاصيل اللقاء</span>
                 </div>
 
-                <!-- Header Labels for Team Columns -->
                 <div class="grid grid-cols-12 gap-2 bg-slate-900 p-2.5 rounded-lg text-center font-bold text-xs text-slate-300">
                   <div id="stats-home-title" class="col-span-4 text-brand-accent truncate">صاحب الأرض</div>
                   <div class="col-span-4 text-slate-400">نوع الإحصائية</div>
@@ -396,7 +385,7 @@
               </form>
             </div>
 
-            <!-- ==================== TAB 3: SOFASCORE LINEUPS MANAGEMENT ==================== -->
+            <!-- TAB 3: SOFASCORE LINEUPS MANAGEMENT -->
             <div id="tab-content-lineups" class="tab-content hidden space-y-5">
               <div class="flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
@@ -406,12 +395,10 @@
                 <span class="text-[10px] text-slate-400">انقر على أي مركز بالملعب لتعيين اللاعب</span>
               </div>
               
-              <!-- Selection Controls Bar -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-900 p-3.5 rounded-xl border border-slate-800">
                 <div>
                   <label class="block text-[11px] font-bold text-slate-300 mb-1">الفريق المراد تعديل تشكيلته:</label>
-                  <select id="lineup-team-select" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3 py-2 text-xs text-white font-semibold">
-                  </select>
+                  <select id="lineup-team-select" class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3 py-2 text-xs text-white font-semibold"></select>
                 </div>
                 <div>
                   <label class="block text-[11px] font-bold text-slate-300 mb-1">خطة اللعب التكتيكية (Formation):</label>
@@ -433,30 +420,15 @@
                 </div>
               </div>
 
-              <!-- Interactive Tactical Pitch Container (SofaScore Style) -->
               <div id="tactical-pitch-container" class="relative w-full aspect-[4/5] max-h-[580px] bg-emerald-950 rounded-2xl border-2 border-emerald-800/80 overflow-hidden shadow-2xl select-none mx-auto">
-                <!-- Grass & pitch lines -->
                 <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-900/90 via-emerald-950 to-slate-950 opacity-90"></div>
                 <div class="absolute inset-2 border-2 border-emerald-500/30 rounded-xl pointer-events-none"></div>
                 <div class="absolute inset-x-2 top-1/2 -translate-y-1/2 border-t-2 border-emerald-500/30 pointer-events-none"></div>
                 <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full border-2 border-emerald-500/30 pointer-events-none"></div>
-                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-500/50 pointer-events-none"></div>
                 
-                <!-- Top Goal Box -->
-                <div class="absolute top-2 left-1/2 -translate-x-1/2 w-48 h-20 border-b-2 border-x-2 border-emerald-500/30 pointer-events-none rounded-b-md"></div>
-                <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-8 border-b-2 border-x-2 border-emerald-500/30 pointer-events-none rounded-b-sm"></div>
-
-                <!-- Bottom Goal Box (Goalkeeper Area) -->
-                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-48 h-20 border-t-2 border-x-2 border-emerald-500/30 pointer-events-none rounded-t-md"></div>
-                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-8 border-t-2 border-x-2 border-emerald-500/30 pointer-events-none rounded-t-sm"></div>
-                <div class="absolute bottom-20 left-1/2 -translate-x-1/2 w-20 h-10 border-t-2 border-emerald-500/30 rounded-t-full pointer-events-none"></div>
-
-                <!-- Dynamic 11 Player Nodes generated via admin-matches.js -->
-                <div id="sofascore-pitch-slots" class="absolute inset-0">
-                </div>
+                <div id="sofascore-pitch-slots" class="absolute inset-0"></div>
               </div>
 
-              <!-- Substitutes Section (مقاعد البدلاء) -->
               <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                   <h4 class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
@@ -467,9 +439,7 @@
                     <i class="fa-solid fa-plus text-xs"></i> تعيين بديل
                   </button>
                 </div>
-                <div id="lineup-substitutes-container" class="flex flex-wrap gap-2 min-h-[42px] items-center">
-                  <!-- Substitutes chips -->
-                </div>
+                <div id="lineup-substitutes-container" class="flex flex-wrap gap-2 min-h-[42px] items-center"></div>
               </div>
 
               <div class="flex justify-end pt-2 border-t border-slate-800">
@@ -479,40 +449,27 @@
               </div>
             </div>
 
-            <!-- ==================== TAB 4: RATINGS MANAGEMENT ==================== -->
+            <!-- TAB 4: INDIVIDUAL PLAYER MATCH STATS MANAGEMENT -->
             <div id="tab-content-ratings" class="tab-content hidden space-y-4">
-              <div class="flex justify-between items-center">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">تقييم اللاعبين المشاركين</h3>
-                <span class="text-[9px] text-slate-500">ملاحظة: تظهر هنا الأسماء التي تم تعيينها في التشكيلة فقط.</span>
+              <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">قائمة اللاعبين المشاركين (انقر على الزر لتعديل إحصائياته الفردية)</h3>
+                <span class="text-[10px] text-brand-accent font-semibold">تعديل أهداف، لمسات، سرعة وتقييمات</span>
               </div>
 
-              <!-- حاويات التقييمات للفريقين -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
-                <!-- قسم الأرض -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar">
                 <div class="space-y-2">
                   <h4 id="rating-home-title" class="text-[10px] font-bold text-slate-400 border-b border-slate-800 pb-1 flex items-center gap-1">
                     <span class="w-2 h-2 rounded bg-brand-accent"></span> صاحب الأرض
                   </h4>
-                  <div id="ratings-home-list" class="space-y-2">
-                    <p class="text-slate-600 text-xs py-2">لا يوجد لاعبين في التشكيلة حالياً.</p>
-                  </div>
+                  <div id="ratings-home-list" class="space-y-2"></div>
                 </div>
 
-                <!-- قسم الضيف -->
                 <div class="space-y-2">
                   <h4 id="rating-away-title" class="text-[10px] font-bold text-slate-400 border-b border-slate-800 pb-1 flex items-center gap-1">
                     <span class="w-2 h-2 rounded bg-slate-500"></span> الضيف
                   </h4>
-                  <div id="ratings-away-list" class="space-y-2">
-                    <p class="text-slate-600 text-xs py-2">لا يوجد لاعبين في التشكيلة حالياً.</p>
-                  </div>
+                  <div id="ratings-away-list" class="space-y-2"></div>
                 </div>
-              </div>
-
-              <div class="flex justify-end pt-2 border-t border-slate-800">
-                <button type="button" id="btn-save-ratings" class="bg-brand-success hover:bg-emerald-600 text-white text-xs font-bold px-5 py-2.5 rounded-lg transition flex items-center gap-1.5">
-                  <i class="fa-solid fa-star"></i> حفظ وتحديث جميع التقييمات
-                </button>
               </div>
             </div>
 
@@ -524,16 +481,84 @@
     </div>
   </main>
 
-  <!-- Footer -->
-  <footer class="bg-brand-dark border-t border-slate-900 py-6 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-xs">
-      <p>&copy; 2026 دوري الأناضول (ANADOL League). قسم إدارة أحداث ومخططات المباريات.</p>
+  <!-- MODAL: INDIVIDUAL PLAYER MATCH STATS EDIT -->
+  <div id="player-single-stat-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-brand-card border border-slate-800 rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
+      <div class="bg-slate-900 px-5 py-3.5 flex items-center justify-between border-b border-slate-800">
+        <div>
+          <h3 id="stat-modal-player-name" class="font-bold text-white text-base">إدخال إحصائيات اللاعب للمباراة</h3>
+          <p id="stat-modal-player-sub" class="text-[10px] text-brand-accent font-semibold">تعديل التقرير الميداني والتقييم الرقمي</p>
+        </div>
+        <button type="button" id="btn-close-single-stat-modal" class="text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="form-single-player-stat" class="p-5 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+        <input type="hidden" id="edit-player-id">
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">التقييم الرقمي (1-10)</label>
+            <input type="number" step="0.1" id="mstat-rating" value="7.5" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-brand-accent font-bold">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">دقائق اللعب</label>
+            <input type="number" id="mstat-minutes" value="90" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">الأهداف (Buts)</label>
+            <input type="number" id="mstat-goals" value="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">التمريرات الحاسمة</label>
+            <input type="number" id="mstat-assists" value="0" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">لمسات الكرة</label>
+            <input type="number" id="mstat-touches" value="35" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">متوسط السرعة (km/h)</label>
+            <input type="text" id="mstat-speed" value="13.5 km/h" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">المسافة بالمراوغة</label>
+            <input type="text" id="mstat-dribble-dist" value="12.0 m" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">التسديدات (على المرمى)</label>
+            <input type="text" id="mstat-shots" value="2 (1)" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">التمريرات (الناجحة)</label>
+            <input type="text" id="mstat-passes" value="20 (16)" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">التدخلات الناجحة</label>
+            <input type="text" id="mstat-tackles" value="3 (2)" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">افتراض وقطع الكرات</label>
+            <input type="number" id="mstat-interceptions" value="3" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">العرضيات</label>
+            <input type="number" id="mstat-crosses" value="2" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+          <button type="button" id="btn-cancel-single-stat" class="bg-slate-800 text-slate-300 text-xs px-4 py-2 rounded-lg">إلغاء</button>
+          <button type="submit" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark font-bold text-xs px-5 py-2 rounded-lg shadow-md">
+            حفظ إحصائيات هذا اللاعب للمباراة
+          </button>
+        </div>
+      </form>
     </div>
-  </footer>
+  </div>
 
-  <!-- ==================== MODALS ==================== -->
-
-  <!-- 1. Player Picker Modal for Tactical Pitch Slots -->
+  <!-- Player Picker Modal -->
   <div id="player-picker-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-300">
     <div class="bg-brand-card border border-slate-800 rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
       <div class="bg-slate-900 px-5 py-3.5 flex items-center justify-between border-b border-slate-800">
@@ -547,10 +572,7 @@
       </div>
       <div class="p-4 space-y-3">
         <input type="text" id="picker-player-search" placeholder="بحث باسم اللاعب أو رقم القميص..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-accent">
-        
-        <div id="picker-players-list" class="max-h-[260px] overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
-        </div>
-
+        <div id="picker-players-list" class="max-h-[260px] overflow-y-auto space-y-1.5 pr-1 custom-scrollbar"></div>
         <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
           <button type="button" id="btn-unassign-slot" class="text-xs text-red-400 hover:text-red-300 font-semibold py-1 px-2 transition">
             <i class="fa-solid fa-user-minus"></i> تفريغ المركز
@@ -561,7 +583,7 @@
     </div>
   </div>
 
-  <!-- 2. Match Creation Modal -->
+  <!-- Match Creation Modal -->
   <div id="match-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-300">
     <div class="bg-brand-card border border-slate-800 rounded-xl max-w-md w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
       <div class="bg-slate-900 px-5 py-4 flex items-center justify-between border-b border-slate-800">
@@ -572,40 +594,33 @@
       </div>
       <form id="match-form" class="p-5 space-y-4">
         <div>
-          <label for="match-home-team" class="block text-xs font-semibold text-slate-300 mb-1.5">صاحب الأرض (الفريق المستضيف) *</label>
-          <select id="match-home-team" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
-            <option value="">اختر الفريق الأول</option>
-          </select>
+          <label for="match-home-team" class="block text-xs font-semibold text-slate-300 mb-1.5">صاحب الأرض *</label>
+          <select id="match-home-team" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition"></select>
         </div>
-
         <div>
-          <label for="match-away-team" class="block text-xs font-semibold text-slate-300 mb-1.5">الضيف (الفريق الزائر) *</label>
-          <select id="match-away-team" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
-            <option value="">اختر الفريق الثاني</option>
-          </select>
+          <label for="match-away-team" class="block text-xs font-semibold text-slate-300 mb-1.5">الضيف *</label>
+          <select id="match-away-team" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition"></select>
         </div>
-
         <div>
           <label for="match-date" class="block text-xs font-semibold text-slate-300 mb-1.5">تاريخ وتوقيت المباراة *</label>
           <input type="datetime-local" id="match-date" required class="w-full bg-slate-950 border border-slate-800 focus:border-brand-accent rounded-lg px-3.5 py-2 text-sm text-white focus:outline-none transition">
         </div>
-
         <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
-          <button type="button" class="btn-close-modal bg-slate-850 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded-lg text-sm font-semibold transition">
-            إلغاء
-          </button>
-          <button type="submit" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark px-5 py-2 rounded-lg text-sm font-bold transition">
-            جدولة المواجهة
-          </button>
+          <button type="button" class="btn-close-modal bg-slate-850 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded-lg text-sm font-semibold transition">إلغاء</button>
+          <button type="submit" class="bg-brand-accent hover:bg-brand-accentHover text-brand-dark px-5 py-2 rounded-lg text-sm font-bold transition">جدولة المواجهة</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- GSAP Library -->
+  <!-- Footer -->
+  <footer class="bg-brand-dark border-t border-slate-900 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-xs">
+      <p>&copy; 2026 دوري الأناضول (ANADOL League). جميع الحقوق محفوظة.</p>
+    </div>
+  </footer>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  
-  <!-- App JS Scripts -->
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/admin-matches.js"></script>
