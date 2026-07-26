@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const { Op } = require('sequelize');
-const User = require('../models/User');
+const { Op } = require('sequelize'); // استيراد مباشر وآمن لمعاملات الاستعلام
+const User = require('../models/User'); // التأكد من استيراد ملف المستخدم بحرف كبير
 
+// محاولات استدعاء مرنة للنماذج الأخرى لتجنب توقف التشغيل في حال غياب ملفاتها مؤقتاً
 let Team;
 try {
   Team = require('../models/Team');
@@ -21,19 +22,22 @@ try {
 const JWT_SECRET = process.env.JWT_SECRET || 'anadol_secret_key';
 
 /**
- * توليد توكن صغير الحجم (بدون تضمين بيانات الصورة داخل التوكن لمنع انهيار الهيدر)
+ * دالة مساعدة لإنشاء التوكن الرقمي للمستخدم
  */
 function generateToken(user) {
   return jwt.sign(
     { id: user.id, username: user.username, role: user.role },
     JWT_SECRET,
-    { expiresIn: '24h' }
+    { expiresIn: '24h' } // صلاحية التوكن 24 ساعة
   );
 }
 
+/**
+ * برمجية وسيطة محلية (Middleware) للتحقق من التوكن وحماية مسارات الملف الشخصي
+ */
 const authenticateUser = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = authHeader && authHeader.split(' ')[1]; // استخراج التوكن بعد كلمة Bearer
 
   if (!token) {
     return res.status(401).json({ message: 'وصول غير مصرح به، يرجى تسجيل الدخول أولاً.' });
@@ -43,22 +47,25 @@ const authenticateUser = (req, res, next) => {
     if (err) {
       return res.status(403).json({ message: 'رمز التحقق غير صالح أو منتهي الصلاحية.' });
     }
-    req.user = decoded;
+    req.user = decoded; // تمرير بيانات فك تشفير التوكن { id, username, role }
     next();
   });
 };
 
 /**
  * POST /api/auth/register
+ * تسجيل حساب زائر عادي جديد (role يتم فرضه تلقائياً ليكون visitor)
  */
 router.post('/register', async (req, res) => {
   try {
-    const { username, email, password, avatarUrl } = req.body;
+    const { username, email, password } = req.body;
 
+    // 1. التحقق من وجود كافة الحقول المطلوبة
     if (!username || !email || !password) {
       return res.status(400).json({ message: 'يرجى ملء جميع الحقول المطلوبة للتسجيل.' });
     }
 
+    // 2. التحقق من تكرار البريد الإلكتروني أو اسم المستخدم بشكل آمن
     const existingUser = await User.findOne({
       where: {
         [Op.or]: [{ email }, { username }]
@@ -69,15 +76,16 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ message: 'اسم المستخدم أو البريد الإلكتروني مسجل بالفعل.' });
     }
 
+    // 3. إنشاء حساب المستخدم مع فرض الدور visitor حمايةً للنظام
     const newUser = await User.create({
       username,
       email,
       password,
-      avatarUrl: avatarUrl || null,
-      role: 'visitor',
+      role: 'visitor', // الحماية القصوى: لا يمكن التسجيل العام بأي رتبة أخرى
       banned: false
     });
 
+    // 4. توليد الرمز والرد
     const token = generateToken(newUser);
 
     return res.status(201).json({
@@ -86,8 +94,7 @@ router.post('/register', async (req, res) => {
       user: {
         id: newUser.id,
         username: newUser.username,
-        role: newUser.role,
-        avatarUrl: newUser.avatarUrl || null
+        role: newUser.role
       }
     });
   } catch (error) {
@@ -98,29 +105,35 @@ router.post('/register', async (req, res) => {
 
 /**
  * POST /api/auth/login
+ * تسجيل الدخول لجميع الفئات (admin, editor, visitor)
  */
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // 1. التحقق من إدخال البيانات
     if (!email || !password) {
       return res.status(400).json({ message: 'يرجى إدخال البريد الإلكتروني وكلمة المرور.' });
     }
 
+    // 2. البحث عن المستخدم بالبريد الإلكتروني
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({ message: 'البيانات المدخلة غير صحيحة.' });
     }
 
+    // 3. التحقق من الحظر
     if (user.banned) {
       return res.status(403).json({ message: 'تم حظر حسابك من قبل إدارة الدوري.' });
     }
 
+    // 4. التحقق من مطابقة كلمة المرور المشفرة
     const isPasswordValid = await user.validPassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'البيانات المدخلة غير صحيحة.' });
     }
 
+    // 5. توليد الرمز والرد
     const token = generateToken(user);
 
     return res.status(200).json({
@@ -129,8 +142,7 @@ router.post('/login', async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
-        role: user.role,
-        avatarUrl: user.avatarUrl || null
+        role: user.role
       }
     });
   } catch (error) {
@@ -141,6 +153,7 @@ router.post('/login', async (req, res) => {
 
 /**
  * GET /api/auth/profile
+ * جلب بيانات الملف الشخصي للمستخدم الحالي مع الفريق المفضل والتعليقات الأخيرة
  */
 router.get('/profile', authenticateUser, async (req, res) => {
   try {
@@ -189,6 +202,7 @@ router.get('/profile', authenticateUser, async (req, res) => {
 
 /**
  * PUT /api/auth/profile
+ * تحديث بيانات الملف الشخصي للمستخدم الحالي
  */
 router.put('/profile', authenticateUser, async (req, res) => {
   try {
@@ -199,6 +213,7 @@ router.put('/profile', authenticateUser, async (req, res) => {
       return res.status(404).json({ message: 'المستخدم غير موجود.' });
     }
 
+    // التحقق من تكرار اسم المستخدم الجديد إذا رغب في تغييره
     if (username && username !== user.username) {
       const usernameExists = await User.findOne({ where: { username } });
       if (usernameExists) {
@@ -242,6 +257,44 @@ router.put('/profile', authenticateUser, async (req, res) => {
   } catch (error) {
     console.error('Error in update profile route:', error);
     return res.status(500).json({ message: 'حدث خطأ أثناء تحديث بيانات الملف الشخصي.' });
+  }
+});
+
+// مسار مؤقت لإعادة تعيين حساب المسؤول قسرياً وتصحيح التشفير
+router.get('/setup-initial-admin-account-secure', async (req, res) => {
+  try {
+    // البحث عن المستخدم بالبريد الإلكتروني أولاً
+    let user = await User.findOne({ where: { email: 'admin@anadol.com' } });
+
+    if (user) {
+      // تحديث البيانات وكلمة المرور لتفعيل الـ beforeUpdate hook وتشفيرها لمرة واحدة فقط
+      user.password = 'Admin123!';
+      user.role = 'admin';
+      user.banned = false;
+      await user.save(); 
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: 'تم إعادة تعيين كلمة مرور المسؤول وتحديث صلاحياته بنجاح!' 
+      });
+    } else {
+      // إذا لم يكن موجوداً، نقوم بإنشائه من الصفر
+      user = await User.create({
+        username: 'admin',
+        email: 'admin@anadol.com',
+        password: 'Admin123!',
+        role: 'admin',
+        banned: false
+      });
+      
+      return res.status(201).json({ 
+        success: true, 
+        message: 'تم إنشاء حساب المسؤول بنجاح من الصفر!' 
+      });
+    }
+  } catch (error) {
+    console.error('Error in setup-admin route:', error);
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 
