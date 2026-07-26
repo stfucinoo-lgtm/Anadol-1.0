@@ -6,23 +6,27 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const fs = require('fs'); // استيراد نظام الملفات للتحقق الديناميكي من المجلد الساكن
+const fs = require('fs');
 require('dotenv').config();
 
 const sequelize = require('./config/db');
 
-// استدعاء نموذج التشكيلة والتقييمات لضمان جلب ومزامنة الجدول الجديد تلقائياً في PostgreSQL
-require('./models/MatchPlayer');
+// استدعاء آمن لنموذج التشكيلة والتقييمات دون التسبب في انهيار السيرفر إن لم يكن الملف موجوداً
+try {
+    require('./models/MatchPlayer');
+} catch (e) {
+    console.log('Notice: MatchPlayer model not loaded:', e.message);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 1. برمجيات الوسيط الشاملة (Global Middlewares)
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); // زيادة الحد الأقصى للملفات لتتسع لصور الـ Base64 المرفوعة
+app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// تحديد مسار مجلد الواجهة الأمامية ديناميكياً للتوافق مع حالة الأحرف (public أو Public)
+// تحديد مسار مجلد الواجهة الأمامية ديناميكياً
 let publicDirName = 'public';
 if (!fs.existsSync(path.join(__dirname, 'public')) && fs.existsSync(path.join(__dirname, 'Public'))) {
     publicDirName = 'Public';
@@ -32,7 +36,7 @@ const publicPath = path.join(__dirname, publicDirName);
 // خدمة الملفات الساكنة للواجهة الأمامية
 app.use(express.static(publicPath));
 
-// 2. دمج وتفعيل مسارات الـ API النشطة حالياً (Phase 2 Routes)
+// 2. دمج وتفعيل مسارات الـ API النشطة
 const teamRoutes = require('./routes/teams');
 const matchRoutes = require('./routes/matches');
 const standingsRoutes = require('./routes/standings');
@@ -41,13 +45,13 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/standings', standingsRoutes);
 
-// وسيط إعادة التوجيه الذكي لربط مسارات اللاعبين المباشرة /api/players بمسارات الفريق برمجياً دون الحاجة لتغيير هيكل الملفات
+// وسيط إعادة التوجيه لربط مسارات اللاعبين
 app.use('/api/players', (req, res, next) => {
-    req.url = '/players' + req.url; // تحويل المسار داخلياً من /:id إلى /players/:id لتتوافق مع ملف routes/teams.js
+    req.url = '/players' + req.url;
     next();
 }, teamRoutes);
 
-// 3. دالة تفادي الانهيار للتحميل التدريجي للمسارات القادمة (Phase 3+ Routes)
+// 3. التحميل الآمن للمسارات المستقبلية
 function safeMountRoute(routePath, moduleName) {
     try {
         const routeModule = require(moduleName);
@@ -60,7 +64,7 @@ function safeMountRoute(routePath, moduleName) {
     }
 }
 
-// تسجيل المسارات المستقبلية (سيتم تحميلها تلقائياً بمجرد إنشاء ملفاتها في المراحل القادمة)
+// تسجيل باقي المسارات
 safeMountRoute('/api/upload', './routes/upload');
 safeMountRoute('/api/auth', './routes/auth');
 safeMountRoute('/api/analytics', './routes/analytics');
@@ -74,7 +78,6 @@ safeMountRoute('/api/admin/audit-log', './routes/admin-audit');
 
 // 4. التوجيه التلقائي لمعالجة واجهات الصفحة الواحدة (SPA Routing)
 app.get('*', (req, res, next) => {
-    // استثناء مسارات الـ API والملفات التي تحتوي على امتدادات من التوجيه لـ index.html لمنع أخطاء الـ MIME type
     if (req.path.startsWith('/api/') || req.path.includes('.')) {
         return res.status(404).json({ error: 'الطلب المستهدف غير متوفر بنظام الـ API أو الملف غير موجود' });
     }
@@ -83,20 +86,20 @@ app.get('*', (req, res, next) => {
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
-        res.status(404).send('فشل العثور على ملف الواجهة الأمامية index.html في المجلد المخصص.');
+        res.status(404).send('فشل العثور على ملف الواجهة الأمامية index.html.');
     }
 });
 
-// 5. تهيئة المخطط برمجياً ومزامنة قاعدة البيانات وإضافة أعمِدة الإحصائيات المفقودة تلقائياً
+// 5. تهيئة السيرفر ومزامنة قاعدة البيانات بأمان
 async function startServer() {
     try {
-        // إضافة أعمدة المستخدمين
-        await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatarUrl" TEXT;');
-        await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bio" TEXT;');
-        await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;');
-
-        // توسيع حقول الصور للفرق واللاعبين والمقالات لتتسع للصور بجودة عالية دون تحديد بـ 255 حرفاً
-        const imageQueries = [
+        const alterQueries = [
+            'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatarUrl" TEXT;',
+            'ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "avatarUrl" TEXT;',
+            'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bio" TEXT;',
+            'ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "bio" TEXT;',
+            'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;',
+            'ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;',
             'ALTER TABLE "Teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;',
             'ALTER TABLE "teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;',
             'ALTER TABLE "Players" ALTER COLUMN "photoUrl" TYPE TEXT;',
@@ -106,11 +109,11 @@ async function startServer() {
             'ALTER TABLE "BlogPosts" ALTER COLUMN "excerpt" TYPE TEXT;',
             'ALTER TABLE "blog_posts" ALTER COLUMN "excerpt" TYPE TEXT;'
         ];
-        for (const q of imageQueries) {
+
+        for (const q of alterQueries) {
             try { await sequelize.query(q); } catch (e) {}
         }
 
-        // إضافة أعمِدة الإحصائيات التفصيلية المفقودة لجدول المباريات (matches) تلقائياً
         const matchColumns = [
             'shotsHome', 'shotsAway', 'shotsOnTargetHome', 'shotsOnTargetAway',
             'foulsHome', 'foulsAway', 'offsidesHome', 'offsidesAway',
@@ -123,26 +126,24 @@ async function startServer() {
         for (const col of matchColumns) {
             try {
                 await sequelize.query(`ALTER TABLE "matches" ADD COLUMN IF NOT EXISTS "${col}" INTEGER DEFAULT 0;`);
-            } catch (e1) {
+            } catch (e) {
                 try {
                     await sequelize.query(`ALTER TABLE "Matches" ADD COLUMN IF NOT EXISTS "${col}" INTEGER DEFAULT 0;`);
                 } catch (e2) {}
             }
         }
 
-        console.log('Database columns and match stats schema updated successfully.');
+        console.log('Database columns updated successfully.');
     } catch (queryErr) {
-        console.log('Notice: Manual column addition skipped:', queryErr.message);
+        console.log('Notice: Manual column setup skipped:', queryErr.message);
     }
 
-    // مزامنة قاعدة البيانات وتشغيل الخادم
-    sequelize.sync()
-        .then(() => {
-            console.log('PostgreSQL Database synced successfully.');
-        })
-        .catch(err => {
-            console.error('Failed to synchronize database, sync aborted:', err.message);
-        });
+    try {
+        await sequelize.sync();
+        console.log('PostgreSQL Database synced successfully.');
+    } catch (err) {
+        console.error('Database sync warning:', err.message);
+    }
 }
 
 // تشغيل الخادم
