@@ -20,9 +20,12 @@ try {
 
 const JWT_SECRET = process.env.JWT_SECRET || 'anadol_secret_key';
 
+/**
+ * توليد توكن صغير الحجم (بدون تضمين بيانات الصورة داخل التوكن لمنع انهيار الهيدر)
+ */
 function generateToken(user) {
   return jwt.sign(
-    { id: user.id, username: user.username, role: user.role, avatarUrl: user.avatarUrl },
+    { id: user.id, username: user.username, role: user.role },
     JWT_SECRET,
     { expiresIn: '24h' }
   );
