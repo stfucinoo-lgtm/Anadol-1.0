@@ -9,10 +9,23 @@ const cors = require('cors');
 const fs = require('fs'); // استيراد نظام الملفات للتحقق الديناميكي من المجلد الساكن
 require('dotenv').config();
 
+// حماية حاسمة لمنع انهيار السيرفر بسبب أي أخطاء غير ممسوكة في الاستعلامات أو الـ Promises
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection caught at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception caught:', err.message || err);
+});
+
 const sequelize = require('./config/db');
 
 // استدعاء نموذج التشكيلة والتقييمات لضمان جلب ومزامنة الجدول الجديد تلقائياً في PostgreSQL
-require('./models/MatchPlayer');
+try {
+    require('./models/MatchPlayer');
+} catch (e) {
+    console.log('Notice: MatchPlayer model optional load:', e.message);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -90,10 +103,15 @@ app.get('*', (req, res, next) => {
 // 5. تهيئة المخطط برمجياً ومزامنة قاعدة البيانات وإضافة أعمِدة الإحصائيات المفقودة تلقائياً
 async function startServer() {
     try {
-        // إضافة أعمدة المستخدمين
-        await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatarUrl" TEXT;');
-        await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bio" TEXT;');
-        await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;');
+        // إضافة أعمدة المستخدمين بأمان
+        const userQueries = [
+            'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatarUrl" TEXT;',
+            'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bio" TEXT;',
+            'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;'
+        ];
+        for (const uq of userQueries) {
+            try { await sequelize.query(uq); } catch (e) {}
+        }
 
         // توسيع حقول الصور للفرق واللاعبين والمقالات لتتسع للصور بجودة عالية دون تحديد بـ 255 حرفاً
         const imageQueries = [
@@ -136,13 +154,12 @@ async function startServer() {
     }
 
     // مزامنة قاعدة البيانات وتشغيل الخادم
-    sequelize.sync()
-        .then(() => {
-            console.log('PostgreSQL Database synced successfully.');
-        })
-        .catch(err => {
-            console.error('Failed to synchronize database, sync aborted:', err.message);
-        });
+    try {
+        await sequelize.sync();
+        console.log('PostgreSQL Database synced successfully.');
+    } catch (err) {
+        console.error('Failed to synchronize database, sync aborted:', err.message);
+    }
 }
 
 // تشغيل الخادم
