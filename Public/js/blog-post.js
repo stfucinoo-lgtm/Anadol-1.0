@@ -120,6 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
           minute: '2-digit'
         });
 
+        // رسم صورة المعلق إما صورة حقيقية أو أيقونة افتراضية
+        const avatarHTML = comment.avatarUrl 
+          ? `<img src="${comment.avatarUrl}" class="commenter-avatar" alt="${comment.username}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">`
+          : `<i class="fa-solid fa-circle-user commenter-avatar"></i>`;
+
         // ميزة الإشراف والحذف: يظهر زر الحذف فقط للـ Admin أو Editor
         const isModerator = user && (user.role === 'admin' || user.role === 'editor');
         const deleteButtonHTML = isModerator 
@@ -131,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         commentDiv.innerHTML = `
           <div class="comment-header">
             <div class="commenter-info">
-              <i class="fa-solid fa-circle-user commenter-avatar"></i>
+              ${avatarHTML}
               <div>
                 <strong class="commenter-name">${comment.username || 'مشجع مجهول'}</strong>
                 <span class="comment-date">${commentTime}</span>
