@@ -124,12 +124,16 @@ router.post('/blog/:id/comments', authenticateToken, async (req, res) => {
     const blogPostId = parseInt(req.params.id);
     const { content } = req.body;
 
-    if (!content || content.trim() === '') {
+    if (!content || !content.trim()) {
       return res.status(400).json({ error: 'نص التعليق لا يمكن أن يكون فارغاً.' });
     }
 
+    if (isNaN(blogPostId)) {
+      return res.status(400).json({ error: 'معرف المقال غير صالح.' });
+    }
+
     const newComment = await Comment.create({
-      blogPostId,
+      blogPostId: blogPostId,
       userId: req.user.id,
       content: content.trim()
     });
@@ -147,7 +151,7 @@ router.post('/blog/:id/comments', authenticateToken, async (req, res) => {
     return res.status(201).json({ success: true, comment: commentWithUser });
   } catch (error) {
     console.error('Error creating comment:', error);
-    return res.status(500).json({ error: 'حدث خطأ أثناء حفظ التعليق.' });
+    return res.status(500).json({ error: error.message || 'حدث خطأ أثناء حفظ التعليق.' });
   }
 });
 
