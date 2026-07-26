@@ -95,12 +95,16 @@ async function startServer() {
         await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bio" TEXT;');
         await sequelize.query('ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;');
 
-        // توسيع حقول الصور للفرق واللاعبين
+        // توسيع حقول الصور للفرق واللاعبين والمقالات لتتسع للصور بجودة عالية دون تحديد بـ 255 حرفاً
         const imageQueries = [
             'ALTER TABLE "Teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;',
             'ALTER TABLE "teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;',
             'ALTER TABLE "Players" ALTER COLUMN "photoUrl" TYPE TEXT;',
-            'ALTER TABLE "players" ALTER COLUMN "photoUrl" TYPE TEXT;'
+            'ALTER TABLE "players" ALTER COLUMN "photoUrl" TYPE TEXT;',
+            'ALTER TABLE "BlogPosts" ALTER COLUMN "featuredImageUrl" TYPE TEXT;',
+            'ALTER TABLE "blog_posts" ALTER COLUMN "featuredImageUrl" TYPE TEXT;',
+            'ALTER TABLE "BlogPosts" ALTER COLUMN "excerpt" TYPE TEXT;',
+            'ALTER TABLE "blog_posts" ALTER COLUMN "excerpt" TYPE TEXT;'
         ];
         for (const q of imageQueries) {
             try { await sequelize.query(q); } catch (e) {}
