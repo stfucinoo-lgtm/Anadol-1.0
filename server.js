@@ -90,18 +90,30 @@ app.get('*', (req, res, next) => {
     }
 });
 
-// 5. تهيئة السيرفر ومزامنة قاعدة البيانات بأمان
+// 5. تهيئة السيرفر ومزامنة قاعدة البيانات بأمان وإصلاح الجداول تلقائياً
 async function startServer() {
     try {
+        // إضافة كافة العواميد المفقودة للجداول في PostgreSQL لحل أخطاء عدم العرض
         const alterQueries = [
+            // أعمدة جدول المستخدمين
             'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatarUrl" TEXT;',
             'ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "avatarUrl" TEXT;',
             'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "bio" TEXT;',
             'ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "bio" TEXT;',
             'ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;',
             'ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "favoriteTeamId" INTEGER;',
-            'ALTER TABLE "Teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;',
+
+            // أعمدة جدول الفرق الكاملة (السبب الرئيسي لتعطل العرض)
             'ALTER TABLE "teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;',
+            'ALTER TABLE "Teams" ADD COLUMN IF NOT EXISTS "crestUrl" TEXT;',
+            'ALTER TABLE "teams" ADD COLUMN IF NOT EXISTS "primaryColor" VARCHAR(7) DEFAULT \'#00ff87\';',
+            'ALTER TABLE "Teams" ADD COLUMN IF NOT EXISTS "primaryColor" VARCHAR(7) DEFAULT \'#00ff87\';',
+            'ALTER TABLE "teams" ADD COLUMN IF NOT EXISTS "stadium" TEXT;',
+            'ALTER TABLE "Teams" ADD COLUMN IF NOT EXISTS "stadium" TEXT;',
+            'ALTER TABLE "teams" ADD COLUMN IF NOT EXISTS "foundedYear" INTEGER;',
+            'ALTER TABLE "Teams" ADD COLUMN IF NOT EXISTS "foundedYear" INTEGER;',
+
+            // أعمدة جدول اللاعبين والمقالات
             'ALTER TABLE "Players" ALTER COLUMN "photoUrl" TYPE TEXT;',
             'ALTER TABLE "players" ALTER COLUMN "photoUrl" TYPE TEXT;',
             'ALTER TABLE "BlogPosts" ALTER COLUMN "featuredImageUrl" TYPE TEXT;',
@@ -114,6 +126,7 @@ async function startServer() {
             try { await sequelize.query(q); } catch (e) {}
         }
 
+        // إضافة أعمِدة الإحصائيات التفصيلية لجدول المباريات
         const matchColumns = [
             'shotsHome', 'shotsAway', 'shotsOnTargetHome', 'shotsOnTargetAway',
             'foulsHome', 'foulsAway', 'offsidesHome', 'offsidesAway',
@@ -139,7 +152,8 @@ async function startServer() {
     }
 
     try {
-        await sequelize.sync();
+        // مزامنة التغييرات الهيكلية تلقائياً لتوافق الجداول بدون مسح أي بيانات سابقة
+        await sequelize.sync({ alter: true });
         console.log('PostgreSQL Database synced successfully.');
     } catch (err) {
         console.error('Database sync warning:', err.message);
