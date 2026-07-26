@@ -20,14 +20,11 @@ const Team = sequelize.define('Team', {
         }
     },
     crestUrl: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-            isUrl: true // التأكد من صحة الرابط المدخل لشعار النادي
-        }
+        type: DataTypes.TEXT, // استخدام TEXT لدعم أطول الروابط وصور Base64
+        allowNull: true
     },
     primaryColor: {
-        type: DataTypes.STRING(7), // تخزين اللون بصيغة الـ Hex مثل #00ff87
+        type: DataTypes.STRING(7),
         allowNull: true,
         defaultValue: '#00ff87'
     },
@@ -37,16 +34,11 @@ const Team = sequelize.define('Team', {
     },
     foundedYear: {
         type: DataTypes.INTEGER,
-        allowNull: true,
-        validate: {
-            isInt: true,
-            min: 1800,
-            max: new Date().getFullYear()
-        }
+        allowNull: true
     }
 }, {
     tableName: 'teams',
-    timestamps: true // يوفر حقول التحديث والتسجيل التلقائية
+    timestamps: true
 });
 
 module.exports = Team;
