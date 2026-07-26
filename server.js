@@ -60,12 +60,12 @@ function safeMountRoute(routePath, moduleName) {
     }
 }
 
-// تسجيل المسارات المستقبلية (تم تصحيح ربط التعليقات تحت /api مباشرة)
+// تسجيل المسارات المستقبلية (سيتم تحميلها تلقائياً بمجرد إنشاء ملفاتها في المراحل القادمة)
 safeMountRoute('/api/upload', './routes/upload');
 safeMountRoute('/api/auth', './routes/auth');
 safeMountRoute('/api/analytics', './routes/analytics');
 safeMountRoute('/api/blog', './routes/blog');
-safeMountRoute('/api', './routes/comments'); // تصحيح: تم تغييره من /api/comments إلى /api لتطابق مسارات /blog/:id/comments و /comments/:id
+safeMountRoute('/api/comments', './routes/comments');
 safeMountRoute('/api/imports', './routes/imports');
 safeMountRoute('/api/admin/users', './routes/admin-users');
 safeMountRoute('/api/admin/database', './routes/admin-database');
