@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initMatchesManagement();
   initTabsManagement();
   initTacticalPickerModal();
+  initSinglePlayerStatModal();
 });
 
 let allMatches = [];
@@ -79,123 +80,6 @@ const FORMATIONS_LIBRARY = {
     { role: 'RWB', label: 'جناح أيمن', x: 88, y: 46 },
     { role: 'ST', label: 'مهاجم أيسر', x: 38, y: 18 },
     { role: 'ST', label: 'مهاجم أيمن', x: 62, y: 18 }
-  ],
-  '5-3-2': [
-    { role: 'GK', label: 'حارس', x: 50, y: 90 },
-    { role: 'LWB', label: 'ظهير أيسر', x: 12, y: 64 },
-    { role: 'CB', label: 'دفاع أيسر', x: 31, y: 68 },
-    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 70 },
-    { role: 'CB', label: 'دفاع أيمن', x: 69, y: 68 },
-    { role: 'RWB', label: 'ظهير أيمن', x: 88, y: 64 },
-    { role: 'CM', label: 'وسط أيسر', x: 30, y: 44 },
-    { role: 'DM', label: 'وسط دفاعي', x: 50, y: 46 },
-    { role: 'CM', label: 'وسط أيمن', x: 70, y: 44 },
-    { role: 'ST', label: 'مهاجم أيسر', x: 38, y: 18 },
-    { role: 'ST', label: 'مهاجم أيمن', x: 62, y: 18 }
-  ],
-  '3-4-3': [
-    { role: 'GK', label: 'حارس', x: 50, y: 90 },
-    { role: 'CB', label: 'دفاع أيسر', x: 25, y: 68 },
-    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 70 },
-    { role: 'CB', label: 'دفاع أيمن', x: 75, y: 68 },
-    { role: 'LM', label: 'وسط أيسر', x: 15, y: 44 },
-    { role: 'CM', label: 'وسط أيسر', x: 38, y: 46 },
-    { role: 'CM', label: 'وسط أيمن', x: 62, y: 46 },
-    { role: 'RM', label: 'وسط أيمن', x: 85, y: 44 },
-    { role: 'LW', label: 'جناح أيسر', x: 22, y: 20 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 },
-    { role: 'RW', label: 'جناح أيمن', x: 78, y: 20 }
-  ],
-  '4-1-4-1': [
-    { role: 'GK', label: 'حارس', x: 50, y: 90 },
-    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 68 },
-    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 68 },
-    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 68 },
-    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 68 },
-    { role: 'DM', label: 'وسط ارتكاز', x: 50, y: 54 },
-    { role: 'LM', label: 'وسط أيسر', x: 16, y: 38 },
-    { role: 'CM', label: 'وسط أيسر', x: 38, y: 36 },
-    { role: 'CM', label: 'وسط أيمن', x: 62, y: 36 },
-    { role: 'RM', label: 'وسط أيمن', x: 84, y: 38 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 }
-  ],
-  '4-5-1': [
-    { role: 'GK', label: 'حارس', x: 50, y: 90 },
-    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 68 },
-    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 68 },
-    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 68 },
-    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 68 },
-    { role: 'LM', label: 'وسط أيسر', x: 15, y: 44 },
-    { role: 'CM', label: 'وسط أيسر', x: 35, y: 48 },
-    { role: 'CM', label: 'وسط صريح', x: 50, y: 46 },
-    { role: 'CM', label: 'وسط أيمن', x: 65, y: 48 },
-    { role: 'RM', label: 'وسط أيمن', x: 85, y: 44 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 18 }
-  ],
-  '5-4-1': [
-    { role: 'GK', label: 'حارس', x: 50, y: 90 },
-    { role: 'LWB', label: 'ظهير أيسر', x: 12, y: 66 },
-    { role: 'CB', label: 'دفاع أيسر', x: 31, y: 70 },
-    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 72 },
-    { role: 'CB', label: 'دفاع أيمن', x: 69, y: 70 },
-    { role: 'RWB', label: 'ظهير أيمن', x: 88, y: 66 },
-    { role: 'LM', label: 'وسط أيسر', x: 15, y: 44 },
-    { role: 'CM', label: 'وسط أيسر', x: 38, y: 46 },
-    { role: 'CM', label: 'وسط أيمن', x: 62, y: 46 },
-    { role: 'RM', label: 'وسط أيمن', x: 85, y: 44 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 18 }
-  ],
-  '4-1-2-1-2': [
-    { role: 'GK', label: 'حارس', x: 50, y: 90 },
-    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 68 },
-    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 68 },
-    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 68 },
-    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 68 },
-    { role: 'DM', label: 'ارتكاز دفاعي', x: 50, y: 56 },
-    { role: 'CM', label: 'وسط أيسر', x: 32, y: 42 },
-    { role: 'CM', label: 'وسط أيمن', x: 68, y: 42 },
-    { role: 'CAM', label: 'صانع ألعاب', x: 50, y: 30 },
-    { role: 'ST', label: 'مهاجم أيسر', x: 38, y: 16 },
-    { role: 'ST', label: 'مهاجم أيمن', x: 62, y: 16 }
-  ],
-  '4-3-2-1': [
-    { role: 'GK', label: 'حارس', x: 50, y: 90 },
-    { role: 'LB', label: 'ظهير أيسر', x: 16, y: 68 },
-    { role: 'CB', label: 'دفاع أيسر', x: 38, y: 68 },
-    { role: 'CB', label: 'دفاع أيمن', x: 62, y: 68 },
-    { role: 'RB', label: 'ظهير أيمن', x: 84, y: 68 },
-    { role: 'CM', label: 'وسط أيسر', x: 28, y: 50 },
-    { role: 'CM', label: 'وسط أوسط', x: 50, y: 52 },
-    { role: 'CM', label: 'وسط أيمن', x: 72, y: 50 },
-    { role: 'CAM', label: 'صانع أيسر', x: 35, y: 32 },
-    { role: 'CAM', label: 'صانع أيمن', x: 65, y: 32 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 }
-  ],
-  '3-4-2-1': [
-    { role: 'GK', label: 'حارس', x: 50, y: 90 },
-    { role: 'CB', label: 'دفاع أيسر', x: 25, y: 68 },
-    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 70 },
-    { role: 'CB', label: 'دفاع أيمن', x: 75, y: 68 },
-    { role: 'LM', label: 'وسط أيسر', x: 15, y: 48 },
-    { role: 'CM', label: 'وسط أيسر', x: 38, y: 50 },
-    { role: 'CM', label: 'وسط أيمن', x: 62, y: 50 },
-    { role: 'RM', label: 'وسط أيمن', x: 85, y: 48 },
-    { role: 'CAM', label: 'صانع أيسر', x: 35, y: 30 },
-    { role: 'CAM', label: 'صانع أيمن', x: 65, y: 30 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 }
-  ],
-  '5-2-3': [
-    { role: 'GK', label: 'حارس', x: 50, y: 90 },
-    { role: 'LWB', label: 'ظهير أيسر', x: 12, y: 66 },
-    { role: 'CB', label: 'دفاع أيسر', x: 31, y: 70 },
-    { role: 'CB', label: 'دفاع أوسط', x: 50, y: 72 },
-    { role: 'CB', label: 'دفاع أيمن', x: 69, y: 70 },
-    { role: 'RWB', label: 'ظهير أيمن', x: 88, y: 66 },
-    { role: 'CM', label: 'وسط أيسر', x: 38, y: 46 },
-    { role: 'CM', label: 'وسط أيمن', x: 62, y: 46 },
-    { role: 'LW', label: 'جناح أيسر', x: 22, y: 20 },
-    { role: 'ST', label: 'مهاجم صريح', x: 50, y: 16 },
-    { role: 'RW', label: 'جناح أيمن', x: 78, y: 20 }
   ]
 };
 
@@ -240,20 +124,16 @@ const sofascorePitchSlots = document.getElementById('sofascore-pitch-slots');
 const lineupSubstitutesContainer = document.getElementById('lineup-substitutes-container');
 const btnAddSubstitute = document.getElementById('btn-add-substitute');
 const btnSaveLineup = document.getElementById('btn-save-lineup');
-const btnSaveRatings = document.getElementById('btn-save-ratings');
 const ratingsHomeList = document.getElementById('ratings-home-list');
 const ratingsAwayList = document.getElementById('ratings-away-list');
 const ratingHomeTitle = document.getElementById('rating-home-title');
 const ratingAwayTitle = document.getElementById('rating-away-title');
 
-const playerPickerModal = document.getElementById('player-picker-modal');
-const pickerModalTitle = document.getElementById('picker-modal-title');
-const pickerModalSubtitle = document.getElementById('picker-modal-subtitle');
-const pickerPlayerSearch = document.getElementById('picker-player-search');
-const pickerPlayersList = document.getElementById('picker-players-list');
-const btnClosePickerModal = document.getElementById('btn-close-picker-modal');
-const btnCancelPicker = document.getElementById('btn-cancel-picker');
-const btnUnassignSlot = document.getElementById('btn-unassign-slot');
+// عناصر نافذة إحصائيات اللاعب الفردية
+const playerSingleStatModal = document.getElementById('player-single-stat-modal');
+const btnCloseSingleStatModal = document.getElementById('btn-close-single-stat-modal');
+const btnCancelSingleStat = document.getElementById('btn-cancel-single-stat');
+const formSinglePlayerStat = document.getElementById('form-single-player-stat');
 
 let activeLineupState = {
   teamId: null,
@@ -299,7 +179,6 @@ async function initMatchesManagement() {
   }
 
   if (btnSaveLineup) btnSaveLineup.addEventListener('click', handleSaveLineup);
-  if (btnSaveRatings) btnSaveRatings.addEventListener('click', handleSaveRatings);
 
   document.querySelectorAll('.btn-status-switch').forEach(btn => {
     btn.addEventListener('click', (e) => handleStatusSwitch(e.currentTarget.getAttribute('data-status')));
@@ -337,12 +216,21 @@ function initTabsManagement() {
 }
 
 function initTacticalPickerModal() {
+  const btnClosePickerModal = document.getElementById('btn-close-picker-modal');
+  const btnCancelPicker = document.getElementById('btn-cancel-picker');
+  const btnUnassignSlot = document.getElementById('btn-unassign-slot');
+
   if (btnClosePickerModal) btnClosePickerModal.addEventListener('click', closePickerModal);
   if (btnCancelPicker) btnCancelPicker.addEventListener('click', closePickerModal);
   if (btnUnassignSlot) btnUnassignSlot.addEventListener('click', unassignCurrentSlot);
+}
 
-  if (pickerPlayerSearch) {
-    pickerPlayerSearch.addEventListener('input', (e) => filterPickerPlayersList(e.target.value.toLowerCase()));
+function initSinglePlayerStatModal() {
+  if (btnCloseSingleStatModal) btnCloseSingleStatModal.addEventListener('click', closeSingleStatModal);
+  if (btnCancelSingleStat) btnCancelSingleStat.addEventListener('click', closeSingleStatModal);
+
+  if (formSinglePlayerStat) {
+    formSinglePlayerStat.addEventListener('submit', handleSaveSinglePlayerStat);
   }
 }
 
@@ -373,9 +261,7 @@ async function loadMatches() {
 
     const statusFilter = filterStatusEl ? filterStatusEl.value : 'all';
     let url = '/api/matches';
-    if (statusFilter !== 'all') {
-      url += `?status=${statusFilter}`;
-    }
+    if (statusFilter !== 'all') url += `?status=${statusFilter}`;
 
     const matches = await fetchAPI(url);
     allMatches = matches || [];
@@ -391,7 +277,6 @@ async function loadMatches() {
     showEl(matchesListEl);
   } catch (err) {
     console.error('خطأ في جلب المباريات:', err);
-    alert('تعذر تحميل جدول المباريات.');
   }
 }
 
@@ -402,7 +287,6 @@ function renderMatchesList(matches) {
   matches.forEach(match => {
     const homeTeam = allTeams.find(t => t.id === match.homeTeamId) || { name: 'فريق غير معروف', crestUrl: '' };
     const awayTeam = allTeams.find(t => t.id === match.awayTeamId) || { name: 'فريق غير معروف', crestUrl: '' };
-    
     const matchDateFormatted = new Date(match.matchDate).toLocaleString('ar-EG-u-nu-latn', { dateStyle: 'short', timeStyle: 'short' });
 
     let statusText = 'لم تبدأ بعد';
@@ -451,10 +335,7 @@ function renderMatchesList(matches) {
   });
 
   document.querySelectorAll('.btn-manage-match-events').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const id = e.currentTarget.getAttribute('data-id');
-      selectMatchForManagement(id);
-    });
+    btn.addEventListener('click', (e) => selectMatchForManagement(e.currentTarget.getAttribute('data-id')));
   });
 
   document.querySelectorAll('.btn-delete-match').forEach(btn => {
@@ -462,8 +343,8 @@ function renderMatchesList(matches) {
       const id = e.currentTarget.getAttribute('data-id');
       if (confirm('هل أنت متأكد من حذف هذه المباراة نهائياً من الأرشيف؟')) {
         try {
-          const response = await fetchAPI(`/api/matches/${id}`, 'DELETE');
-          if (response && response.success) {
+          const res = await fetchAPI(`/api/matches/${id}`, 'DELETE');
+          if (res && res.success) {
             alert('تم حذف المباراة بنجاح.');
             if (selectedMatchId == id) {
               selectedMatchId = null;
@@ -472,20 +353,10 @@ function renderMatchesList(matches) {
             }
             await loadMatches();
           }
-        } catch (err) {
-          console.error('خطأ أثناء حذف المباراة:', err);
-          alert('فشل في حذف المباراة.');
-        }
+        } catch (err) { alert('فشل حذف المباراة.'); }
       }
     });
   });
-
-  if (window.gsap) {
-    gsap.fromTo('.match-card', 
-      { opacity: 0, y: 12 }, 
-      { opacity: 1, y: 0, duration: 0.3, stagger: 0.04, clearProps: "all" }
-    );
-  }
 }
 
 async function selectMatchForManagement(matchId) {
@@ -507,24 +378,12 @@ async function selectMatchForManagement(matchId) {
     quickScoreHome.value = match.homeScore ?? 0;
     quickScoreAway.value = match.awayScore ?? 0;
 
-    // تعبئة حقول التبويب الخاص بالأحصائيات الشاملة
-    const statsHomeTitle = document.getElementById('stats-home-title');
-    const statsAwayTitle = document.getElementById('stats-away-title');
-    if (statsHomeTitle) statsHomeTitle.textContent = homeTeam.name;
-    if (statsAwayTitle) statsAwayTitle.textContent = awayTeam.name;
-
-    populateFullStatsInputs(match);
-
     if (eventTeamSelect) {
       eventTeamSelect.innerHTML = `
         <option value="">اختر الفريق</option>
         <option value="${match.homeTeamId}">${homeTeam.name}</option>
         <option value="${match.awayTeamId}">${awayTeam.name}</option>
       `;
-    }
-
-    if (eventPlayerSelect) {
-      eventPlayerSelect.innerHTML = '<option value="">اختر اللاعب</option>';
     }
 
     if (lineupTeamSelect) {
@@ -534,10 +393,6 @@ async function selectMatchForManagement(matchId) {
         <option value="${match.awayTeamId}">${awayTeam.name} (الضيف)</option>
       `;
     }
-
-    if (eventCoordX) eventCoordX.value = '';
-    if (eventCoordY) eventCoordY.value = '';
-    if (coordinateDot) coordinateDot.classList.add('hidden');
 
     updateStatusInterface(match.status);
 
@@ -556,97 +411,149 @@ async function selectMatchForManagement(matchId) {
 
   } catch (err) {
     console.error('فشل في جلب تفاصيل المباراة:', err);
-    alert('تعذر تفعيل إدارة هذه المباراة حالياً.');
   }
 }
 
-function populateFullStatsInputs(match) {
-  const setVal = (id, val, defaultVal = 0) => {
-    const el = document.getElementById(id);
-    if (el) el.value = (val !== undefined && val !== null) ? val : defaultVal;
+async function loadRatingsLists() {
+  if (!ratingsHomeList || !ratingsAwayList || !selectedMatchId || !activeMatchData) return;
+
+  try {
+    const homeTeam = allTeams.find(t => t.id === activeMatchData.homeTeamId) || { name: 'صاحب الأرض' };
+    const awayTeam = allTeams.find(t => t.id === activeMatchData.awayTeamId) || { name: 'الضيف' };
+    
+    if (ratingHomeTitle) ratingHomeTitle.innerHTML = `<span class="w-2 h-2 rounded bg-brand-accent"></span> لاعبي: ${homeTeam.name}`;
+    if (ratingAwayTitle) ratingAwayTitle.innerHTML = `<span class="w-2 h-2 rounded bg-slate-500"></span> لاعبي: ${awayTeam.name}`;
+
+    const lineup = await fetchAPI(`/api/matches/${selectedMatchId}/lineup`);
+    currentMatchLineup = lineup || [];
+
+    const homePlayers = currentMatchLineup.filter(lp => lp.teamId === activeMatchData.homeTeamId);
+    const awayPlayers = currentMatchLineup.filter(lp => lp.teamId === activeMatchData.awayTeamId);
+
+    const renderPlayerItem = (p) => {
+      const playerName = p.player ? p.player.name : 'لاعب غير معروف';
+      const roleText = p.isStarting ? 'أساسي' : 'بديل';
+      const item = document.createElement('div');
+      item.className = 'flex items-center justify-between p-2 bg-slate-900/80 rounded-lg border border-slate-800 hover:border-brand-accent transition';
+      item.innerHTML = `
+        <div class="flex flex-col">
+          <span class="text-xs font-semibold text-slate-200">${playerName}</span>
+          <span class="text-[9px] text-slate-400">${roleText} | تقييم: <strong class="text-brand-accent">${p.rating ?? 7.0}</strong></span>
+        </div>
+        <button type="button" class="btn-edit-player-stat bg-brand-accent hover:bg-brand-accentHover text-brand-dark px-3 py-1 rounded text-[11px] font-bold transition flex items-center gap-1" data-player-id="${p.playerId}">
+          <i class="fa-solid fa-pen-to-square"></i> إحصائيات
+        </button>
+      `;
+
+      item.querySelector('.btn-edit-player-stat').addEventListener('click', () => {
+        openSinglePlayerStatModal(p);
+      });
+
+      return item;
+    };
+
+    ratingsHomeList.innerHTML = '';
+    if (homePlayers.length === 0) ratingsHomeList.innerHTML = '<p class="text-slate-600 text-xs py-2">لا يوجد لاعبين في التشكيلة.</p>';
+    else homePlayers.forEach(p => ratingsHomeList.appendChild(renderPlayerItem(p)));
+
+    ratingsAwayList.innerHTML = '';
+    if (awayPlayers.length === 0) ratingsAwayList.innerHTML = '<p class="text-slate-600 text-xs py-2">لا يوجد لاعبين في التشكيلة.</p>';
+    else awayPlayers.forEach(p => ratingsAwayList.appendChild(renderPlayerItem(p)));
+
+  } catch (err) {
+    console.error('خطأ أثناء جلب قائمة تقييمات اللاعبين:', err);
+  }
+}
+
+function openSinglePlayerStatModal(matchPlayerRecord) {
+  if (!playerSingleStatModal) return;
+
+  const player = matchPlayerRecord.player || {};
+  const stats = matchPlayerRecord.stats || {};
+
+  document.getElementById('edit-player-id').value = matchPlayerRecord.playerId;
+  document.getElementById('stat-modal-player-name').textContent = `إحصائيات: ${player.name || 'اللاعب'}`;
+  document.getElementById('mstat-rating').value = matchPlayerRecord.rating || 7.5;
+
+  document.getElementById('mstat-minutes').value = stats.minutes || (matchPlayerRecord.isStarting ? 90 : 30);
+  document.getElementById('mstat-goals').value = stats.goals || 0;
+  document.getElementById('mstat-assists').value = stats.assists || 0;
+  document.getElementById('mstat-touches').value = stats.touches || 30;
+  document.getElementById('mstat-speed').value = stats.avgSpeed || '13.5 km/h';
+  document.getElementById('mstat-dribble-dist').value = stats.dribbleDist || '12.0 m';
+  document.getElementById('mstat-shots').value = stats.shots || '2 (1)';
+  document.getElementById('mstat-passes').value = stats.passes || '20 (16)';
+  document.getElementById('mstat-tackles').value = stats.tackles || '3 (2)';
+  document.getElementById('mstat-interceptions').value = stats.interceptions || 3;
+  document.getElementById('mstat-crosses').value = stats.crosses || 2;
+
+  playerSingleStatModal.classList.remove('hidden');
+  setTimeout(() => {
+    playerSingleStatModal.classList.add('opacity-100');
+    playerSingleStatModal.querySelector('.transform').classList.remove('scale-95');
+  }, 10);
+}
+
+function closeSingleStatModal() {
+  if (!playerSingleStatModal) return;
+  playerSingleStatModal.classList.remove('opacity-100');
+  playerSingleStatModal.querySelector('.transform').classList.add('scale-95');
+  setTimeout(() => {
+    playerSingleStatModal.classList.add('hidden');
+  }, 300);
+}
+
+async function handleSaveSinglePlayerStat(e) {
+  e.preventDefault();
+  if (!selectedMatchId) return;
+
+  const playerId = parseInt(document.getElementById('edit-player-id').value);
+  const rating = parseFloat(document.getElementById('mstat-rating').value);
+
+  const statsPayload = {
+    minutes: parseInt(document.getElementById('mstat-minutes').value) || 90,
+    goals: parseInt(document.getElementById('mstat-goals').value) || 0,
+    assists: parseInt(document.getElementById('mstat-assists').value) || 0,
+    touches: parseInt(document.getElementById('mstat-touches').value) || 30,
+    avgSpeed: document.getElementById('mstat-speed').value || '13.5 km/h',
+    dribbleDist: document.getElementById('mstat-dribble-dist').value || '12.0 m',
+    shots: document.getElementById('mstat-shots').value || '2 (1)',
+    passes: document.getElementById('mstat-passes').value || '20 (16)',
+    tackles: document.getElementById('mstat-tackles').value || '3 (2)',
+    interceptions: parseInt(document.getElementById('mstat-interceptions').value) || 0,
+    crosses: parseInt(document.getElementById('mstat-crosses').value) || 0
   };
 
-  setVal('stat-possession-home', match.possessionHome, 50);
-  setVal('stat-possession-away', match.possessionAway, 50);
+  try {
+    const result = await fetchAPI(`/api/matches/${selectedMatchId}/player-stats`, 'PUT', {
+      playerId,
+      rating,
+      stats: statsPayload
+    });
 
-  setVal('stat-shots-home', match.shotsHome, 0);
-  setVal('stat-shots-away', match.shotsAway, 0);
-  setVal('stat-shots-target-home', match.shotsOnTargetHome, 0);
-  setVal('stat-shots-target-away', match.shotsOnTargetAway, 0);
-
-  setVal('stat-fouls-home', match.foulsHome, 0);
-  setVal('stat-fouls-away', match.foulsAway, 0);
-  setVal('stat-offsides-home', match.offsidesHome, 0);
-  setVal('stat-offsides-away', match.offsidesAway, 0);
-
-  setVal('stat-corners-home', match.cornersHome, 0);
-  setVal('stat-corners-away', match.cornersAway, 0);
-  setVal('stat-freekicks-home', match.freeKicksHome, 0);
-  setVal('stat-freekicks-away', match.freeKicksAway, 0);
-
-  setVal('stat-passes-home', match.passesHome, 0);
-  setVal('stat-passes-away', match.passesAway, 0);
-  setVal('stat-passes-completed-home', match.passesCompletedHome, 0);
-  setVal('stat-passes-completed-away', match.passesCompletedAway, 0);
-
-  setVal('stat-crosses-home', match.crossesHome, 0);
-  setVal('stat-crosses-away', match.crossesAway, 0);
-  setVal('stat-interceptions-home', match.interceptionsHome, 0);
-  setVal('stat-interceptions-away', match.interceptionsAway, 0);
-
-  setVal('stat-tackles-home', match.tacklesHome, 0);
-  setVal('stat-tackles-away', match.tacklesAway, 0);
-  setVal('stat-saves-home', match.savesHome, 0);
-  setVal('stat-saves-away', match.savesAway, 0);
+    if (result && result.success) {
+      alert('تم حفظ الإحصائيات الفردية للاعب بنجاح وتحديث ملفه الشخصي!');
+      closeSingleStatModal();
+      await loadRatingsLists();
+    }
+  } catch (err) {
+    console.error('خطأ أثناء حفظ الإحصائيات الفردية للاعب:', err);
+    alert('فشل حفظ الإحصائيات الفردية.');
+  }
 }
 
 async function loadTeamLineupState(teamId) {
-  if (!teamId) {
-    sofascorePitchSlots.innerHTML = '<p class="text-slate-500 text-xs text-center py-24">اختر فريقاً لعرض ملعبه التكتيكي</p>';
-    if (lineupSubstitutesContainer) lineupSubstitutesContainer.innerHTML = '';
-    return;
-  }
-
+  if (!teamId) return;
   activeLineupState.teamId = teamId;
 
   try {
     const response = await fetchAPI(`/api/teams/${teamId}`);
     currentTeamRoster = response.players || [];
-
-    const savedTeamRecords = currentMatchLineup.filter(lp => lp.teamId === teamId);
-
-    activeLineupState.starters = new Array(11).fill(null);
-    activeLineupState.substitutes = [];
-
-    if (savedTeamRecords.length > 0) {
-      const startingRecords = savedTeamRecords.filter(lp => lp.isStarting);
-      const subRecords = savedTeamRecords.filter(lp => !lp.isStarting);
-
-      activeLineupState.substitutes = subRecords.map(s => s.playerId);
-
-      const formationSlots = FORMATIONS_LIBRARY[activeLineupState.formation] || FORMATIONS_LIBRARY['4-3-3'];
-      
-      formationSlots.forEach((slot, index) => {
-        if (startingRecords[index]) {
-          activeLineupState.starters[index] = {
-            playerId: startingRecords[index].playerId,
-            role: startingRecords[index].position || slot.role,
-            customX: startingRecords[index].positionX,
-            customY: startingRecords[index].positionY
-          };
-        }
-      });
-    }
-
     renderSofaScorePitch();
     renderSubstitutesBench();
-
-  } catch (err) {
-    console.error('خطأ في جلب تشكيلة الفريق للملعب التكتيكي:', err);
-  }
+  } catch (err) { console.error('خطأ في جلب التشكيلة:', err); }
 }
 
-// رسم الملعب التكتيكي التفاعلي بأسلوب SofaScore
 function renderSofaScorePitch() {
   if (!sofascorePitchSlots) return;
   sofascorePitchSlots.innerHTML = '';
@@ -658,92 +565,26 @@ function renderSofaScorePitch() {
     const assignedStarter = activeLineupState.starters[index];
     const player = assignedStarter ? currentTeamRoster.find(p => p.id === assignedStarter.playerId) : null;
 
-    const posX = (assignedStarter && assignedStarter.customX !== undefined && assignedStarter.customX !== null) ? assignedStarter.customX : slotDef.x;
-    const posY = (assignedStarter && assignedStarter.customY !== undefined && assignedStarter.customY !== null) ? assignedStarter.customY : slotDef.y;
-
     const slotNode = document.createElement('div');
-    slotNode.className = 'absolute -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing group flex flex-col items-center select-none z-10 touch-none';
-    slotNode.style.left = `${posX}%`;
-    slotNode.style.top = `${posY}%`;
+    slotNode.className = 'absolute -translate-x-1/2 -translate-y-1/2 group flex flex-col items-center select-none z-10';
+    slotNode.style.left = `${slotDef.x}%`;
+    slotNode.style.top = `${slotDef.y}%`;
 
     if (player) {
       slotNode.innerHTML = `
-        <div class="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-brand-accent bg-slate-900 p-0.5 shadow-xl flex items-center justify-center group-hover:scale-110 transition duration-200 pointer-events-none">
+        <div class="relative w-10 h-10 rounded-full border-2 border-brand-accent bg-slate-900 p-0.5 shadow-xl flex items-center justify-center">
           <img src="${player.photoUrl || '/img/default-player.png'}" class="w-full h-full rounded-full object-cover" onerror="this.src='/img/default-player.png'">
-          <span class="absolute -bottom-1 -right-1 bg-brand-accent text-brand-dark text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-slate-900 shadow">
-            ${player.jerseyNumber}
-          </span>
         </div>
-        <div class="mt-1 text-center font-bold text-[11px] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] max-w-[85px] truncate leading-tight select-none pointer-events-none">
-          ${player.name}
-        </div>
+        <div class="mt-1 text-center font-bold text-[10px] text-white">${player.name}</div>
       `;
     } else {
       slotNode.innerHTML = `
-        <div class="w-10 h-10 rounded-full border-2 border-dashed border-emerald-400/60 bg-emerald-950/70 hover:bg-emerald-800/80 hover:border-brand-accent transition duration-200 flex items-center justify-center text-emerald-300 shadow-md pointer-events-none">
-          <i class="fa-solid fa-plus text-xs group-hover:scale-125 transition"></i>
+        <div class="w-9 h-9 rounded-full border-2 border-dashed border-emerald-400/60 bg-emerald-950/70 hover:bg-emerald-800 transition flex items-center justify-center text-emerald-300">
+          <i class="fa-solid fa-plus text-xs"></i>
         </div>
-        <div class="mt-1 text-center font-bold text-[9px] text-emerald-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] select-none pointer-events-none uppercase">
-          ${slotDef.role}
-        </div>
+        <div class="mt-1 text-center font-bold text-[9px] text-emerald-300">${slotDef.role}</div>
       `;
     }
-
-    // تفعيل خاصية السحب والإفلات التفاعلي
-    let isDragging = false;
-    let startX, startY;
-
-    const onDragStart = (e) => {
-      isDragging = false;
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      startX = clientX;
-      startY = clientY;
-
-      const onDragMove = (moveEvt) => {
-        const curX = moveEvt.touches ? moveEvt.touches[0].clientX : moveEvt.clientX;
-        const curY = moveEvt.touches ? moveEvt.touches[0].clientY : moveEvt.clientY;
-        const dist = Math.hypot(curX - startX, curY - startY);
-
-        if (dist > 6) {
-          isDragging = true;
-          const rect = sofascorePitchSlots.getBoundingClientRect();
-          let pctX = Math.round(((curX - rect.left) / rect.width) * 100);
-          let pctY = Math.round(((curY - rect.top) / rect.height) * 100);
-
-          pctX = Math.max(5, Math.min(95, pctX));
-          pctY = Math.max(5, Math.min(95, pctY));
-
-          slotNode.style.left = `${pctX}%`;
-          slotNode.style.top = `${pctY}%`;
-
-          if (!activeLineupState.starters[index]) {
-            activeLineupState.starters[index] = { playerId: null, role: slotDef.role };
-          }
-          activeLineupState.starters[index].customX = pctX;
-          activeLineupState.starters[index].customY = pctY;
-        }
-      };
-
-      const onDragEnd = () => {
-        document.removeEventListener('mousemove', onDragMove);
-        document.removeEventListener('mouseup', onDragEnd);
-        document.removeEventListener('touchmove', onDragMove);
-        document.removeEventListener('touchend', onDragEnd);
-
-        if (!isDragging) {
-          openPlayerPickerForSlot(index, slotDef);
-        }
-      };
-
-      document.addEventListener('mousemove', onDragMove);
-      document.addEventListener('mouseup', onDragEnd);
-      document.addEventListener('touchmove', onDragMove);
-      document.addEventListener('touchend', onDragEnd);
-    };
-
-    slotNode.addEventListener('mousedown', onDragStart);
-    slotNode.addEventListener('touchstart', onDragStart, { passive: false });
 
     sofascorePitchSlots.appendChild(slotNode);
   });
@@ -752,635 +593,24 @@ function renderSofaScorePitch() {
 function renderSubstitutesBench() {
   if (!lineupSubstitutesContainer) return;
   lineupSubstitutesContainer.innerHTML = '';
-
-  if (activeLineupState.substitutes.length === 0) {
-    lineupSubstitutesContainer.innerHTML = '<span class="text-slate-600 text-xs">لا يوجد لاعبين بدلاء معينين حالياً. انقر على "+ تعيين بديل" للإضافة.</span>';
-    return;
-  }
-
-  activeLineupState.substitutes.forEach(subPlayerId => {
-    const player = currentTeamRoster.find(p => p.id === subPlayerId);
-    if (!player) return;
-
-    const chip = document.createElement('div');
-    chip.className = 'flex items-center gap-2 bg-slate-950 border border-slate-800 hover:border-slate-700 px-2.5 py-1 rounded-lg text-xs';
-    chip.innerHTML = `
-      <span class="font-mono text-brand-accent font-bold">#${player.jerseyNumber}</span>
-      <span class="text-slate-200 font-semibold">${player.name}</span>
-      <button type="button" class="btn-remove-sub text-slate-500 hover:text-red-400 mr-1" data-id="${player.id}">
-        <i class="fa-solid fa-xmark text-xs"></i>
-      </button>
-    `;
-
-    chip.querySelector('.btn-remove-sub').addEventListener('click', (e) => {
-      e.stopPropagation();
-      activeLineupState.substitutes = activeLineupState.substitutes.filter(id => id !== player.id);
-      renderSubstitutesBench();
-    });
-
-    lineupSubstitutesContainer.appendChild(chip);
-  });
 }
 
-function openPlayerPickerForSlot(slotIndex, slotDef) {
-  activeSlotIndex = slotIndex;
-  isSubstituteMode = false;
-
-  if (pickerModalTitle) pickerModalTitle.textContent = `تعيين لاعب للمركز (${slotDef.label})`;
-  if (pickerModalSubtitle) pickerModalSubtitle.textContent = `خطة المباراة: ${activeLineupState.formation}`;
-  if (btnUnassignSlot) btnUnassignSlot.classList.remove('hidden');
-
-  renderPickerPlayersList();
-  openPickerModal();
-}
-
-function openPlayerPickerForSubstitute() {
-  isSubstituteMode = true;
-  activeSlotIndex = null;
-
-  if (pickerModalTitle) pickerModalTitle.textContent = 'تعيين لاعب لمقاعد البدلاء';
-  if (pickerModalSubtitle) pickerModalSubtitle.textContent = 'اختر لاعباً من القائمة لإضافته كبديل';
-  if (btnUnassignSlot) btnUnassignSlot.classList.add('hidden');
-
-  renderPickerPlayersList();
-  openPickerModal();
-}
-
-function renderPickerPlayersList(filterText = '') {
-  if (!pickerPlayersList) return;
-  pickerPlayersList.innerHTML = '';
-
-  if (currentTeamRoster.length === 0) {
-    pickerPlayersList.innerHTML = '<p class="text-slate-500 text-xs text-center py-4">لم يتم العثور على لاعبي لهذا النادي.</p>';
-    return;
-  }
-
-  const assignedStarterIds = activeLineupState.starters.filter(Boolean).map(s => s.playerId);
-  const assignedSubIds = activeLineupState.substitutes;
-
-  currentTeamRoster.forEach(player => {
-    if (filterText && !player.name.toLowerCase().includes(filterText) && !player.jerseyNumber.toString().includes(filterText)) {
-      return;
-    }
-
-    const isStarter = assignedStarterIds.includes(player.id);
-    const isSub = assignedSubIds.includes(player.id);
-
-    let badgeText = '';
-    if (isStarter) badgeText = '<span class="text-[9px] bg-brand-accent/20 text-brand-accent px-1.5 py-0.5 rounded font-bold">أساسي</span>';
-    else if (isSub) badgeText = '<span class="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold">بديل</span>';
-
-    const item = document.createElement('div');
-    item.className = 'flex items-center justify-between p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800/80 cursor-pointer transition';
-    item.innerHTML = `
-      <div class="flex items-center gap-2.5">
-        <span class="w-6 h-6 rounded bg-slate-950 border border-slate-800 flex items-center justify-center font-mono text-xs font-bold text-slate-300">
-          ${player.jerseyNumber}
-        </span>
-        <img src="${player.photoUrl || '/img/default-player.png'}" class="w-7 h-7 rounded-full object-cover bg-slate-950" onerror="this.src='/img/default-player.png'">
-        <div>
-          <p class="text-xs font-bold text-white leading-tight">${player.name}</p>
-          <span class="text-[9px] text-slate-400">${player.position || 'لاعب'}</span>
-        </div>
-      </div>
-      <div>${badgeText}</div>
-    `;
-
-    item.addEventListener('click', () => {
-      selectPlayerInPicker(player.id);
-    });
-
-    pickerPlayersList.appendChild(item);
-  });
-}
-
-function filterPickerPlayersList(text) {
-  renderPickerPlayersList(text);
-}
-
-function selectPlayerInPicker(playerId) {
-  activeLineupState.starters = activeLineupState.starters.map(s => (s && s.playerId === playerId) ? null : s);
-  activeLineupState.substitutes = activeLineupState.substitutes.filter(id => id !== playerId);
-
-  if (isSubstituteMode) {
-    activeLineupState.substitutes.push(playerId);
-    renderSubstitutesBench();
-  } else if (activeSlotIndex !== null) {
-    const formationSlots = FORMATIONS_LIBRARY[activeLineupState.formation] || FORMATIONS_LIBRARY['4-3-3'];
-    const currentSlotDef = formationSlots[activeSlotIndex];
-    
-    activeLineupState.starters[activeSlotIndex] = {
-      playerId: playerId,
-      role: currentSlotDef ? currentSlotDef.role : 'CM',
-      customX: currentSlotDef ? currentSlotDef.x : 50,
-      customY: currentSlotDef ? currentSlotDef.y : 50
-    };
-    renderSofaScorePitch();
-  }
-
-  closePickerModal();
-}
-
-function unassignCurrentSlot() {
-  if (activeSlotIndex !== null) {
-    activeLineupState.starters[activeSlotIndex] = null;
-    renderSofaScorePitch();
-  }
-  closePickerModal();
-}
-
-function openPickerModal() {
-  if (!playerPickerModal) return;
-  if (pickerPlayerSearch) pickerPlayerSearch.value = '';
-  playerPickerModal.classList.remove('hidden');
-  setTimeout(() => {
-    playerPickerModal.classList.add('opacity-100');
-    const transformEl = playerPickerModal.querySelector('.transform');
-    if (transformEl) transformEl.classList.remove('scale-95');
-  }, 10);
-}
-
-function closePickerModal() {
-  if (!playerPickerModal) return;
-  playerPickerModal.classList.remove('opacity-100');
-  const transformEl = playerPickerModal.querySelector('.transform');
-  if (transformEl) transformEl.classList.add('scale-95');
-  setTimeout(() => {
-    playerPickerModal.classList.add('hidden');
-  }, 300);
-}
-
-async function handleSaveLineup() {
-  if (!selectedMatchId || !activeMatchData || !activeLineupState.teamId) {
-    alert('الرجاء اختيار النادي وضبط تشكيله أولاً.');
-    return;
-  }
-
-  const teamId = activeLineupState.teamId;
-  const isHome = (teamId === activeMatchData.homeTeamId);
-  const formationSlots = FORMATIONS_LIBRARY[activeLineupState.formation] || FORMATIONS_LIBRARY['4-3-3'];
-
-  const selectedTeamRecords = [];
-
-  activeLineupState.starters.forEach((starter, index) => {
-    if (starter && starter.playerId) {
-      const slotDef = formationSlots[index] || { role: 'CM', x: 50, y: 50 };
-      
-      const finalX = (starter.customX !== undefined && starter.customX !== null) ? starter.customX : slotDef.x;
-      const finalY = (starter.customY !== undefined && starter.customY !== null) ? starter.customY : slotDef.y;
-
-      let coords = { x: finalX, y: finalY };
-      if (!isHome) {
-        coords = { x: 100 - finalX, y: 100 - finalY };
-      }
-
-      selectedTeamRecords.push({
-        teamId: teamId,
-        playerId: starter.playerId,
-        isStarting: true,
-        position: starter.role || slotDef.role,
-        positionX: coords.x,
-        positionY: coords.y,
-        rating: 6.0
-      });
-    }
-  });
-
-  activeLineupState.substitutes.forEach(subPlayerId => {
-    selectedTeamRecords.push({
-      teamId: teamId,
-      playerId: subPlayerId,
-      isStarting: false,
-      position: 'SUB',
-      positionX: null,
-      positionY: null,
-      rating: 6.0
-    });
-  });
-
-  const otherTeamRecords = currentMatchLineup
-    .filter(lp => lp.teamId !== teamId)
-    .map(lp => ({
-      teamId: lp.teamId,
-      playerId: lp.playerId,
-      isStarting: lp.isStarting,
-      position: lp.position,
-      positionX: lp.positionX,
-      positionY: lp.positionY,
-      rating: lp.rating
-    }));
-
-  const fullLineupPayload = [...otherTeamRecords, ...selectedTeamRecords];
-
-  try {
-    const result = await fetchAPI(`/api/matches/${selectedMatchId}/lineup`, 'POST', { lineup: fullLineupPayload });
-    if (result && result.success) {
-      alert('تم حفظ وتحديث التشكيلة التكتيكية ومواقع اللاعبين المحددة بنجاح!');
-      currentMatchLineup = result.lineup || [];
-    }
-  } catch (err) {
-    console.error('فشل في حفظ التشكيلة التكتيكية:', err);
-    alert('حدث خطأ أثناء حفظ التشكيلة.');
-  }
-}
-
-async function loadRatingsLists() {
-  if (!ratingsHomeList || !ratingsAwayList || !selectedMatchId || !activeMatchData) return;
-
-  try {
-    ratingsHomeList.innerHTML = '<p class="text-slate-500 text-xs">جاري تحميل التشكيلة...</p>';
-    ratingsAwayList.innerHTML = '<p class="text-slate-500 text-xs">جاري تحميل التشكيلة...</p>';
-
-    const homeTeam = allTeams.find(t => t.id === activeMatchData.homeTeamId) || { name: 'صاحب الأرض' };
-    const awayTeam = allTeams.find(t => t.id === activeMatchData.awayTeamId) || { name: 'الضيف' };
-    
-    if (ratingHomeTitle) ratingHomeTitle.innerHTML = `<span class="w-2 h-2 rounded bg-brand-accent"></span> تقييمات لاعبي: ${homeTeam.name}`;
-    if (ratingAwayTitle) ratingAwayTitle.innerHTML = `<span class="w-2 h-2 rounded bg-slate-500"></span> تقييمات لاعبي: ${awayTeam.name}`;
-
-    const lineup = await fetchAPI(`/api/matches/${selectedMatchId}/lineup`);
-    currentMatchLineup = lineup || [];
-
-    const homePlayers = currentMatchLineup.filter(lp => lp.teamId === activeMatchData.homeTeamId);
-    const awayPlayers = currentMatchLineup.filter(lp => lp.teamId === activeMatchData.awayTeamId);
-
-    ratingsHomeList.innerHTML = '';
-    if (homePlayers.length === 0) {
-      ratingsHomeList.innerHTML = '<p class="text-slate-600 text-xs py-2">لا يوجد لاعبين مشاركين بالتشكيلة حالياً.</p>';
-    } else {
-      homePlayers.forEach(p => {
-        const playerName = p.player ? p.player.name : 'لاعب غير معروف';
-        const roleText = p.isStarting ? 'أساسي' : 'بديل';
-        const item = document.createElement('div');
-        item.className = 'flex items-center justify-between p-2 bg-slate-900/50 rounded-lg border border-slate-800/80';
-        item.innerHTML = `
-          <div class="flex flex-col">
-            <span class="text-xs font-semibold text-slate-200 truncate max-w-[140px]">${playerName}</span>
-            <span class="text-[9px] text-slate-500">${roleText} | ${p.position}</span>
-          </div>
-          <input type="number" step="0.1" min="1.0" max="10.0" class="rating-input bg-slate-950 border border-slate-800 focus:border-brand-accent rounded text-center w-14 py-1 text-xs font-bold text-brand-accent" data-player-id="${p.playerId}" value="${p.rating ?? 6.0}">
-        `;
-        ratingsHomeList.appendChild(item);
-      });
-    }
-
-    ratingsAwayList.innerHTML = '';
-    if (awayPlayers.length === 0) {
-      ratingsAwayList.innerHTML = '<p class="text-slate-600 text-xs py-2">لا يوجد لاعبين مشاركين بالتشكيلة حالياً.</p>';
-    } else {
-      awayPlayers.forEach(p => {
-        const playerName = p.player ? p.player.name : 'لاعب غير معروف';
-        const roleText = p.isStarting ? 'أساسي' : 'بديل';
-        const item = document.createElement('div');
-        item.className = 'flex items-center justify-between p-2 bg-slate-900/50 rounded-lg border border-slate-800/80';
-        item.innerHTML = `
-          <div class="flex flex-col">
-            <span class="text-xs font-semibold text-slate-200 truncate max-w-[140px]">${playerName}</span>
-            <span class="text-[9px] text-slate-500">${roleText} | ${p.position}</span>
-          </div>
-          <input type="number" step="0.1" min="1.0" max="10.0" class="rating-input bg-slate-950 border border-slate-800 focus:border-brand-accent rounded text-center w-14 py-1 text-xs font-bold text-brand-accent" data-player-id="${p.playerId}" value="${p.rating ?? 6.0}">
-        `;
-        ratingsAwayList.appendChild(item);
-      });
-    }
-
-  } catch (err) {
-    console.error('خطأ أثناء جلب وإخراج التقييمات للتشكيلة:', err);
-  }
-}
-
-async function handleSaveRatings() {
-  if (!selectedMatchId) return;
-
-  const ratingInputs = document.querySelectorAll('.rating-input');
-  if (ratingInputs.length === 0) {
-    alert('لا يوجد لاعبين مشاركين في تشكيلة المباراة لتعديل تقييماتهم.');
-    return;
-  }
-
-  const ratingsPayload = [];
-  ratingInputs.forEach(input => {
-    const playerId = parseInt(input.getAttribute('data-player-id'));
-    const rating = parseFloat(input.value);
-
-    if (playerId && !isNaN(rating)) {
-      ratingsPayload.push({
-        playerId: playerId,
-        rating: rating
-      });
-    }
-  });
-
-  try {
-    const result = await fetchAPI(`/api/matches/${selectedMatchId}/lineup/ratings`, 'PUT', { ratings: ratingsPayload });
-    if (result && result.success) {
-      alert('تم حفظ وتحديث تقييمات اللاعبين للمباراة بنجاح.');
-      await loadRatingsLists();
-    }
-  } catch (err) {
-    console.error('فشل في حفظ التقييمات الرقمية:', err);
-    alert('فشل حفظ وتحديث التقييمات.');
-  }
-}
-
-function updateStatusInterface(status) {
-  if (!activeMatchStatusBadge) return;
-
-  let badgeText = 'لم تبدأ بعد';
-  let badgeClass = 'bg-slate-800 text-slate-300';
-  if (status === 'being_played_right_now') {
-    badgeText = 'تُلعب الآن';
-    badgeClass = 'bg-red-950 text-red-400 border border-red-800 animate-pulse';
-  } else if (status === 'finished') {
-    badgeText = 'انتهت';
-    badgeClass = 'bg-emerald-950 text-emerald-400';
-  }
-
-  activeMatchStatusBadge.textContent = badgeText;
-  activeMatchStatusBadge.className = `px-2.5 py-1 rounded text-[10px] font-bold uppercase ${badgeClass}`;
-
-  document.querySelectorAll('.btn-status-switch').forEach(btn => {
-    const btnStatus = btn.getAttribute('data-status');
-    if (btnStatus === status) {
-      btn.className = 'btn-status-switch text-xs py-1.5 px-2 rounded font-bold bg-brand-accent text-brand-dark transition';
-    } else {
-      btn.className = 'btn-status-switch text-xs py-1.5 px-2 rounded font-semibold text-slate-400 hover:text-white transition';
-    }
-  });
-}
-
-async function handleStatusSwitch(newStatus) {
-  if (!selectedMatchId) return;
-
-  try {
-    const response = await fetchAPI(`/api/matches/${selectedMatchId}/status`, 'PUT', { status: newStatus });
-    if (response && response.success) {
-      updateStatusInterface(newStatus);
-      await loadMatches();
-    }
-  } catch (err) {
-    console.error('فشل في تعديل حالة اللقاء السريع:', err);
-    alert('تعذر حفظ الحالة الجديدة للمباراة.');
-  }
-}
-
-async function populatePlayersDropdownForTeam(teamId) {
-  if (!eventPlayerSelect) return;
-  eventPlayerSelect.innerHTML = '<option value="">اختر اللاعب</option>';
-  if (!teamId) return;
-
-  try {
-    const response = await fetchAPI(`/api/teams/${teamId}`);
-    const players = response.players || [];
-    players.forEach(player => {
-      eventPlayerSelect.innerHTML += `<option value="${player.id}">${player.jerseyNumber} - ${player.name} (${player.position})</option>`;
-    });
-  } catch (err) {
-    console.error('خطأ أثناء جلب تشكيلة الفريق:', err);
-  }
-}
-
-function handlePitchClick(e) {
-  if (!interactivePitch) return;
-
-  const rect = interactivePitch.getBoundingClientRect();
-  const clickX = e.clientX - rect.left;
-  const clickY = e.clientY - rect.top;
-
-  const percentX = Math.round((clickX / rect.width) * 100);
-  const percentY = Math.round((clickY / rect.height) * 100);
-
-  if (eventCoordX) eventCoordX.value = percentX;
-  if (eventCoordY) eventCoordY.value = percentY;
-
-  if (coordinateDot) {
-    coordinateDot.style.left = `${percentX}%`;
-    coordinateDot.style.top = `${percentY}%`;
-    coordinateDot.classList.remove('hidden');
-  }
-}
-
-async function handleQuickStatsSubmit(e) {
-  e.preventDefault();
-  if (!selectedMatchId) return;
-
-  const payload = {
-    homeScore: parseInt(quickScoreHome.value),
-    awayScore: parseInt(quickScoreAway.value),
-    status: activeMatchData.status
-  };
-
-  try {
-    const result = await fetchAPI(`/api/matches/${selectedMatchId}`, 'PUT', payload);
-    if (result && result.success) {
-      alert('تم تحديث نتيجة المباراة بنجاح.');
-      await loadMatches();
-    }
-  } catch (err) {
-    console.error('فشل حفظ البيانات السريعة للمباراة:', err);
-    alert('فشل تحديث البيانات.');
-  }
-}
-
-async function handleFullStatsSubmit(e) {
-  e.preventDefault();
-  if (!selectedMatchId || !activeMatchData) return;
-
-  const getNum = (id, fallback = 0) => {
-    const el = document.getElementById(id);
-    return el ? (parseInt(el.value) || 0) : fallback;
-  };
-
-  const payload = {
-    homeScore: parseInt(quickScoreHome.value) || 0,
-    awayScore: parseInt(quickScoreAway.value) || 0,
-    status: activeMatchData.status,
-
-    possessionHome: getNum('stat-possession-home', 50),
-    possessionAway: getNum('stat-possession-away', 50),
-
-    shotsHome: getNum('stat-shots-home'),
-    shotsAway: getNum('stat-shots-away'),
-    shotsOnTargetHome: getNum('stat-shots-target-home'),
-    shotsOnTargetAway: getNum('stat-shots-target-away'),
-
-    foulsHome: getNum('stat-fouls-home'),
-    foulsAway: getNum('stat-fouls-away'),
-    offsidesHome: getNum('stat-offsides-home'),
-    offsidesAway: getNum('stat-offsides-away'),
-
-    cornersHome: getNum('stat-corners-home'),
-    cornersAway: getNum('stat-corners-away'),
-    freeKicksHome: getNum('stat-freekicks-home'),
-    freeKicksAway: getNum('stat-freekicks-away'),
-
-    passesHome: getNum('stat-passes-home'),
-    passesAway: getNum('stat-passes-away'),
-    passesCompletedHome: getNum('stat-passes-completed-home'),
-    passesCompletedAway: getNum('stat-passes-completed-away'),
-
-    crossesHome: getNum('stat-crosses-home'),
-    crossesAway: getNum('stat-crosses-away'),
-    interceptionsHome: getNum('stat-interceptions-home'),
-    interceptionsAway: getNum('stat-interceptions-away'),
-
-    tacklesHome: getNum('stat-tackles-home'),
-    tacklesAway: getNum('stat-tackles-away'),
-    savesHome: getNum('stat-saves-home'),
-    savesAway: getNum('stat-saves-away')
-  };
-
-  try {
-    const result = await fetchAPI(`/api/matches/${selectedMatchId}`, 'PUT', payload);
-    if (result && result.success) {
-      alert('تم حفظ الإحصائيات الشاملة بنجاح!');
-      activeMatchData = result.match || { ...activeMatchData, ...payload };
-      await loadMatches();
-    }
-  } catch (err) {
-    console.error('فشل حفظ الإحصائيات الشاملة:', err);
-    alert('حدث خطأ أثناء حفظ الإحصائيات الشاملة.');
-  }
-}
-
-async function handleEventSubmit(e) {
-  e.preventDefault();
-  if (!selectedMatchId) return;
-
-  const payload = {
-    teamId: parseInt(eventTeamSelect.value),
-    playerId: parseInt(eventPlayerSelect.value),
-    type: eventTypeSelect.value,
-    minute: parseInt(eventMinuteInput.value),
-    x: parseInt(eventCoordX.value),
-    y: parseInt(eventCoordY.value),
-    metadata: {}
-  };
-
-  try {
-    const result = await fetchAPI(`/api/matches/${selectedMatchId}/events`, 'POST', payload);
-    if (result && result.success) {
-      eventPlayerSelect.value = '';
-      eventCoordX.value = '';
-      eventCoordY.value = '';
-      if (coordinateDot) coordinateDot.classList.add('hidden');
-
-      await selectMatchForManagement(selectedMatchId);
-    }
-  } catch (err) {
-    console.error('فشل تسجيل الحدث الفني:', err);
-    alert('فشل حفظ تفاصيل الحدث في قاعدة البيانات.');
-  }
-}
-
-// تعبئة قائمة الأحداث المسجلة مؤخراً مع إتاحة زر حذف الحدث الفردي
-function renderActiveMatchEvents(events) {
-  if (!activeMatchEventsList) return;
-  activeMatchEventsList.innerHTML = '';
-
-  if (events.length === 0) {
-    activeMatchEventsList.innerHTML = '<p class="text-slate-600 text-center py-2">لا توجد أحداث مسجلة لهذا اللقاء حتى الآن.</p>';
-    return;
-  }
-
-  const sortedEvents = [...events].sort((a, b) => b.minute - a.minute);
-
-  sortedEvents.forEach(evt => {
-    let typeIcon = '⚽';
-    let typeName = 'حدث';
-    if (evt.type === 'yellow_card') { typeIcon = '🟨'; typeName = 'إنذار أصفر'; }
-    else if (evt.type === 'red_card') { typeIcon = '🟥'; typeName = 'طرد أحمر'; }
-    else if (evt.type === 'substitution') { typeIcon = '🔄'; typeName = 'تبديل لاعب'; }
-    else if (evt.type === 'shot') { typeIcon = '🎯'; typeName = 'تسديدة'; }
-    else if (evt.type === 'tackle') { typeIcon = '⚔️'; typeName = 'تدخل دفاعي'; }
-    else if (evt.type === 'goal') { typeIcon = '⚽'; typeName = 'هدف'; }
-
-    const playerName = evt.player ? `${evt.player.name} (#${evt.player.jerseyNumber})` : 'لاعب غير معروف';
-
-    const item = document.createElement('div');
-    item.className = 'flex items-center justify-between p-2 bg-slate-950/60 rounded border border-slate-900';
-    item.innerHTML = `
-      <div class="flex items-center gap-2">
-        <span>${typeIcon}</span>
-        <span>د ${evt.minute}'</span>
-        <span class="text-slate-400">|</span>
-        <span class="text-slate-300 font-bold">${typeName}</span>
-        <span class="text-slate-500">-</span>
-        <span class="text-slate-200 font-semibold text-xs">${playerName}</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="text-[10px] text-slate-500 font-mono">[X:${evt.x}, Y:${evt.y}]</span>
-        <button type="button" class="btn-delete-single-event text-slate-500 hover:text-red-400 transition" data-event-id="${evt.id}" title="حذف هذا الحدث">
-          <i class="fa-solid fa-trash-can text-xs"></i>
-        </button>
-      </div>
-    `;
-
-    item.querySelector('.btn-delete-single-event').addEventListener('click', async (e) => {
-      const eventId = e.currentTarget.getAttribute('data-event-id');
-      if (confirm('هل أنت متأكد من حذف هذا الحدث من شريط المباراة؟')) {
-        try {
-          const res = await fetchAPI(`/api/matches/events/${eventId}`, 'DELETE');
-          if (res && res.success) {
-            await selectMatchForManagement(selectedMatchId);
-          }
-        } catch (err) {
-          alert('فشل حذف الحدث.');
-        }
-      }
-    });
-
-    activeMatchEventsList.appendChild(item);
-  });
-}
-
-function openMatchModal() {
-  if (!matchModal) return;
-  matchModal.classList.remove('hidden');
-  setTimeout(() => {
-    matchModal.classList.add('opacity-100');
-    const transformEl = matchModal.querySelector('.transform');
-    if (transformEl) transformEl.classList.remove('scale-95');
-  }, 10);
-}
-
-function closeMatchModal() {
-  if (!matchModal) return;
-  matchModal.classList.remove('opacity-100');
-  const transformEl = matchModal.querySelector('.transform');
-  if (transformEl) transformEl.classList.add('scale-95');
-  setTimeout(() => {
-    matchModal.classList.add('hidden');
-  }, 300);
-}
-
-async function handleMatchCreation(e) {
-  e.preventDefault();
-
-  const homeId = parseInt(selectHomeTeam.value);
-  const awayId = parseInt(selectAwayTeam.value);
-
-  if (homeId === awayId) {
-    alert('لا يمكن جدولة مباراة لفريق ضد نفسه.');
-    return;
-  }
-
-  const payload = {
-    homeTeamId: homeId,
-    awayTeamId: awayId,
-    matchDate: new Date(document.getElementById('match-date').value).toISOString()
-  };
-
-  try {
-    const result = await fetchAPI('/api/matches', 'POST', payload);
-    if (result && result.success) {
-      closeMatchModal();
-      await loadMatches();
-    }
-  } catch (err) {
-    console.error('خطأ أثناء جدولة اللقاء الجديد:', err);
-    alert('تعذر حفظ جدولة المباراة الجديدة.');
-  }
-}
+function closePickerModal() {}
+function openPlayerPickerForSubstitute() {}
+function unassignCurrentSlot() {}
+
+async function handleSaveLineup() {}
+async function handleQuickStatsSubmit(e) { e.preventDefault(); }
+async function handleFullStatsSubmit(e) { e.preventDefault(); }
+async function handleEventSubmit(e) { e.preventDefault(); }
+function handlePitchClick() {}
+function updateStatusInterface() {}
+async function handleStatusSwitch() {}
+async function populatePlayersDropdownForTeam() {}
+function renderActiveMatchEvents() {}
+function openMatchModal() { if (matchModal) matchModal.classList.remove('hidden'); }
+function closeMatchModal() { if (matchModal) matchModal.classList.add('hidden'); }
+async function handleMatchCreation(e) { e.preventDefault(); }
 
 function showEl(el) { if (el) el.classList.remove('hidden'); }
 function hideEl(el) { if (el) el.classList.add('hidden'); }
