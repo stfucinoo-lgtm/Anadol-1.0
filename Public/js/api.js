@@ -6,7 +6,19 @@
 const API_BASE_URL = '/api';
 
 async function apiFetch(endpoint, options = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
+  // تنظيف وإزالة تكرار /api لو كُتبت بالخطأ في أي ملف JS
+  let cleanEndpoint = endpoint || '';
+  if (cleanEndpoint.startsWith('/api/')) {
+    cleanEndpoint = cleanEndpoint.substring(4);
+  } else if (cleanEndpoint.startsWith('api/')) {
+    cleanEndpoint = cleanEndpoint.substring(3);
+  }
+
+  if (!cleanEndpoint.startsWith('/')) {
+    cleanEndpoint = '/' + cleanEndpoint;
+  }
+
+  const url = `${API_BASE_URL}${cleanEndpoint}`;
   
   options.headers = options.headers || {};
 
@@ -86,5 +98,6 @@ async function fetchAPI(endpoint, method = 'GET', body = null) {
   return apiFetch(targetEndpoint, options);
 }
 
+window.apiFetch = apiFetch;
 window.api = api;
 window.fetchAPI = fetchAPI;
