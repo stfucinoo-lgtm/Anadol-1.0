@@ -1,104 +1,113 @@
 /**
  * ANADOL League - Standings Script
- * يجلب ويعرض جدول الترتيب المحسوب تلقائياً بناءً على المباريات المنتهية.
+ * يجلب ويعرض جدول الترتيب المحسوب تلقائياً بناءً على الفرق والمباريات المنتهية في قاعدة البيانات.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  const standingsRows = document.getElementById('standings-rows');
-  const loadingSpinner = document.getElementById('loading-spinner');
+  const standingsTableBody = document.getElementById('standingsTableBody');
 
   async function loadStandings() {
     try {
-      if (loadingSpinner) {
-        loadingSpinner.style.display = 'block';
-      }
-
       // جلب بيانات الترتيب من الـ API المحسوب
       const standings = await api.get('/standings');
 
-      if (loadingSpinner) {
-        loadingSpinner.style.display = 'none';
-      }
+      if (!standingsTableBody) return;
+
+      // تفريغ الحاوية من مؤشر التحميل أو أي أسطر سابقة
+      standingsTableBody.innerHTML = '';
 
       if (!standings || standings.length === 0) {
-        standingsRows.innerHTML = `
+        standingsTableBody.innerHTML = `
           <tr>
-            <td colspan="10" class="text-center py-12 text-neutral-400">
-              لا توجد بيانات ترتيب حالية. تظهر الحسابات هنا فور انتهاء أول مباراة رسمية.
+            <td colspan="10" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+              لا توجد فرق مضافة أو بيانات ترتيب حالية. تظهر الحسابات هنا فور إضافة الأندية وخوض المباريات.
             </td>
           </tr>
         `;
         return;
       }
 
-      standingsRows.innerHTML = '';
-
-      // بناء أسطر جدول الترتيب
+      // بناء أسطر جدول الترتيب بالبيانات الحقيقية
       standings.forEach(row => {
         const tr = document.createElement('tr');
-        // تهيئة التلاشي والحركة لـ GSAP
-        tr.className = 'standing-row border-b border-neutral-800 hover:bg-neutral-900/50 transition opacity-0 transform translate-y-2';
+        tr.className = 'standing-row-item opacity-0 transform translate-y-3';
+        tr.setAttribute('data-team-id', row.teamId);
 
-        // تنسيق فارق الأهداف لإظهار إشارة (+) للأرقام الإيجابية
-        const gdFormatted = row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference;
-
-        // تمييز المراكز الثلاثة الأولى بأيقونات خاصة
-        let posBadge = `<span class="font-bold text-neutral-400">${row.position}</span>`;
-        if (row.position === 1) {
-          posBadge = `<span class="flex items-center justify-center w-6 h-6 mx-auto rounded-full bg-yellow-500/10 text-yellow-500 font-extrabold border border-yellow-500/20 text-xs">1</span>`;
-        } else if (row.position === 2) {
-          posBadge = `<span class="flex items-center justify-center w-6 h-6 mx-auto rounded-full bg-slate-300/10 text-slate-300 font-extrabold border border-slate-300/20 text-xs">2</span>`;
-        } else if (row.position === 3) {
-          posBadge = `<span class="flex items-center justify-center w-6 h-6 mx-auto rounded-full bg-amber-700/10 text-amber-700 font-extrabold border border-amber-700/20 text-xs">3</span>`;
+        // تنسيق فارق الأهداف لإظهار إشارة (+) للأرقام الإيجابية ولون مميز
+        let gdFormatted = row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference;
+        let gdColor = 'var(--text-main)';
+        if (row.goalDifference > 0) {
+          gdColor = 'var(--success)';
+        } else if (row.goalDifference < 0) {
+          gdColor = 'var(--danger)';
         }
 
+        // شعار الفريق الافتراضي في حال عدم رفعه
+        const crestUrl = row.crestUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=100';
+
         tr.innerHTML = `
-          <td class="px-4 py-4 text-center">${posBadge}</td>
-          <td class="px-4 py-4 font-bold text-white text-right">
-            <a href="team-profile.html?id=${row.teamId}" class="hover:text-emerald-400 transition flex items-center gap-2">
-              <span>${row.teamName}</span>
+          <td class="rank-cell">${row.position}</td>
+          <td>
+            <a href="team-profile.html?id=${row.teamId}" class="team-cell">
+              <img src="${crestUrl}" alt="${row.teamName}" class="team-cell-crest" onerror="this.src='https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=100'">
+              <span class="team-cell-name">${row.teamName}</span>
             </a>
           </td>
-          <td class="px-4 py-4 text-center text-neutral-300">${row.played}</td>
-          <td class="px-4 py-4 text-center text-emerald-400 font-medium">${row.won}</td>
-          <td class="px-4 py-4 text-center text-neutral-400">${row.drawn}</td>
-          <td class="px-4 py-4 text-center text-red-400">${row.lost}</td>
-          <td class="px-4 py-4 text-center text-neutral-400 hidden md:table-cell">${row.goalsFor}</td>
-          <td class="px-4 py-4 text-center text-neutral-400 hidden md:table-cell">${row.goalsAgainst}</td>
-          <td class="px-4 py-4 text-center font-semibold text-neutral-300">${gdFormatted}</td>
-          <td class="px-4 py-4 text-center font-bold text-emerald-400 bg-emerald-500/5">${row.points}</td>
+          <td style="text-align: center;">${row.played}</td>
+          <td style="text-align: center;">${row.won}</td>
+          <td style="text-align: center;">${row.drawn}</td>
+          <td style="text-align: center;">${row.lost}</td>
+          <td style="text-align: center;">${row.goalsFor}</td>
+          <td style="text-align: center;">${row.goalsAgainst}</td>
+          <td style="text-align: center; color: ${gdColor}; font-weight: 700;">${gdFormatted}</td>
+          <td style="text-align: center;" class="points-cell">
+            <span class="pts-val font-bold text-emerald-400" data-target="${row.points}">0</span>
+          </td>
         `;
 
-        standingsRows.appendChild(tr);
+        standingsTableBody.appendChild(tr);
       });
 
-      // تشغيل تأثير الدخول التراكمي لأسطر الجدول عبر GSAP
+      // تشغيل تأثيرات GSAP لظهور الصفوف بالتدريج وتفعيل العد التصاعدي النقاط
       if (typeof gsap !== 'undefined') {
-        gsap.to('.standing-row', {
+        gsap.to('.standing-row-item', {
           opacity: 1,
           y: 0,
-          duration: 0.4,
-          stagger: 0.04,
-          ease: 'power2.out'
+          duration: 0.5,
+          stagger: 0.06,
+          ease: 'power2.out',
+          onComplete: () => {
+            // تفعيل حركة الـ countUp للنقاط
+            document.querySelectorAll('.pts-val').forEach(el => {
+              const targetVal = parseInt(el.getAttribute('data-target'), 10) || 0;
+              if (typeof AnadolAnims !== 'undefined' && AnadolAnims.countUp) {
+                AnadolAnims.countUp(el, targetVal, { duration: 1.0 });
+              } else {
+                el.textContent = targetVal;
+              }
+            });
+          }
         });
       } else {
-        document.querySelectorAll('.standing-row').forEach(row => {
-          row.classList.remove('opacity-0', 'translate-y-2');
+        document.querySelectorAll('.standing-row-item').forEach(row => {
+          row.classList.remove('opacity-0', 'translate-y-3');
+        });
+        document.querySelectorAll('.pts-val').forEach(el => {
+          el.textContent = el.getAttribute('data-target') || '0';
         });
       }
 
     } catch (error) {
       console.error('Error loading standings:', error);
-      if (loadingSpinner) {
-        loadingSpinner.style.display = 'none';
+      if (standingsTableBody) {
+        standingsTableBody.innerHTML = `
+          <tr>
+            <td colspan="10" style="text-align: center; padding: 2rem; color: #ef4444;">
+              حدث خطأ أثناء تحميل جدول الترتيب الحي. يرجى المحاولة لاحقاً.
+            </td>
+          </tr>
+        `;
       }
-      standingsRows.innerHTML = `
-        <tr>
-          <td colspan="10" class="text-center py-12 text-red-500">
-            حدث خطأ أثناء تحميل جدول الترتيب. يرجى المحاولة لاحقاً.
-          </td>
-        </tr>
-      `;
     }
   }
 
