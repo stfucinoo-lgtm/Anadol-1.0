@@ -1,6 +1,5 @@
 /**
  * ANADOL League - Standings Script
- * يجلب ويعرض جدول الترتيب المحسوب تلقائياً بناءً على الفرق والمباريات المنتهية في قاعدة البيانات.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,15 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadStandings() {
     try {
-      // جلب بيانات الترتيب من الـ API المحسوب
       const standings = await api.get('/standings');
 
       if (!standingsTableBody) return;
 
-      // تفريغ الحاوية من مؤشر التحميل أو أي أسطر سابقة
       standingsTableBody.innerHTML = '';
 
-      if (!standings || standings.length === 0) {
+      if (!Array.isArray(standings) || standings.length === 0) {
         standingsTableBody.innerHTML = `
           <tr>
             <td colspan="10" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
@@ -27,13 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // بناء أسطر جدول الترتيب بالبيانات الحقيقية
       standings.forEach(row => {
         const tr = document.createElement('tr');
         tr.className = 'standing-row-item opacity-0 transform translate-y-3';
         tr.setAttribute('data-team-id', row.teamId);
 
-        // تنسيق فارق الأهداف لإظهار إشارة (+) للأرقام الإيجابية ولون مميز
         let gdFormatted = row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference;
         let gdColor = 'var(--text-main)';
         if (row.goalDifference > 0) {
@@ -42,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
           gdColor = 'var(--danger)';
         }
 
-        // شعار الفريق الافتراضي في حال عدم رفعه
         const crestUrl = row.crestUrl || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=100';
 
         tr.innerHTML = `
@@ -68,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         standingsTableBody.appendChild(tr);
       });
 
-      // تشغيل تأثيرات GSAP لظهور الصفوف بالتدريج وتفعيل العد التصاعدي النقاط
       if (typeof gsap !== 'undefined') {
         gsap.to('.standing-row-item', {
           opacity: 1,
@@ -77,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
           stagger: 0.06,
           ease: 'power2.out',
           onComplete: () => {
-            // تفعيل حركة الـ countUp للنقاط
             document.querySelectorAll('.pts-val').forEach(el => {
               const targetVal = parseInt(el.getAttribute('data-target'), 10) || 0;
               if (typeof AnadolAnims !== 'undefined' && AnadolAnims.countUp) {
