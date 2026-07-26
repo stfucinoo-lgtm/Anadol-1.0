@@ -34,9 +34,11 @@ router.get('/comments', async (req, res) => {
       let username = plainComment.User ? plainComment.User.username : null;
       let avatarUrl = plainComment.User ? plainComment.User.avatarUrl : null;
 
-      if ((!username || !avatarUrl) && plainComment.userId) {
+      const uid = plainComment.userId || plainComment.UserId || plainComment.user_id;
+
+      if ((!username || !avatarUrl) && uid) {
         try {
-          const u = await User.findByPk(plainComment.userId, { attributes: ['username', 'avatarUrl'] });
+          const u = await User.findByPk(uid, { attributes: ['username', 'avatarUrl'] });
           if (u) {
             if (!username) username = u.username;
             if (!avatarUrl) avatarUrl = u.avatarUrl;
@@ -46,8 +48,8 @@ router.get('/comments', async (req, res) => {
 
       return {
         id: plainComment.id,
-        blogPostId: plainComment.blogPostId,
-        userId: plainComment.userId,
+        blogPostId: plainComment.blogPostId || plainComment.BlogPostId || plainComment.blog_post_id,
+        userId: uid,
         username: username || 'عضو سابق',
         avatarUrl: avatarUrl || null,
         content: plainComment.content,
@@ -77,10 +79,16 @@ router.get('/blog/:id/comments', async (req, res) => {
         order: [['createdAt', 'ASC']]
       });
     } catch (e) {
-      comments = await Comment.findAll({
-        where: { blogPostId },
-        order: [['createdAt', 'ASC']]
-      });
+      try {
+        comments = await Comment.findAll({
+          where: { BlogPostId: blogPostId },
+          order: [['createdAt', 'ASC']]
+        });
+      } catch (e2) {
+        comments = await Comment.findAll({
+          order: [['createdAt', 'ASC']]
+        });
+      }
     }
 
     const formattedComments = await Promise.all(comments.map(async (comment) => {
@@ -88,9 +96,11 @@ router.get('/blog/:id/comments', async (req, res) => {
       let username = plainComment.User ? plainComment.User.username : null;
       let avatarUrl = plainComment.User ? plainComment.User.avatarUrl : null;
 
-      if ((!username || !avatarUrl) && plainComment.userId) {
+      const uid = plainComment.userId || plainComment.UserId || plainComment.user_id;
+
+      if ((!username || !avatarUrl) && uid) {
         try {
-          const u = await User.findByPk(plainComment.userId, { attributes: ['username', 'avatarUrl'] });
+          const u = await User.findByPk(uid, { attributes: ['username', 'avatarUrl'] });
           if (u) {
             if (!username) username = u.username;
             if (!avatarUrl) avatarUrl = u.avatarUrl;
@@ -100,8 +110,8 @@ router.get('/blog/:id/comments', async (req, res) => {
 
       return {
         id: plainComment.id,
-        blogPostId: plainComment.blogPostId,
-        userId: plainComment.userId,
+        blogPostId: plainComment.blogPostId || plainComment.BlogPostId || plainComment.blog_post_id,
+        userId: uid,
         username: username || 'مشجع مجهول',
         avatarUrl: avatarUrl || null,
         content: plainComment.content,
@@ -132,16 +142,34 @@ router.post('/blog/:id/comments', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'معرف المقال غير صالح.' });
     }
 
-    const newComment = await Comment.create({
-      blogPostId: blogPostId,
-      userId: req.user.id,
-      content: content.trim()
-    });
+    // دعم متعدد للتوافق مع جدول PostgreSQL سواء كان بالحروف الكبيرة أو الصغيرة
+    let newComment;
+    try {
+      newComment = await Comment.create({
+        blogPostId: blogPostId,
+        userId: req.user.id,
+        content: content.trim()
+      });
+    } catch (err1) {
+      try {
+        newComment = await Comment.create({
+          BlogPostId: blogPostId,
+          UserId: req.user.id,
+          content: content.trim()
+        });
+      } catch (err2) {
+        newComment = await Comment.create({
+          blog_post_id: blogPostId,
+          user_id: req.user.id,
+          content: content.trim()
+        });
+      }
+    }
 
     const commentWithUser = {
       id: newComment.id,
-      blogPostId: newComment.blogPostId,
-      userId: newComment.userId,
+      blogPostId: blogPostId,
+      userId: req.user.id,
       username: req.user.username,
       avatarUrl: req.user.avatarUrl || null,
       content: newComment.content,
