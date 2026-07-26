@@ -9,29 +9,42 @@ const Comment = sequelize.define('Comment', {
   },
   blogPostId: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: 'BlogPosts', // ربط التعليق بالمقال المستهدف
+      key: 'id'
+    },
+    onDelete: 'CASCADE' // حذف التعليقات تلقائياً عند حذف المقال المقترن بها
   },
   userId: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: 'users', // تم تصحيحها للأحرف الصغيرة لتطابق جدول المستخدمين الفعلي
+      key: 'id'
+    },
+    onDelete: 'CASCADE' // حذف التعليقات في حال حذف حساب المستخدم نهائياً
   },
   content: {
     type: DataTypes.TEXT,
-    allowNull: false
+    allowNull: false,
+    comment: 'نص التعليق المدون بواسطة الزائر أو العضو'
   }
 }, {
   tableName: 'Comments',
-  timestamps: true
+  timestamps: true // يتكفل بإنشاء حقل createdAt المطابق لعقد البيانات لتسجيل تاريخ كتابة التعليق
 });
 
-// تعريف العلاقات البرمجية الآمنة لجدول التعليقات
+// تعريف العلاقات البرمجية للتعليقات
 Comment.associate = (models) => {
+  // علاقة التعليق بالمقال
   if (models.BlogPost) {
     Comment.belongsTo(models.BlogPost, {
       foreignKey: 'blogPostId',
       as: 'post'
     });
   }
+  // علاقة التعليق بالمخدم (الكاتب) لجلب تفاصيل حسابه تلقائياً عند العرض
   if (models.User) {
     Comment.belongsTo(models.User, {
       foreignKey: 'userId',
