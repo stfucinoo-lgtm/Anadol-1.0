@@ -11,19 +11,28 @@ const Player = require('../models/Player');
 const Match = require('../models/Match');
 const { verifyToken, isAdmin } = require('../middleware/auth');
 
-// تعريف علاقات التبعية برمجياً وبشكل مباشر لربط جدول الفرق واللاعبين بالاسم المستعار الصحيح
-Team.hasMany(Player, { foreignKey: 'teamId', as: 'players', onDelete: 'CASCADE' });
-Player.belongsTo(Team, { foreignKey: 'teamId', as: 'team' });
+// تعريف علاقات التبعية برمجياً وبشكل مباشر لربط جدول الفرق واللاعبين
+try {
+    Team.hasMany(Player, { foreignKey: 'teamId', as: 'players', onDelete: 'CASCADE' });
+    Player.belongsTo(Team, { foreignKey: 'teamId', as: 'team' });
+} catch (assocErr) {
+    console.log('Notice: Associations already initialized:', assocErr.message);
+}
 
 /**
  * 1. GET /api/teams
  * جلب قائمة بكافة الفرق المسجلة في الدوري
  */
 router.get('/', async (req, res) => {
+    console.log('--> GET /api/teams request received');
     try {
-        const teams = await Team.findAll({ order: [['name', 'ASC']] });
+        const teams = await Team.findAll({
+            order: [['name', 'ASC']]
+        });
+        console.log(`<-- GET /api/teams successfully fetched ${teams.length} teams`);
         return res.status(200).json(teams);
     } catch (error) {
+        console.error('X Error in GET /api/teams:', error);
         return res.status(500).json({ error: 'حدث خطأ أثناء جلب قائمة الفرق: ' + error.message });
     }
 });
