@@ -6,7 +6,7 @@ const { authenticateToken, requireRole } = require('../middleware/auth');
 
 /**
  * GET /api/comments
- * جلب كلاً التعليقات للوحة التحكم
+ * جلب جميع التعليقات للوحة التحكم
  */
 router.get('/', async (req, res) => {
   try {
@@ -22,10 +22,9 @@ router.get('/', async (req, res) => {
 
       if (uid) {
         try {
-          const u = await User.findByPk(uid, { attributes: ['username', 'avatarUrl'] });
+          const u = await User.findByPk(uid, { attributes: ['username'] });
           if (u) {
             username = u.username;
-            avatarUrl = u.avatarUrl;
           }
         } catch (e) {}
       }
@@ -72,10 +71,9 @@ router.get('/blog/:id', async (req, res) => {
 
       if (uid) {
         try {
-          const u = await User.findByPk(uid, { attributes: ['username', 'avatarUrl'] });
+          const u = await User.findByPk(uid, { attributes: ['username'] });
           if (u) {
             username = u.username;
-            avatarUrl = u.avatarUrl;
           }
         } catch (e) {}
       }
@@ -145,7 +143,7 @@ router.post('/blog/:id', authenticateToken, async (req, res) => {
         blogPostId: blogPostId,
         userId: req.user.id,
         username: req.user.username,
-        avatarUrl: req.user.avatarUrl || null,
+        avatarUrl: null,
         content: newComment.content,
         createdAt: newComment.createdAt
       }
