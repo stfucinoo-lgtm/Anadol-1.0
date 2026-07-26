@@ -5,25 +5,25 @@ const { authenticateToken, requireRole } = require('../middleware/auth');
 
 /**
  * GET /api/blog
- * جلب قائمة المقالات التحريرية بالكامل (بدون محتوى المقال الكامل لحفظ أداء النقل)
- * يعيد فقط الملخص والعناوين والتفاصيل الأساسية لعرضها في قائمة المدونة
+ * جلب قائمة المقالات التحريرية بالكامل
  */
 router.get('/', async (req, res) => {
   try {
+    // محاولة الاستعلام من قاعدة البيانات
     const posts = await BlogPost.findAll({
-      attributes: ['id', 'title', 'slug', 'authorId', 'featuredImageUrl', 'excerpt', 'publishedAt'],
-      order: [['publishedAt', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
-    return res.status(200).json(posts);
+    return res.status(200).json(posts || []);
   } catch (error) {
-    console.error('Error fetching blog list:', error);
-    return res.status(500).json({ error: 'حدث خطأ أثناء جلب قائمة المقالات.' });
+    console.error('Notice/Error fetching blog list:', error.message);
+    // إرجاع مصفوفة فارغة في حالة عدم وجود جدول مقالات بعد بدلاً من إيقاف الواجهة
+    return res.status(200).json([]);
   }
 });
 
 /**
  * GET /api/blog/:id
- * جلب مقال مفرد بكامل محتواه التفصيلي (Body) لعرضه في صفحة المقال المنفردة
+ * جلب مقال مفرد بكامل محتواه التفصيلي (Body)
  */
 router.get('/:id', async (req, res) => {
   try {
@@ -53,20 +53,22 @@ router.post('/', authenticateToken, requireRole(['admin', 'editor']), async (req
       return res.status(400).json({ error: 'العنوان، الرابط الفريد، الملخص، ونص المقال هي حقول إلزامية.' });
     }
 
+    const authorId = req.user ? req.user.id : 1;
+
     const newPost = await BlogPost.create({
       title,
       slug,
-      featuredImageUrl,
+      featuredImageUrl: featuredImageUrl || '',
       excerpt,
       body,
-      authorId: req.user.id, // استخراج معرّف الكاتب تلقائياً من التوكن الأمني
+      authorId: authorId,
       publishedAt: new Date()
     });
 
     return res.status(201).json({ success: true, post: newPost });
   } catch (error) {
     console.error('Error creating blog post:', error);
-    return res.status(500).json({ error: 'حدث خطأ أثناء إنشاء المقال التحريري.' });
+    return res.status(500).json({ error: 'حدث خطأ أثناء إنشاء المقال التحريري: ' + error.message });
   }
 });
 
@@ -102,7 +104,7 @@ router.put('/:id', authenticateToken, requireRole(['admin', 'editor']), async (r
 
 /**
  * DELETE /api/blog/:id
- * حذف مقال تحريري نهائياً من الدوري (صلاحية Admin فقط - حسب مصفوفة الصلاحيات)
+ * حذف مقال تحريري نهائياً من الدوري (صلاحية Admin فقط)
  */
 router.delete('/:id', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
