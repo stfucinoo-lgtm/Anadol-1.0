@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملف الفني للاعب - دوري الأناضول</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- خطوط Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                dark: '#0c0c0e',
+                card: '#16161a',
+                accent: '#00ff87',
+                accentHover: '#00e074',
+                border: '#24242b'
+              }
+            },
+            fontFamily: {
+              cairo: ['Cairo', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <!-- التنسيقات المخصصة -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- FontAwesome للأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js لرسم الخرائط والتقييمات البيانية -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-brand-dark text-white font-cairo">
+
+    <!-- 1. شريط التنقل (Navbar) -->
+    <nav class="border-b border-brand-border bg-brand-dark/90 backdrop-blur-md sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-8">
+            <a href="index.html" class="text-2xl font-black tracking-wider text-brand-accent no-underline">ANADOL</a>
+            <div class="hidden md:flex space-x-reverse space-x-6">
+              <a href="index.html" class="text-zinc-300 hover:text-brand-accent transition-colors font-semibold no-underline">الرئيسية</a>
+              <a href="standings.html" class="text-zinc-300 hover:text-brand-accent transition-colors font-semibold no-underline">الترتيب</a>
+              <a href="teams.html" class="text-brand-accent hover:text-brand-accent transition-colors font-semibold no-underline">الفرق</a>
+              <a href="blog.html" class="text-zinc-300 hover:text-brand-accent transition-colors font-semibold no-underline">المدونة</a>
+            </div>
+          </div>
+          <div id="navbar-auth-container"></div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 2. الهيدر الشخصي للاعب -->
+    <header class="section-padding py-8 bg-gradient-to-b from-brand-card to-brand-dark border-b border-brand-border">
+        <div class="container max-w-6xl mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center gap-6">
+                <!-- صورة اللاعب ورقم القميص -->
+                <div class="relative w-36 h-36 rounded-full border-4 border-brand-accent p-1 overflow-hidden bg-zinc-900 flex-shrink-0 shadow-lg shadow-brand-accent/10">
+                    <img id="playerPhoto" src="" alt="صورة اللاعب" class="w-full h-full object-cover rounded-full">
+                    <span id="playerNumber" class="absolute bottom-0 right-0 bg-brand-accent text-black font-black px-3 py-0.5 rounded-tl-lg text-lg shadow-md">--</span>
+                </div>
+
+                <!-- تفاصيل الاسم والنادي -->
+                <div class="text-center md:text-right flex-1">
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
+                        <h1 id="playerName" class="text-3xl font-black text-white">جاري تحميل بيانات اللاعب...</h1>
+                        <span id="playerPosition" class="bg-brand-accent/10 text-brand-accent border border-brand-accent/20 px-3 py-1 rounded-full text-xs font-bold">--</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-center md:justify-start gap-3 text-zinc-400 text-sm">
+                        <img id="teamCrest" src="" alt="" class="w-6 h-6 object-contain hidden">
+                        <a id="teamLink" href="#" class="hover:text-brand-accent transition font-semibold text-zinc-300">--</a>
+                        <span>•</span>
+                        <span id="matchesPlayedCount">لعب 0 مباراة</span>
+                    </div>
+                </div>
+
+                <!-- بطاقة التقييم العام للاعب -->
+                <div class="bg-brand-card border border-brand-border p-4 rounded-xl text-center min-w-[140px]">
+                    <span class="text-xs text-zinc-400 block mb-1">التقييم العام</span>
+                    <span id="overallRating" class="text-3xl font-black text-brand-accent">8.4</span>
+                    <span class="text-[10px] text-zinc-500 block mt-1">بناءً على الأداء الميداني</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. الأزرار التفاعلية لملاحظة إحصائيات آخر مباراة vs المتوسط التراكمي -->
+    <div class="border-b border-brand-border bg-brand-card/50">
+        <div class="container max-w-6xl mx-auto px-4">
+            <div class="flex justify-center md:justify-start gap-4 py-3">
+                <button id="btnLastMatch" class="px-5 py-2 rounded-lg text-sm font-bold bg-brand-accent text-black transition shadow-md">
+                    <i class="fa-solid fa-stopwatch ml-1"></i> إحصائيات آخر مباراة
+                </button>
+                <button id="btnCumulative" class="px-5 py-2 rounded-lg text-sm font-bold bg-zinc-800 text-zinc-300 hover:text-white transition">
+                    <i class="fa-solid fa-calculator ml-1"></i> المتوسط التراكمي للموسم
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. محتوى الإحصائيات الفردية والخريطة الحرارية -->
+    <section class="section-padding py-10">
+        <div class="container max-w-6xl mx-auto px-4">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- عمود الإحصائيات التفصيلية باللغة العربية (مطابق لتقريرك) -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- كرت اللاعب الميداني Joueurs de champ -->
+                    <div class="bg-brand-card border border-brand-border rounded-xl p-6 shadow-md">
+                        <h3 class="text-lg font-bold text-brand-accent mb-4 border-b border-brand-border pb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-futbol"></i> الإحصائيات الفردية للاعب (Statistiques individuelles)
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                            
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">الأهداف (Buts)</span>
+                                <span id="statGoals" class="font-bold text-white">0</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">أهداف من ركلات جزاء (Penalties)</span>
+                                <span id="statPenalties" class="font-bold text-white">0</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">أهداف من ركلات حرة (Coups francs)</span>
+                                <span id="statFreeKicks" class="font-bold text-white">0</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">التمريرات الحاسمة (Passes décisives)</span>
+                                <span id="statAssists" class="font-bold text-brand-accent">0</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">التسديدات (على المرمى) (Tirs)</span>
+                                <span id="statShots" class="font-bold text-white">0 (0)</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">التمريرات (الناجحة) (Passes)</span>
+                                <span id="statPasses" class="font-bold text-white">0 (0)</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">العرضيات (Centres)</span>
+                                <span id="statCrosses" class="font-bold text-white">0</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">الأخطاء / التسلل (Fautes/Hors-jeu)</span>
+                                <span id="statFouls" class="font-bold text-white">0 (0)</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">الركلات الركنية (Corners)</span>
+                                <span id="statCorners" class="font-bold text-white">0</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">افتراض وقطع الكرات (Interceptions)</span>
+                                <span id="statInterceptions" class="font-bold text-white">0</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">دقائق اللعب (Temps de jeu)</span>
+                                <span id="statMinutes" class="font-bold text-white">90 دقيقة</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">لمسات الكرة (Ballons touchés)</span>
+                                <span id="statTouches" class="font-bold text-white">0</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">المسافة بالمراوغة (Distance dribblée)</span>
+                                <span id="statDribbleDist" class="font-bold text-white">0.0 m</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">متوسط السرعة (Vitesse moyenne)</span>
+                                <span id="statAvgSpeed" class="font-bold text-white">0.0 km/h</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">التدخلات الناجحة (Tacles)</span>
+                                <span id="statTackles" class="font-bold text-white">0 (0)</span>
+                            </div>
+
+                            <div class="flex justify-between py-2 border-b border-zinc-800/60">
+                                <span class="text-zinc-400">التشتيتات وإبعاد الكرات (Dégagements)</span>
+                                <span id="statClearances" class="font-bold text-white">0</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- رسم بياني لتقييمات آخر 5 مباريات -->
+                    <div class="bg-brand-card border border-brand-border rounded-xl p-6 shadow-md">
+                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-brand-accent"></i> تقييم الأداء في آخر 5 مباريات
+                        </h3>
+                        <div class="h-48 w-full">
+                            <canvas id="ratingsChart"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- عمود الخريطة الحرارية وحراسة المرمى -->
+                <div class="space-y-6">
+                    
+                    <!-- الخريطة الحرارية الميدانية (Zone de jeu) -->
+                    <div class="bg-brand-card border border-brand-border rounded-xl p-6 shadow-md">
+                        <h3 class="text-lg font-bold text-white mb-4 flex items-center justify-between">
+                            <span><i class="fa-solid fa-map-location-dot text-brand-accent"></i> منطقة اللعب (Zone de jeu)</span>
+                            <span class="text-xs text-zinc-500 font-normal">خريطة حرارية</span>
+                        </h3>
+
+                        <!-- محاكاة ملعب كرة القدم الأخضر بالخرائط الحرارية التكتيكية -->
+                        <div class="relative w-full h-80 bg-emerald-900/60 border-2 border-emerald-500/40 rounded-lg overflow-hidden flex flex-col justify-between p-2 shadow-inner">
+                            <!-- خط المنتصف وخطوط الملعب -->
+                            <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 border-b border-emerald-400/30"></div>
+                            <div class="absolute inset-x-1/4 top-0 h-12 border-b border-x border-emerald-400/30 rounded-b-md"></div>
+                            <div class="absolute inset-x-1/4 bottom-0 h-12 border-t border-x border-emerald-400/30 rounded-t-md"></div>
+                            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border border-emerald-400/30 rounded-full"></div>
+
+                            <!-- الكانفاس لرسم نقاط الحرارة التكتيكية -->
+                            <canvas id="heatmapCanvas" class="absolute inset-0 w-full h-full z-10"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- إحصائيات حارس المرمى (تظهر فقط للحراس أو كمُكمل) -->
+                    <div class="bg-brand-card border border-brand-border rounded-xl p-6 shadow-md">
+                        <h3 class="text-md font-bold text-zinc-300 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-hands-mitten text-brand-accent"></i> حراسة المرمى (Gardien de but)
+                        </h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between py-2 border-b border-zinc-800">
+                                <span class="text-zinc-400">التسديدات المستقبلة (على المرمى)</span>
+                                <span id="gkShotsConceded" class="font-bold text-white">-</span>
+                            </div>
+                            <div class="flex justify-between py-2">
+                                <span class="text-zinc-400">التصديات الناجحة (Tirs arrêtés)</span>
+                                <span id="gkSaves" class="font-bold text-emerald-400">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 5. الفوتر -->
+    <footer class="footer border-t border-brand-border bg-brand-card">
+        <div class="container max-w-6xl mx-auto px-4 py-8 text-center text-zinc-500 text-sm">
+            <p>&copy; 2026 دوري الأناضول. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <!-- السكريبتات الأساسية -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/player-profile.js"></script>
+</body>
+</html>
