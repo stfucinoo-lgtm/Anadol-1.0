@@ -167,13 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function deleteComment(commentId) {
     try {
       const result = await apiFetch(`/api/comments/${commentId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        method: 'DELETE'
       });
 
-      if (result.success) {
+      if (result && result.success) {
         // إعادة التحميل بعد الحذف مباشرة
         loadComments();
       }
@@ -202,7 +199,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // إعادة ربط مستمع الحدث للنموذج المنشأ حديثاً ديناميكياً
       const freshForm = document.getElementById('addCommentForm');
-      freshForm.addEventListener('submit', handleCommentSubmission);
+      if (freshForm) {
+        freshForm.addEventListener('submit', handleCommentSubmission);
+      }
     } else {
       // الزائر مجهول، طلب تسجيل الدخول أولاً
       commentFormContainer.innerHTML = `
@@ -217,35 +216,32 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. معالجة إرسال وحفظ التعليق الجديد
   async function handleCommentSubmission(e) {
     e.preventDefault();
-    const contentText = document.getElementById('commentContent').value.trim();
+    const commentInput = document.getElementById('commentContent');
+    const contentText = commentInput ? commentInput.value.trim() : '';
 
     if (!contentText) {
       alert('الرجاء كتابة نص التعليق أولاً.');
       return;
     }
 
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+
     try {
-      const submitBtn = e.target.querySelector('button[type="submit"]');
-      submitBtn.disabled = true;
+      if (submitBtn) submitBtn.disabled = true;
 
       const result = await apiFetch(`/api/blog/${postId}/comments`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ content: contentText })
+        body: { content: contentText }
       });
 
-      if (result.success) {
-        document.getElementById('commentContent').value = '';
+      if (result && result.success) {
+        if (commentInput) commentInput.value = '';
         // إعادة تحميل قائمة التعليقات لإبراز الجديد فوراً
-        loadComments();
+        await loadComments();
       }
     } catch (error) {
       alert(`عذراً، تعذر نشر تعليقك حالياً: ${error.message}`);
     } finally {
-      const submitBtn = e.target.querySelector('button[type="submit"]');
       if (submitBtn) submitBtn.disabled = false;
     }
   }
