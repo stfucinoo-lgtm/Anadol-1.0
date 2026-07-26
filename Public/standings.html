@@ -114,95 +114,12 @@
                         </tr>
                     </thead>
                     <tbody id="standingsTableBody">
-                        <!-- صف 1 -->
-                        <tr class="standing-row-item" data-team-id="1">
-                            <td class="rank-cell">1</td>
-                            <td>
-                                <a href="team-profile.html?id=1" class="team-cell">
-                                    <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=100" alt="شعار النادي" class="team-cell-crest">
-                                    <span class="team-cell-name">نجم الأناضول</span>
-                                </a>
+                        <!-- مؤشر تحميل أثناء انتظار بيانات الترتيب -->
+                        <tr>
+                            <td colspan="10" class="text-center py-12" id="loading-spinner">
+                                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-emerald-400 mb-2"></i>
+                                <p class="text-zinc-400 text-sm">جاري احتساب جدول الترتيب الحي...</p>
                             </td>
-                            <td style="text-align: center;">10</td>
-                            <td style="text-align: center;">8</td>
-                            <td style="text-align: center;">1</td>
-                            <td style="text-align: center;">1</td>
-                            <td style="text-align: center;">24</td>
-                            <td style="text-align: center;">8</td>
-                            <td style="text-align: center; color: var(--success); font-weight: 700;">+16</td>
-                            <td style="text-align: center;" class="points-cell"><span class="pts-val" data-target="25">0</span></td>
-                        </tr>
-                        <!-- صف 2 -->
-                        <tr class="standing-row-item" data-team-id="2">
-                            <td class="rank-cell">2</td>
-                            <td>
-                                <a href="team-profile.html?id=2" class="team-cell">
-                                    <img src="https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?auto=format&fit=crop&q=80&w=100" alt="شعار النادي" class="team-cell-crest">
-                                    <span class="team-cell-name">شباب القلعة</span>
-                                </a>
-                            </td>
-                            <td style="text-align: center;">10</td>
-                            <td style="text-align: center;">7</td>
-                            <td style="text-align: center;">2</td>
-                            <td style="text-align: center;">1</td>
-                            <td style="text-align: center;">19</td>
-                            <td style="text-align: center;">10</td>
-                            <td style="text-align: center; color: var(--success); font-weight: 700;">+9</td>
-                            <td style="text-align: center;" class="points-cell"><span class="pts-val" data-target="23">0</span></td>
-                        </tr>
-                        <!-- صف 3 -->
-                        <tr class="standing-row-item" data-team-id="3">
-                            <td class="rank-cell">3</td>
-                            <td>
-                                <a href="team-profile.html?id=3" class="team-cell">
-                                    <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=100" alt="شعار النادي" class="team-cell-crest">
-                                    <span class="team-cell-name">أف سي الصقور</span>
-                                </a>
-                            </td>
-                            <td style="text-align: center;">10</td>
-                            <td style="text-align: center;">5</td>
-                            <td style="text-align: center;">3</td>
-                            <td style="text-align: center;">2</td>
-                            <td style="text-align: center;">16</td>
-                            <td style="text-align: center;">12</td>
-                            <td style="text-align: center; color: var(--success); font-weight: 700;">+4</td>
-                            <td style="text-align: center;" class="points-cell"><span class="pts-val" data-target="18">0</span></td>
-                        </tr>
-                        <!-- صف 4 -->
-                        <tr class="standing-row-item" data-team-id="4">
-                            <td class="rank-cell">4</td>
-                            <td>
-                                <a href="team-profile.html?id=4" class="team-cell">
-                                    <img src="https://images.unsplash.com/photo-1518063319789-7217e6706b04?auto=format&fit=crop&q=80&w=100" alt="شعار النادي" class="team-cell-crest">
-                                    <span class="team-cell-name">نادي الشهباء</span>
-                                </a>
-                            </td>
-                            <td style="text-align: center;">10</td>
-                            <td style="text-align: center;">4</td>
-                            <td style="text-align: center;">2</td>
-                            <td style="text-align: center;">4</td>
-                            <td style="text-align: center;">12</td>
-                            <td style="text-align: center;">11</td>
-                            <td style="text-align: center; color: var(--success); font-weight: 700;">+1</td>
-                            <td style="text-align: center;" class="points-cell"><span class="pts-val" data-target="14">0</span></td>
-                        </tr>
-                        <!-- صف 5 -->
-                        <tr class="standing-row-item" data-team-id="5">
-                            <td class="rank-cell">5</td>
-                            <td>
-                                <a href="team-profile.html?id=5" class="team-cell">
-                                    <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=100" alt="شعار النادي" class="team-cell-crest">
-                                    <span class="team-cell-name">اتحاد الأنصار</span>
-                                </a>
-                            </td>
-                            <td style="text-align: center;">10</td>
-                            <td style="text-align: center;">3</td>
-                            <td style="text-align: center;">2</td>
-                            <td style="text-align: center;">5</td>
-                            <td style="text-align: center;">10</td>
-                            <td style="text-align: center;">15</td>
-                            <td style="text-align: center; color: var(--danger); font-weight: 700;">-5</td>
-                            <td style="text-align: center;" class="points-cell"><span class="pts-val" data-target="11">0</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -265,6 +182,8 @@
     <!-- استدعاء ملفات الجلسات والتوثيق التفاعلي للواجهات الأمامية لتشغيل النافبار وتحديث حالته -->
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
+    <!-- استدعاء ملف جلب وبناء الترتيب الحي المباشر من قاعدة البيانات -->
+    <script src="js/standings.js"></script>
     
     <script>
         // تشغيل حركات GSAP عند تحميل الصفحة
@@ -276,24 +195,6 @@
             // حركة الهيدر الأساسي
             AnadolAnims.fadeIn('#pageTitle', { y: -20, duration: 0.6 });
             AnadolAnims.fadeIn('.page-header-desc', { y: 20, duration: 0.6, delay: 0.2 });
-
-            // حركة ظهور صفوف الجدول بالتدريج عند التمرير
-            if (document.querySelector('.standing-row-item')) {
-                AnadolAnims.scrollTriggerFade('.standings-table', {
-                    y: 30,
-                    duration: 0.8,
-                    onStart: () => {
-                        // ظهور متتابع للصفوف
-                        AnadolAnims.staggerIn('.standing-row-item', { y: 15, duration: 0.5 });
-                        
-                        // تفعيل عد تصاعدي للنقاط في الخلايا المخصصة
-                        document.querySelectorAll('.pts-val').forEach(el => {
-                            const targetVal = parseInt(el.getAttribute('data-target'), 10) || 0;
-                            AnadolAnims.countUp(el, targetVal, { duration: 1.2 });
-                        });
-                    }
-                });
-            }
         });
     </script>
 </body>
